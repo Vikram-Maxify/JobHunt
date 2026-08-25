@@ -1,0 +1,655 @@
+import React, { useState } from "react";
+import {
+  Mail,
+  Phone,
+  MapPin,
+  Clock3,
+  Send,
+  MessageCircle,
+  BriefcaseBusiness,
+  Users,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
+
+import {
+  FaLinkedinIn,
+  FaInstagram,
+  FaTwitter,
+} from "react-icons/fa";
+
+const ContactUs = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    setSubmitted(true);
+
+    setFormData({
+      name: "",
+      email: "",
+      subject: "",
+      message: "",
+    });
+
+    setTimeout(() => {
+      setSubmitted(false);
+    }, 4000);
+  };
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-slate-50">
+
+      {/* =====================================================
+          HERO
+      ===================================================== */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+
+        {/* Background Decorations */}
+        <div className="pointer-events-none absolute inset-0">
+
+          <div className="absolute -left-24 -top-24 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl sm:h-80 sm:w-80" />
+
+          <div className="absolute -right-24 top-10 h-64 w-64 rounded-full bg-purple-400/20 blur-3xl sm:h-80 sm:w-80" />
+
+          <div className="absolute bottom-0 left-1/2 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+          <div className="flex min-h-[300px] items-center justify-center py-12 text-center sm:min-h-[340px] sm:py-16">
+
+            <div className="max-w-3xl">
+
+              {/* Badge */}
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md sm:text-sm">
+                <MessageCircle size={15} />
+
+                We're Here To Help
+              </div>
+
+              {/* Heading */}
+              <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl">
+                Get In
+                <span className="text-blue-100">
+                  {" "}Touch
+                </span>
+              </h1>
+
+              {/* Description */}
+              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-blue-100/80 sm:text-base lg:text-lg">
+                Have a question, suggestion or need help with your
+                career journey? Our team is ready to help you.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* =====================================================
+          CONTACT INFO CARDS
+      ===================================================== */}
+      <section className="relative -mt-8 px-4 pb-10 sm:px-6 lg:px-8">
+
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+
+          {/* Email */}
+          <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-lg shadow-gray-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6">
+
+            <div className="flex items-start justify-between">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <Mail size={21} />
+              </div>
+
+              <ArrowRight
+                size={18}
+                className="text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-blue-600"
+              />
+
+            </div>
+
+            <h3 className="mt-5 text-base font-bold text-gray-900">
+              Email Us
+            </h3>
+
+            <p className="mt-1 break-all text-sm text-gray-500">
+              support@careersphere.com
+            </p>
+
+          </div>
+
+          {/* Phone */}
+          <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-lg shadow-gray-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6">
+
+            <div className="flex items-start justify-between">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <Phone size={21} />
+              </div>
+
+              <ArrowRight
+                size={18}
+                className="text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-blue-600"
+              />
+
+            </div>
+
+            <h3 className="mt-5 text-base font-bold text-gray-900">
+              Call Us
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              +91 98765 43210
+            </p>
+
+          </div>
+
+          {/* Location */}
+          <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-lg shadow-gray-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6">
+
+            <div className="flex items-start justify-between">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <MapPin size={21} />
+              </div>
+
+              <ArrowRight
+                size={18}
+                className="text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-blue-600"
+              />
+
+            </div>
+
+            <h3 className="mt-5 text-base font-bold text-gray-900">
+              Visit Us
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              New Delhi, India
+            </p>
+
+          </div>
+
+          {/* Working Hours */}
+          <div className="group rounded-2xl border border-gray-100 bg-white p-5 shadow-lg shadow-gray-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl sm:p-6">
+
+            <div className="flex items-start justify-between">
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white">
+                <Clock3 size={21} />
+              </div>
+
+              <ArrowRight
+                size={18}
+                className="text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-blue-600"
+              />
+
+            </div>
+
+            <h3 className="mt-5 text-base font-bold text-gray-900">
+              Working Hours
+            </h3>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Mon - Sat, 9AM - 6PM
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          MAIN CONTACT SECTION
+      ===================================================== */}
+      <section className="px-4 py-6 sm:px-6 sm:py-6 lg:px-8 lg:py-6">
+
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-16">
+
+          {/* =================================================
+              LEFT CONTENT
+          ================================================= */}
+          <div>
+
+            <div className="mb-3 flex items-center gap-2">
+
+              <div className="h-1 w-8 rounded-full bg-blue-600" />
+
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 sm:text-sm">
+                Contact Us
+              </span>
+
+            </div>
+
+            <h2 className="text-3xl font-black leading-tight text-gray-900 sm:text-4xl lg:text-5xl">
+              Let's Start a
+
+              <span className="block text-blue-600">
+                Conversation
+              </span>
+            </h2>
+
+            <p className="mt-5 max-w-xl text-sm leading-relaxed text-gray-500 sm:text-base">
+              Whether you're looking for your dream job, searching
+              for talented professionals, or simply have a question,
+              we'd love to hear from you.
+            </p>
+
+            {/* Job Seekers */}
+            <div className="mt-8 space-y-4">
+
+              <div className="flex gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                  <BriefcaseBusiness size={21} />
+                </div>
+
+                <div>
+
+                  <h3 className="text-sm font-bold text-gray-900 sm:text-base">
+                    Looking For A Job?
+                  </h3>
+
+                  <p className="mt-1 text-xs leading-relaxed text-gray-500 sm:text-sm">
+                    Find opportunities that match your skills,
+                    experience and career goals.
+                  </p>
+
+                </div>
+
+              </div>
+
+              {/* Employers */}
+              <div className="flex gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm sm:p-5">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Users size={21} />
+                </div>
+
+                <div>
+
+                  <h3 className="text-sm font-bold text-gray-900 sm:text-base">
+                    Looking For Talent?
+                  </h3>
+
+                  <p className="mt-1 text-xs leading-relaxed text-gray-500 sm:text-sm">
+                    Connect with skilled professionals and
+                    build your perfect team.
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Social Links */}
+            <div className="mt-8">
+
+              <p className="text-sm font-semibold text-gray-700">
+                Follow CareerSphere
+              </p>
+
+              <div className="mt-3 flex gap-3">
+
+                {/* LinkedIn */}
+                <a
+                  href="#"
+                  aria-label="LinkedIn"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-all hover:border-blue-600 hover:bg-blue-600 hover:text-white"
+                >
+                  <FaLinkedinIn size={16} />
+                </a>
+
+                {/* Instagram */}
+                <a
+                  href="#"
+                  aria-label="Instagram"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-all hover:border-blue-600 hover:bg-blue-600 hover:text-white"
+                >
+                  <FaInstagram size={17} />
+                </a>
+
+                {/* Twitter */}
+                <a
+                  href="#"
+                  aria-label="Twitter"
+                  className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-500 transition-all hover:border-blue-600 hover:bg-blue-600 hover:text-white"
+                >
+                  <FaTwitter size={16} />
+                </a>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              CONTACT FORM
+          ================================================= */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-xl shadow-gray-200/40 sm:p-7 lg:p-8">
+
+            {/* Header */}
+            <div className="mb-6">
+
+              <h3 className="text-xl font-bold text-gray-900 sm:text-2xl">
+                Send Us A Message
+              </h3>
+
+              <p className="mt-1 text-sm text-gray-500">
+                Fill out the form and we'll get back to you soon.
+              </p>
+
+            </div>
+
+            {/* Success */}
+            {submitted && (
+              <div className="mb-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4">
+
+                <CheckCircle2
+                  size={20}
+                  className="mt-0.5 shrink-0 text-green-600"
+                />
+
+                <div>
+
+                  <p className="text-sm font-bold text-green-800">
+                    Message sent successfully!
+                  </p>
+
+                  <p className="mt-1 text-xs text-green-700">
+                    Thank you for contacting CareerSphere.
+                  </p>
+
+                </div>
+
+              </div>
+            )}
+
+            {/* Form */}
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-5"
+            >
+
+              {/* Name + Email */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
+                {/* Name */}
+                <div>
+
+                  <label
+                    htmlFor="name"
+                    className="mb-2 block text-sm font-semibold text-gray-700"
+                  >
+                    Full Name
+                  </label>
+
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={handleChange}
+                    placeholder="Enter your name"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  />
+
+                </div>
+
+                {/* Email */}
+                <div>
+
+                  <label
+                    htmlFor="email"
+                    className="mb-2 block text-sm font-semibold text-gray-700"
+                  >
+                    Email Address
+                  </label>
+
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="you@example.com"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  />
+
+                </div>
+
+              </div>
+
+              {/* Subject */}
+              <div>
+
+                <label
+                  htmlFor="subject"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  Subject
+                </label>
+
+                <input
+                  id="subject"
+                  name="subject"
+                  type="text"
+                  required
+                  value={formData.subject}
+                  onChange={handleChange}
+                  placeholder="How can we help you?"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                />
+
+              </div>
+
+              {/* Message */}
+              <div>
+
+                <label
+                  htmlFor="message"
+                  className="mb-2 block text-sm font-semibold text-gray-700"
+                >
+                  Message
+                </label>
+
+                <textarea
+                  id="message"
+                  name="message"
+                  required
+                  rows="5"
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Write your message here..."
+                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                />
+
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                className="group flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl hover:shadow-blue-600/30"
+              >
+                Send Message
+
+                <Send
+                  size={17}
+                  className="transition-transform duration-300 group-hover:translate-x-1"
+                />
+              </button>
+
+            </form>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          LOCATION SECTION
+      ===================================================== */}
+      <section className="px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8 lg:pb-20">
+
+        <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-slate-900">
+
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+
+            {/* Location Info */}
+            <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12">
+
+              <div className="mb-3 flex items-center gap-2">
+
+                <div className="h-1 w-8 rounded-full bg-blue-500" />
+
+                <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
+                  Find Us
+                </span>
+
+              </div>
+
+              <h2 className="text-2xl font-bold text-white sm:text-3xl">
+                Visit Our Office
+              </h2>
+
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-gray-400 sm:text-base">
+                Come visit us and let's discuss how CareerSphere
+                can help you achieve your career goals.
+              </p>
+
+              <div className="mt-6 flex gap-3">
+
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600/20 text-blue-400">
+                  <MapPin size={21} />
+                </div>
+
+                <div>
+
+                  <p className="text-sm font-bold text-white">
+                    CareerSphere Headquarters
+                  </p>
+
+                  <p className="mt-1 text-sm text-gray-400">
+                    New Delhi, India
+                  </p>
+
+                </div>
+
+              </div>
+
+              <button
+                type="button"
+                className="mt-7 inline-flex w-fit items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                Get Directions
+                <ArrowRight size={16} />
+              </button>
+
+            </div>
+
+            {/* Map */}
+            <div className="relative min-h-[280px] bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 sm:min-h-[340px] lg:min-h-[400px]">
+
+              {/* Grid */}
+              <div
+                className="absolute inset-0 opacity-20"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)",
+                  backgroundSize: "40px 40px",
+                }}
+              />
+
+              {/* Location Pin */}
+              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+
+                <div className="relative">
+
+                  <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-blue-400/20" />
+
+                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-blue-600 text-white shadow-2xl">
+                    <MapPin size={24} />
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* Location Label */}
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs text-white backdrop-blur-md">
+                New Delhi, India
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      {/* =====================================================
+          BOTTOM CTA
+      ===================================================== */}
+      <section className="px-4 pb-12 sm:px-6 lg:px-8">
+
+        <div className="mx-auto max-w-7xl rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-10 text-center sm:px-10 sm:py-12">
+
+          <div className="mx-auto max-w-2xl">
+
+            <h2 className="text-2xl font-bold text-white sm:text-3xl">
+              Your Career Journey Starts Here
+            </h2>
+
+            <p className="mt-3 text-sm text-blue-100 sm:text-base">
+              Connect with CareerSphere and take the next step
+              toward your professional future.
+            </p>
+
+            <button
+              type="button"
+              className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-blue-600 shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+            >
+              Explore Opportunities
+              <ArrowRight size={17} />
+            </button>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  );
+};
+
+export default ContactUs;

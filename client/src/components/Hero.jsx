@@ -5,15 +5,23 @@ import {
   CheckCircle,
   Briefcase,
   Users,
-  Award,
-  Sparkles,
   TrendingUp,
   ChevronDown,
   Globe2,
   Plane,
   MapPin,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination, Navigation, EffectFade } from "swiper/modules";
+
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import "swiper/css/effect-fade";
 
 const Hero = () => {
   const [typed, setTyped] = useState("");
@@ -31,6 +39,40 @@ const Hero = () => {
     x: 0,
     y: 0,
   });
+
+  // =========================================================
+  // SWIPER SLIDES
+  // =========================================================
+
+  const abroadSlides = [
+    {
+      image:
+        "https://images.unsplash.com/photo-1522083165195-3424ed129620?w=1600&auto=format&fit=crop&q=90",
+      country: "United States",
+      city: "New York",
+      title: "Build Your Career in America",
+      description: "Discover professional opportunities in the USA.",
+      icon: "🇺🇸",
+    },
+    {
+      image:
+        "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=1600&auto=format&fit=crop&q=90",
+      country: "Australia",
+      city: "Sydney",
+      title: "Build Your Career in Australia",
+      description: "Find new opportunities and grow professionally abroad.",
+      icon: "🇦🇺",
+    },
+    {
+      image:
+        "https://images.unsplash.com/photo-1517935706615-2717063c2225?w=1600&auto=format&fit=crop&q=90",
+      country: "Canada",
+      city: "Toronto",
+      title: "Build Your Career in Canada",
+      description: "Explore international jobs with trusted opportunities.",
+      icon: "🇨🇦",
+    },
+  ];
 
   // =========================================================
   // TYPEWRITER
@@ -367,6 +409,88 @@ const Hero = () => {
             z-index: 2;
           }
 
+          /* =====================================================
+             SWIPER CUSTOM DESIGN
+          ===================================================== */
+
+          .hero-swiper {
+            width: 100%;
+            height: 100%;
+          }
+
+          .hero-swiper .swiper-slide {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .hero-swiper .swiper-pagination {
+            bottom: 14px !important;
+          }
+
+          .hero-swiper .swiper-pagination-bullet {
+            width: 7px;
+            height: 7px;
+            background: white;
+            opacity: 0.65;
+            transition: all 0.3s ease;
+          }
+
+          .hero-swiper .swiper-pagination-bullet-active {
+            width: 22px;
+            border-radius: 999px;
+            opacity: 1;
+          }
+
+          .hero-swiper .swiper-button-prev,
+          .hero-swiper .swiper-button-next {
+            width: 36px;
+            height: 36px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.92);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            color: #2563eb;
+          }
+
+          .hero-swiper .swiper-button-prev::after,
+          .hero-swiper .swiper-button-next::after {
+            font-size: 14px;
+            font-weight: 800;
+          }
+
+          .hero-swiper .swiper-button-prev {
+            left: 14px;
+          }
+
+          .hero-swiper .swiper-button-next {
+            right: 14px;
+          }
+
+          @media (max-width: 640px) {
+            .hero-swiper .swiper-button-prev,
+            .hero-swiper .swiper-button-next {
+              width: 30px;
+              height: 30px;
+            }
+
+            .hero-swiper .swiper-button-prev::after,
+            .hero-swiper .swiper-button-next::after {
+              font-size: 11px;
+            }
+
+            .hero-swiper .swiper-button-prev {
+              left: 8px;
+            }
+
+            .hero-swiper .swiper-button-next {
+              right: 8px;
+            }
+
+            .hero-swiper .swiper-pagination {
+              bottom: 8px !important;
+            }
+          }
+
           @media (prefers-reduced-motion: reduce) {
             .animate-float,
             .animate-float-reverse,
@@ -405,8 +529,6 @@ const Hero = () => {
 
           <div className="absolute bottom-0 left-0 h-1/2 w-1/2 bg-gradient-to-tr from-indigo-100/20 to-transparent" />
 
-          {/* Decorative blobs */}
-
           <div
             className="
               absolute
@@ -444,8 +566,6 @@ const Hero = () => {
             "
           />
 
-          {/* Center glow */}
-
           <div
             className="
               absolute
@@ -463,8 +583,6 @@ const Hero = () => {
               animate-pulse-glow
             "
           />
-
-          {/* Decorative shapes */}
 
           <div
             className="
@@ -552,15 +670,11 @@ const Hero = () => {
                 w-full
                 min-w-0
                 flex-1
-
                 text-left
-
                 lg:text-left
               "
             >
-              {/* =================================================
-                  INTERNATIONAL BADGE
-              ================================================== */}
+              {/* INTERNATIONAL BADGE */}
 
               <div
                 className="
@@ -604,9 +718,7 @@ const Hero = () => {
                 </span>
               </div>
 
-              {/* =================================================
-                  HEADING
-              ================================================== */}
+              {/* HEADING */}
 
               <h1
                 className="
@@ -640,9 +752,7 @@ const Hero = () => {
                 </span>
               </h1>
 
-              {/* =================================================
-                  DESCRIPTION
-              ================================================== */}
+              {/* DESCRIPTION */}
 
               <p
                 className="
@@ -673,9 +783,7 @@ const Hero = () => {
                 dreamed of.
               </p>
 
-              {/* =================================================
-                  INTERNATIONAL FEATURES
-              ================================================== */}
+              {/* INTERNATIONAL FEATURES */}
 
               <div
                 className="
@@ -714,9 +822,7 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* =================================================
-                  BUTTONS
-              ================================================== */}
+              {/* BUTTONS */}
 
               <div
                 className="
@@ -770,7 +876,10 @@ const Hero = () => {
                 >
                   <span className="absolute inset-0 rounded-full bg-white/10" />
 
-                  <Link to='/jobs' className="relative z-10">
+                  <Link
+                    to="/jobs"
+                    className="relative z-10"
+                  >
                     Explore Global Jobs
                   </Link>
 
@@ -821,13 +930,13 @@ const Hero = () => {
                     className="fill-current"
                   />
 
-                  <Link to='/subscription'>Get Subscription</Link>
+                  <Link to="/subscription">
+                    Get Subscription
+                  </Link>
                 </button>
               </div>
 
-              {/* =================================================
-                  STATS
-              ================================================== */}
+              {/* STATS */}
 
               <div
                 ref={counterRef}
@@ -968,9 +1077,7 @@ const Hero = () => {
                 </div>
               </div>
 
-              {/* =================================================
-                  TRUST LOGOS
-              ================================================== */}
+              {/* TRUST LOGOS */}
 
               <div
                 className="
@@ -1020,8 +1127,6 @@ const Hero = () => {
                       +500 more
                     </span>
 
-                    {/* Duplicate */}
-
                     <span className="ml-8 mr-3 text-xs font-medium text-gray-400 sm:text-sm">
                       Trusted by
                     </span>
@@ -1059,7 +1164,7 @@ const Hero = () => {
             </div>
 
             {/* =================================================
-                RIGHT IMAGE
+                RIGHT IMAGE / SWIPER
             ================================================== */}
 
             <div
@@ -1117,214 +1222,351 @@ const Hero = () => {
                 <div className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full bg-indigo-400/40 blur-sm sm:-right-4 sm:h-7 sm:w-7" />
 
                 {/* =================================================
-                    IMAGE
+                    SWIPER
                 ================================================== */}
 
                 <div className="relative">
                   <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-600/20 to-indigo-600/20 blur-2xl sm:rounded-3xl" />
 
                   <div className="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 sm:rounded-3xl">
-                    <img
-                      src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&auto=format&fit=crop&q=85"
-                      alt="International professionals working together"
+                    <Swiper
+                      modules={[
+                        Autoplay,
+                        Pagination,
+                        Navigation,
+                        EffectFade,
+                      ]}
+                      effect="fade"
+                      fadeEffect={{
+                        crossFade: true,
+                      }}
+                      slidesPerView={1}
+                      loop={true}
+                      speed={1000}
+                      autoplay={{
+                        delay: 4000,
+                        disableOnInteraction: false,
+                        pauseOnMouseEnter: true,
+                      }}
+                      pagination={{
+                        clickable: true,
+                      }}
+                      navigation={true}
+                      className="hero-swiper aspect-[4/3] w-full"
+                    >
+                      {abroadSlides.map((slide, index) => (
+                        <SwiperSlide key={index}>
+                          <div className="relative h-full w-full bg-slate-100">
+                            {/* IMAGE */}
+
+                            <img
+                              src={slide.image}
+                              alt={`${slide.city}, ${slide.country}`}
+                              className="
+                                h-full
+                                w-full
+                                object-contain
+                                bg-slate-100
+                              "
+                            />
+
+                            {/* Overlay */}
+
+                            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+
+                            {/* COUNTRY LABEL */}
+
+                            <div
+                              className="
+                                absolute
+                                left-4
+                                top-4
+                                flex
+                                items-center
+                                gap-2
+                                rounded-full
+                                border
+                                border-white/30
+                                bg-black/30
+                                px-3
+                                py-1.5
+                                text-white
+                                shadow-lg
+                                backdrop-blur-md
+
+                                sm:left-5
+                                sm:top-5
+                                sm:px-4
+                                sm:py-2
+                              "
+                            >
+                              <span className="text-base sm:text-lg">
+                                {slide.icon}
+                              </span>
+
+                              <span className="text-[10px] font-semibold sm:text-xs">
+                                {slide.country}
+                              </span>
+                            </div>
+
+                            {/* SLIDE CONTENT */}
+
+                            <div
+                              className="
+                                absolute
+                                bottom-8
+                                left-4
+                                right-4
+                                text-white
+
+                                sm:bottom-10
+                                sm:left-6
+                                sm:right-6
+
+                                md:bottom-12
+                                md:left-8
+                                md:right-8
+                              "
+                            >
+                              <div className="mb-1 flex items-center gap-1.5">
+                                <MapPin
+                                  size={13}
+                                  className="text-blue-300 sm:h-4 sm:w-4"
+                                />
+
+                                <span className="text-[10px] font-medium text-blue-100 sm:text-xs">
+                                  {slide.city}
+                                </span>
+                              </div>
+
+                              <h2
+                                className="
+                                  max-w-xl
+                                  text-lg
+                                  font-black
+                                  leading-tight
+
+                                  sm:text-2xl
+
+                                  md:text-3xl
+
+                                  lg:text-4xl
+                                "
+                              >
+                                {slide.title}
+                              </h2>
+
+                              <p
+                                className="
+                                  mt-1
+                                  max-w-lg
+                                  text-[10px]
+                                  leading-4
+                                  text-white/80
+
+                                  sm:mt-2
+                                  sm:text-xs
+                                  sm:leading-5
+
+                                  md:text-sm
+                                "
+                              >
+                                {slide.description}
+                              </p>
+                            </div>
+                          </div>
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
+
+                    {/* =================================================
+                        TOP FLOATING CARD
+                    ================================================== */}
+
+                    <div
                       className="
-                        aspect-[4/3]
-                        h-auto
-                        w-full
-                        object-cover
-                        transition-transform
-                        duration-700
-                        ease-out
-                        hover:scale-105
+                        absolute
+                        right-2
+                        top-2
+                        z-20
+                        rounded-xl
+                        border
+                        border-white/40
+                        bg-white/90
+                        px-2
+                        py-1.5
+                        shadow-2xl
+                        backdrop-blur-xl
+
+                        sm:right-4
+                        sm:top-4
+                        sm:rounded-2xl
+                        sm:px-3
+                        sm:py-2.5
+
+                        md:right-6
+                        md:top-6
+                        md:px-4
+                        md:py-3
                       "
-                    />
+                    >
+                      <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 sm:h-8 sm:w-8 md:h-10 md:w-10">
+                          <Globe2
+                            size={12}
+                            className="text-blue-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
+                          />
+                        </div>
 
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
-                  </div>
+                        <div>
+                          <p className="whitespace-nowrap text-[9px] font-bold text-gray-800 sm:text-xs md:text-sm">
+                            50+ Countries
+                          </p>
 
-                  {/* =================================================
-                      TOP FLOATING CARD
-                  ================================================== */}
-
-                  <div
-                    className="
-                      absolute
-                      right-2
-                      top-2
-                      rounded-xl
-                      border
-                      border-white/40
-                      bg-white/90
-                      px-2
-                      py-1.5
-                      shadow-2xl
-                      backdrop-blur-xl
-
-                      sm:right-4
-                      sm:top-4
-                      sm:rounded-2xl
-                      sm:px-3
-                      sm:py-2.5
-
-                      md:right-6
-                      md:top-6
-                      md:px-4
-                      md:py-3
-                    "
-                  >
-                    <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 sm:h-8 sm:w-8 md:h-10 md:w-10">
-                        <Globe2
-                          size={12}
-                          className="text-blue-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
-                        />
-                      </div>
-
-                      <div>
-                        <p className="whitespace-nowrap text-[9px] font-bold text-gray-800 sm:text-xs md:text-sm">
-                          50+ Countries
-                        </p>
-
-                        <p className="whitespace-nowrap text-[8px] text-gray-500 sm:text-[10px] md:text-xs">
-                          Global opportunities
-                        </p>
+                          <p className="whitespace-nowrap text-[8px] text-gray-500 sm:text-[10px] md:text-xs">
+                            Global opportunities
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* =================================================
-                      BOTTOM LEFT CARD
-                  ================================================== */}
+                    {/* =================================================
+                        BOTTOM LEFT CARD
+                    ================================================== */}
 
-                  <div
-                    className="
-                      absolute
-                      bottom-2
-                      left-2
-                      rounded-xl
-                      border
-                      border-white/40
-                      bg-white/90
-                      px-2
-                      py-1.5
-                      shadow-2xl
-                      backdrop-blur-xl
+                    <div
+                      className="
+                        absolute
+                        bottom-8
+                        left-2
+                        z-20
+                        rounded-xl
+                        border
+                        border-white/40
+                        bg-white/90
+                        px-2
+                        py-1.5
+                        shadow-2xl
+                        backdrop-blur-xl
 
-                      sm:bottom-4
-                      sm:left-4
-                      sm:rounded-2xl
-                      sm:px-3
-                      sm:py-2.5
+                        sm:bottom-10
+                        sm:left-4
+                        sm:rounded-2xl
+                        sm:px-3
+                        sm:py-2.5
 
-                      md:bottom-6
-                      md:left-6
-                      md:px-4
-                      md:py-3
-                    "
-                  >
-                    <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:h-8 sm:w-8 md:h-10 md:w-10">
-                        <Plane
-                          size={12}
-                          className="text-indigo-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
-                        />
-                      </div>
+                        md:bottom-12
+                        md:left-6
+                        md:px-4
+                        md:py-3
+                      "
+                    >
+                      <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3">
+                        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:h-8 sm:w-8 md:h-10 md:w-10">
+                          <Plane
+                            size={12}
+                            className="text-indigo-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
+                          />
+                        </div>
 
-                      <div>
-                        <p className="whitespace-nowrap text-[9px] font-bold text-gray-800 sm:text-xs md:text-sm">
-                          Work Abroad
-                        </p>
+                        <div>
+                          <p className="whitespace-nowrap text-[9px] font-bold text-gray-800 sm:text-xs md:text-sm">
+                            Work Abroad
+                          </p>
 
-                        <p className="whitespace-nowrap text-[8px] text-gray-500 sm:text-[10px] md:text-xs">
-                          Your next destination
-                        </p>
+                          <p className="whitespace-nowrap text-[8px] text-gray-500 sm:text-[10px] md:text-xs">
+                            Your next destination
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* =================================================
-                      BOTTOM RIGHT CARD
-                  ================================================== */}
+                    {/* =================================================
+                        BOTTOM RIGHT CARD
+                    ================================================== */}
 
-                  <div
-                    className="
-                      absolute
-                      bottom-2
-                      right-2
-                      hidden
-                      items-center
-                      gap-1.5
-                      rounded-xl
-                      border
-                      border-white/40
-                      bg-white/90
-                      px-2
-                      py-1.5
-                      shadow-2xl
-                      backdrop-blur-xl
+                    <div
+                      className="
+                        absolute
+                        bottom-8
+                        right-2
+                        z-20
+                        hidden
+                        items-center
+                        gap-1.5
+                        rounded-xl
+                        border
+                        border-white/40
+                        bg-white/90
+                        px-2
+                        py-1.5
+                        shadow-2xl
+                        backdrop-blur-xl
 
-                      sm:flex
-                      sm:bottom-4
-                      sm:right-4
-                      sm:rounded-2xl
-                      sm:px-3
-                      sm:py-2.5
+                        sm:flex
+                        sm:bottom-10
+                        sm:right-4
+                        sm:rounded-2xl
+                        sm:px-3
+                        sm:py-2.5
 
-                      md:bottom-6
-                      md:right-6
-                    "
-                  >
-                    <CheckCircle
-                      size={13}
-                      className="shrink-0 text-green-500 sm:h-4 sm:w-4"
-                    />
-
-                    <span className="whitespace-nowrap text-[9px] font-semibold text-gray-800 sm:text-xs">
-                      Verified Opportunities
-                    </span>
-                  </div>
-
-                  {/* =================================================
-                      LOCATION CARD
-                  ================================================== */}
-
-                  <div
-                    className="
-                      absolute
-                      left-1/2
-                      top-1/2
-                      hidden
-                      -translate-x-1/2
-                      -translate-y-1/2
-                      items-center
-                      gap-2
-                      rounded-2xl
-                      border
-                      border-white/40
-                      bg-white/90
-                      px-4
-                      py-3
-                      shadow-2xl
-                      backdrop-blur-xl
-
-                      md:flex
-                    "
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50">
-                      <MapPin
-                        size={18}
-                        className="text-red-500"
+                        md:bottom-12
+                        md:right-6
+                      "
+                    >
+                      <CheckCircle
+                        size={13}
+                        className="shrink-0 text-green-500 sm:h-4 sm:w-4"
                       />
+
+                      <span className="whitespace-nowrap text-[9px] font-semibold text-gray-800 sm:text-xs">
+                        Verified Opportunities
+                      </span>
                     </div>
 
-                    <div>
-                      <p className="text-xs font-bold text-gray-800">
-                        Your Career
-                      </p>
+                    {/* =================================================
+                        LOCATION CARD
+                    ================================================== */}
 
-                      <p className="text-[10px] text-gray-500">
-                        Can take you anywhere
-                      </p>
+                    <div
+                      className="
+                        absolute
+                        left-1/2
+                        top-1/2
+                        z-20
+                        hidden
+                        -translate-x-1/2
+                        -translate-y-1/2
+                        items-center
+                        gap-2
+                        rounded-2xl
+                        border
+                        border-white/40
+                        bg-white/90
+                        px-4
+                        py-3
+                        shadow-2xl
+                        backdrop-blur-xl
+
+                        md:flex
+                      "
+                    >
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50">
+                        <MapPin
+                          size={18}
+                          className="text-red-500"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold text-gray-800">
+                          Your Career
+                        </p>
+
+                        <p className="text-[10px] text-gray-500">
+                          Can take you anywhere
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

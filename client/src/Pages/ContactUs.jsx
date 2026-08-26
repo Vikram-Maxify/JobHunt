@@ -10,6 +10,7 @@ import {
   Users,
   ArrowRight,
   CheckCircle2,
+  Globe2,
 } from "lucide-react";
 
 import {
@@ -61,53 +62,99 @@ const ContactUs = () => {
       {/* =====================================================
           HERO
       ===================================================== */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+     {/* =====================================================
+    HERO - ABROAD / GLOBAL CAREER
+===================================================== */}
 
-        {/* Background Decorations */}
-        <div className="pointer-events-none absolute inset-0">
+<section className="relative overflow-hidden">
 
-          <div className="absolute -left-24 -top-24 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl sm:h-80 sm:w-80" />
+  {/* Abroad Background Image */}
+  <div
+    className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+    style={{
+      backgroundImage:
+        "url('https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=2000&q=85')",
+    }}
+  />
 
-          <div className="absolute -right-24 top-10 h-64 w-64 rounded-full bg-purple-400/20 blur-3xl sm:h-80 sm:w-80" />
+  {/* Professional Dark Overlay */}
+  <div className="absolute inset-0 bg-slate-950/65" />
 
-          <div className="absolute bottom-0 left-1/2 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
+  {/* Soft Blue Overlay */}
+  <div className="absolute inset-0 bg-blue-950/20" />
+
+  {/* Decorative Elements */}
+  <div className="pointer-events-none absolute inset-0">
+
+    <div className="absolute -left-24 -top-24 h-64 w-64 rounded-full bg-blue-400/10 blur-3xl sm:h-80 sm:w-80" />
+
+    <div className="absolute -right-24 bottom-0 h-72 w-72 rounded-full bg-indigo-400/10 blur-3xl sm:h-96 sm:w-96" />
+
+  </div>
+
+  {/* Hero Content */}
+  <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+
+    <div className="flex min-h-[330px] items-center justify-center py-14 text-center sm:min-h-[380px] sm:py-16 lg:min-h-[410px]">
+
+      <div className="max-w-4xl">
+
+        {/* Badge */}
+        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white shadow-lg backdrop-blur-md sm:text-sm">
+
+          <Globe2 size={16} />
+
+          Global Career Opportunities
 
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Heading */}
+        <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
 
-          <div className="flex min-h-[300px] items-center justify-center py-12 text-center sm:min-h-[340px] sm:py-16">
+          Build Your Career
 
-            <div className="max-w-3xl">
+          <span className="block text-blue-300">
+            Beyond Borders
+          </span>
 
-              {/* Badge */}
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md sm:text-sm">
-                <MessageCircle size={15} />
+        </h1>
 
-                We're Here To Help
-              </div>
+        {/* Description */}
+        <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base lg:text-lg">
 
-              {/* Heading */}
-              <h1 className="text-4xl font-black tracking-tight text-white sm:text-5xl md:text-6xl">
-                Get In
-                <span className="text-blue-100">
-                  {" "}Touch
-                </span>
-              </h1>
+          Looking for opportunities abroad or planning your next
+          career move? CareerSphere helps you discover jobs,
+          build your profile and move closer to your global career goals.
 
-              {/* Description */}
-              <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-blue-100/80 sm:text-base lg:text-lg">
-                Have a question, suggestion or need help with your
-                career journey? Our team is ready to help you.
-              </p>
+        </p>
 
-            </div>
+        {/* Trust Points */}
+        <div className="mt-7 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
 
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
+            <CheckCircle2 size={15} className="text-blue-300" />
+            Global Opportunities
+          </div>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
+            <CheckCircle2 size={15} className="text-blue-300" />
+            Professional Support
+          </div>
+
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white backdrop-blur-md">
+            <CheckCircle2 size={15} className="text-blue-300" />
+            Career Growth
           </div>
 
         </div>
-      </section>
 
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
       {/* =====================================================
           CONTACT INFO CARDS
       ===================================================== */}

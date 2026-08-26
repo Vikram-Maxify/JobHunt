@@ -6,6 +6,7 @@ import ChooseUs from '../components/ChooseUs'
 import Testimonials from '../components/Testimonials'
 import Newsletter from '../components/Newsletter'
 import ImageSection from '../components/ImageSection'
+import Banner from '../components/Banner'
 
 
 const Home = () => {
@@ -13,6 +14,7 @@ const Home = () => {
     <div>
         <Hero />
         <JobCategories />
+        <Banner />
         <CarrierWork />
         <ImageSection />
         <ChooseUs />

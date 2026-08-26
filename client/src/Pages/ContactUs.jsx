@@ -17,6 +17,7 @@ import {
   FaInstagram,
   FaTwitter,
 } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -515,108 +516,6 @@ const ContactUs = () => {
       </section>
 
       {/* =====================================================
-          LOCATION SECTION
-      ===================================================== */}
-      <section className="px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8 lg:pb-20">
-
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-3xl bg-slate-900">
-
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-
-            {/* Location Info */}
-            <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-12">
-
-              <div className="mb-3 flex items-center gap-2">
-
-                <div className="h-1 w-8 rounded-full bg-blue-500" />
-
-                <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
-                  Find Us
-                </span>
-
-              </div>
-
-              <h2 className="text-2xl font-bold text-white sm:text-3xl">
-                Visit Our Office
-              </h2>
-
-              <p className="mt-3 max-w-md text-sm leading-relaxed text-gray-400 sm:text-base">
-                Come visit us and let's discuss how CareerSphere
-                can help you achieve your career goals.
-              </p>
-
-              <div className="mt-6 flex gap-3">
-
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-600/20 text-blue-400">
-                  <MapPin size={21} />
-                </div>
-
-                <div>
-
-                  <p className="text-sm font-bold text-white">
-                    CareerSphere Headquarters
-                  </p>
-
-                  <p className="mt-1 text-sm text-gray-400">
-                    New Delhi, India
-                  </p>
-
-                </div>
-
-              </div>
-
-              <button
-                type="button"
-                className="mt-7 inline-flex w-fit items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
-              >
-                Get Directions
-                <ArrowRight size={16} />
-              </button>
-
-            </div>
-
-            {/* Map */}
-            <div className="relative min-h-[280px] bg-gradient-to-br from-blue-900 via-indigo-900 to-slate-900 sm:min-h-[340px] lg:min-h-[400px]">
-
-              {/* Grid */}
-              <div
-                className="absolute inset-0 opacity-20"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(rgba(255,255,255,.15) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.15) 1px, transparent 1px)",
-                  backgroundSize: "40px 40px",
-                }}
-              />
-
-              {/* Location Pin */}
-              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-
-                <div className="relative">
-
-                  <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full bg-blue-400/20" />
-
-                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-blue-600 text-white shadow-2xl">
-                    <MapPin size={24} />
-                  </div>
-
-                </div>
-
-              </div>
-
-              {/* Location Label */}
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs text-white backdrop-blur-md">
-                New Delhi, India
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-      {/* =====================================================
           BOTTOM CTA
       ===================================================== */}
       <section className="px-4 pb-12 sm:px-6 lg:px-8">
@@ -634,13 +533,15 @@ const ContactUs = () => {
               toward your professional future.
             </p>
 
-            <button
+            <Link to='/jobs'>
+              <button
               type="button"
               className="mt-6 inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-blue-600 shadow-lg transition-all hover:scale-105 hover:shadow-xl"
             >
               Explore Opportunities
               <ArrowRight size={17} />
             </button>
+            </Link>
 
           </div>
 

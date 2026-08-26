@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -19,9 +19,10 @@ import {
   User,
   Mail,
   Phone,
-//   Linkedin,
   Globe,
   Send,
+  Camera,
+  ShieldCheck,
 } from "lucide-react";
 
 const JobDetail = () => {
@@ -54,7 +55,11 @@ const JobDetail = () => {
     phone: "",
     experienceType: "Fresher",
     experience: "",
+
+    profilePhoto: null,
+    governmentDocument: null,
     resume: null,
+
     skills: "",
     currentLocation: "",
     expectedSalary: "",
@@ -66,18 +71,159 @@ const JobDetail = () => {
   });
 
   // =========================================================
+  // LOCK BACKGROUND SCROLL WHEN MODAL IS OPEN
+  // =========================================================
+
+  useEffect(() => {
+    if (showApplyModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showApplyModal]);
+
+  // =========================================================
   // FORM CHANGE
   // =========================================================
 
   const handleChange = (e) => {
     const { name, value, files, type } = e.target;
 
+    if (type === "file") {
+      const file = files?.[0] || null;
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: file,
+      }));
+
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        type === "file"
-          ? files?.[0] || null
-          : value,
+      [name]: value,
+    }));
+  };
+
+  // =========================================================
+  // FILE SIZE VALIDATION
+  // =========================================================
+
+  const validateFileSize = (file, maxSizeMB) => {
+    if (!file) return true;
+
+    const maxSize = maxSizeMB * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      alert(
+        `${file.name} is too large. Maximum allowed size is ${maxSizeMB}MB.`
+      );
+
+      return false;
+    }
+
+    return true;
+  };
+
+  // =========================================================
+  // PROFILE PHOTO CHANGE
+  // =========================================================
+
+  const handleProfilePhotoChange = (e) => {
+    const file = e.target.files?.[0] || null;
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload JPG, JPEG or PNG image only.");
+      e.target.value = "";
+      return;
+    }
+
+    if (!validateFileSize(file, 2)) {
+      e.target.value = "";
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      profilePhoto: file,
+    }));
+  };
+
+  // =========================================================
+  // GOVERNMENT DOCUMENT CHANGE
+  // =========================================================
+
+  const handleGovernmentDocumentChange = (e) => {
+    const file = e.target.files?.[0] || null;
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/jpg",
+      "image/png",
+      "application/pdf",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload JPG, JPEG, PNG or PDF document only.");
+      e.target.value = "";
+      return;
+    }
+
+    if (!validateFileSize(file, 5)) {
+      e.target.value = "";
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      governmentDocument: file,
+    }));
+  };
+
+  // =========================================================
+  // RESUME CHANGE
+  // =========================================================
+
+  const handleResumeChange = (e) => {
+    const file = e.target.files?.[0] || null;
+
+    if (!file) return;
+
+    const allowedTypes = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      alert("Please upload PDF, DOC or DOCX file only.");
+      e.target.value = "";
+      return;
+    }
+
+    if (!validateFileSize(file, 5)) {
+      e.target.value = "";
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      resume: file,
     }));
   };
 
@@ -134,6 +280,10 @@ const JobDetail = () => {
       setFormData((prev) => ({
         ...prev,
         ...savedData,
+
+        // File objects cannot be restored from localStorage
+        profilePhoto: null,
+        governmentDocument: null,
         resume: null,
       }));
 
@@ -161,14 +311,126 @@ const JobDetail = () => {
       return;
     }
 
+    if (!formData.profilePhoto) {
+      alert("Please upload your profile photo.");
+      return;
+    }
+
+    if (!formData.governmentDocument) {
+      alert("Please upload your government ID document.");
+      return;
+    }
+
+    // =====================================================
+    // FORM DATA FOR BACKEND
+    // =====================================================
+
+    const applicationData = new FormData();
+
+    applicationData.append("name", formData.name);
+    applicationData.append("email", formData.email);
+    applicationData.append("phone", formData.phone);
+
+    applicationData.append(
+      "experienceType",
+      formData.experienceType
+    );
+
+    applicationData.append(
+      "experience",
+      formData.experience
+    );
+
+    applicationData.append(
+      "skills",
+      formData.skills
+    );
+
+    applicationData.append(
+      "currentLocation",
+      formData.currentLocation
+    );
+
+    applicationData.append(
+      "expectedSalary",
+      formData.expectedSalary
+    );
+
+    applicationData.append(
+      "noticePeriod",
+      formData.noticePeriod
+    );
+
+    applicationData.append(
+      "linkedin",
+      formData.linkedin
+    );
+
+    applicationData.append(
+      "portfolio",
+      formData.portfolio
+    );
+
+    applicationData.append(
+      "coverLetter",
+      formData.coverLetter
+    );
+
+    applicationData.append(
+      "additionalInfo",
+      formData.additionalInfo
+    );
+
+    // Job information
+    applicationData.append(
+      "jobId",
+      job?._id || job?.id || ""
+    );
+
+    applicationData.append(
+      "jobTitle",
+      job?.title || ""
+    );
+
+    applicationData.append(
+      "company",
+      job?.company || ""
+    );
+
+    // Files
+    applicationData.append(
+      "profilePhoto",
+      formData.profilePhoto
+    );
+
+    applicationData.append(
+      "governmentDocument",
+      formData.governmentDocument
+    );
+
+    applicationData.append(
+      "resume",
+      formData.resume
+    );
+
+    // =====================================================
+    // DEBUG
+    // =====================================================
+
     console.log("Application Data:", formData);
     console.log("Applied Job:", job);
+
+    for (const [key, value] of applicationData.entries()) {
+      console.log(key, value);
+    }
+
+    // Backend API will go here
 
     setIsSubmitted(true);
   };
 
   // =========================================================
-  // RESET APPLICATION
+  // CLOSE APPLICATION MODAL
   // =========================================================
 
   const closeApplicationModal = () => {
@@ -188,6 +450,7 @@ const JobDetail = () => {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+
           <h1 className="text-xl font-bold text-slate-900">
             Job not found
           </h1>
@@ -202,6 +465,7 @@ const JobDetail = () => {
           >
             Back to Jobs
           </button>
+
         </div>
       </main>
     );
@@ -214,9 +478,11 @@ const JobDetail = () => {
       ====================================================== */}
 
       <main className="min-h-screen bg-slate-50 py-5 sm:py-8">
+
         <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
-          {/* Back */}
+          {/* BACK BUTTON */}
+
           <button
             onClick={() => navigate("/jobs")}
             className="mb-5 flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-blue-50 hover:text-blue-600"
@@ -228,19 +494,21 @@ const JobDetail = () => {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
             {/* =================================================
-                LEFT
+                LEFT CONTENT
             ================================================== */}
 
             <div className="space-y-6 lg:col-span-2">
 
-              {/* Header */}
+              {/* HEADER */}
+
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
 
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
 
                   <div className="flex min-w-0 gap-4">
 
-                    {/* Logo */}
+                    {/* LOGO */}
+
                     <div
                       className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-xl font-black shadow-sm sm:h-20 sm:w-20 ${job.logoClass}`}
                     >
@@ -248,6 +516,7 @@ const JobDetail = () => {
                     </div>
 
                     <div className="min-w-0">
+
                       <h1 className="break-words text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
                         {job.title}
                       </h1>
@@ -275,10 +544,12 @@ const JobDetail = () => {
                         </span>
 
                       </div>
+
                     </div>
                   </div>
 
-                  {/* Actions */}
+                  {/* ACTIONS */}
+
                   <div className="flex gap-2">
 
                     <button
@@ -330,47 +601,79 @@ const JobDetail = () => {
                     </button>
 
                   </div>
+
                 </div>
 
-                {/* Stats */}
-                <div className="mt-6 grid grid-cols-1 gap-3 border-t border-slate-100 pt-5 sm:grid-cols-3">
+                {/* STATS */}
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium text-slate-500">
+                <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 sm:gap-3">
+
+                  {/* SALARY */}
+
+                  <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+
+                    <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
                       Salary
                     </p>
 
-                    <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900">
-                      <IndianRupee size={15} />
-                      {job.salary}
+                    <p className="mt-1 flex min-w-0 items-center gap-1 text-xs font-bold text-slate-900 sm:text-sm">
+
+                      <IndianRupee
+                        size={13}
+                        className="shrink-0 sm:h-[15px] sm:w-[15px]"
+                      />
+
+                      <span className="truncate">
+                        {job.salary}
+                      </span>
+
                     </p>
+
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium text-slate-500">
+                  {/* POSTED */}
+
+                  <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+
+                    <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
                       Posted
                     </p>
 
-                    <p className="mt-1 text-sm font-bold text-slate-900">
+                    <p className="mt-1 truncate text-xs font-bold text-slate-900 sm:text-sm">
                       {job.posted}
                     </p>
+
                   </div>
 
-                  <div className="rounded-xl bg-slate-50 p-4">
-                    <p className="text-xs font-medium text-slate-500">
+                  {/* APPLICANTS */}
+
+                  <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+
+                    <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
                       Applicants
                     </p>
 
-                    <p className="mt-1 flex items-center gap-1 text-sm font-bold text-slate-900">
-                      <Users size={15} />
-                      {job.applicants}
+                    <p className="mt-1 flex min-w-0 items-center gap-1 text-xs font-bold text-slate-900 sm:text-sm">
+
+                      <Users
+                        size={13}
+                        className="shrink-0 sm:h-[15px] sm:w-[15px]"
+                      />
+
+                      <span className="truncate">
+                        {job.applicants}
+                      </span>
+
                     </p>
+
                   </div>
 
                 </div>
+
               </section>
 
-              {/* Description */}
+              {/* DESCRIPTION */}
+
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
 
                 <h2 className="text-xl font-bold text-slate-900">
@@ -383,7 +686,8 @@ const JobDetail = () => {
 
               </section>
 
-              {/* Responsibilities */}
+              {/* RESPONSIBILITIES */}
+
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
 
                 <h2 className="text-xl font-bold text-slate-900">
@@ -413,9 +717,11 @@ const JobDetail = () => {
                   ))}
 
                 </div>
+
               </section>
 
-              {/* Requirements */}
+              {/* REQUIREMENTS */}
+
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
 
                 <h2 className="text-xl font-bold text-slate-900">
@@ -445,9 +751,11 @@ const JobDetail = () => {
                   ))}
 
                 </div>
+
               </section>
 
-              {/* Skills */}
+              {/* SKILLS */}
+
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
 
                 <h2 className="text-xl font-bold text-slate-900">
@@ -466,7 +774,9 @@ const JobDetail = () => {
                   ))}
 
                 </div>
+
               </section>
+
             </div>
 
             {/* =================================================
@@ -478,6 +788,7 @@ const JobDetail = () => {
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
 
                 {/* APPLY BUTTON */}
+
                 <button
                   type="button"
                   onClick={() => {
@@ -491,6 +802,8 @@ const JobDetail = () => {
                   Apply for this Job
                 </button>
 
+                {/* JOB OVERVIEW */}
+
                 <div className="mt-6 border-t border-slate-100 pt-5">
 
                   <h3 className="text-base font-bold text-slate-900">
@@ -499,13 +812,17 @@ const JobDetail = () => {
 
                   <div className="mt-5 space-y-5">
 
+                    {/* EXPERIENCE */}
+
                     <div className="flex gap-3">
+
                       <BriefcaseBusiness
                         size={19}
                         className="shrink-0 text-blue-600"
                       />
 
                       <div>
+
                         <p className="text-xs text-slate-500">
                           Experience
                         </p>
@@ -513,16 +830,22 @@ const JobDetail = () => {
                         <p className="mt-1 text-sm font-semibold text-slate-800">
                           {job.experience}
                         </p>
+
                       </div>
+
                     </div>
 
+                    {/* LOCATION */}
+
                     <div className="flex gap-3">
+
                       <MapPin
                         size={19}
                         className="shrink-0 text-blue-600"
                       />
 
                       <div>
+
                         <p className="text-xs text-slate-500">
                           Location
                         </p>
@@ -530,16 +853,22 @@ const JobDetail = () => {
                         <p className="mt-1 break-words text-sm font-semibold text-slate-800">
                           {job.location}
                         </p>
+
                       </div>
+
                     </div>
 
+                    {/* SALARY */}
+
                     <div className="flex gap-3">
+
                       <IndianRupee
                         size={19}
                         className="shrink-0 text-blue-600"
                       />
 
                       <div>
+
                         <p className="text-xs text-slate-500">
                           Salary
                         </p>
@@ -547,16 +876,22 @@ const JobDetail = () => {
                         <p className="mt-1 text-sm font-semibold text-slate-800">
                           {job.salary}
                         </p>
+
                       </div>
+
                     </div>
 
+                    {/* POSTED */}
+
                     <div className="flex gap-3">
+
                       <CalendarDays
                         size={19}
                         className="shrink-0 text-blue-600"
                       />
 
                       <div>
+
                         <p className="text-xs text-slate-500">
                           Posted
                         </p>
@@ -564,16 +899,22 @@ const JobDetail = () => {
                         <p className="mt-1 text-sm font-semibold text-slate-800">
                           {job.posted}
                         </p>
+
                       </div>
+
                     </div>
 
+                    {/* COMPANY */}
+
                     <div className="flex gap-3">
+
                       <Building2
                         size={19}
                         className="shrink-0 text-blue-600"
                       />
 
                       <div>
+
                         <p className="text-xs text-slate-500">
                           Company
                         </p>
@@ -581,15 +922,23 @@ const JobDetail = () => {
                         <p className="mt-1 break-words text-sm font-semibold text-slate-800">
                           {job.company}
                         </p>
+
                       </div>
+
                     </div>
 
                   </div>
+
                 </div>
+
               </div>
+
             </aside>
+
           </div>
+
         </div>
+
       </main>
 
       {/* =====================================================
@@ -597,9 +946,20 @@ const JobDetail = () => {
       ====================================================== */}
 
       {showApplyModal && (
-        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-950/60 p-3 backdrop-blur-sm sm:p-5">
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden bg-slate-950/60 p-3 backdrop-blur-sm sm:p-5"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              closeApplicationModal();
+            }
+          }}
+        >
 
-          <div className="relative flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+          {/* =================================================
+              MODAL CONTAINER
+          ================================================== */}
+
+          <div className="relative flex h-full max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
 
             {/* =================================================
                 MODAL HEADER
@@ -623,6 +983,7 @@ const JobDetail = () => {
                 type="button"
                 onClick={closeApplicationModal}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
+                aria-label="Close application modal"
               >
                 <X size={18} />
               </button>
@@ -634,7 +995,8 @@ const JobDetail = () => {
             ================================================== */}
 
             {isSubmitted ? (
-              <div className="overflow-y-auto px-5 py-12 text-center sm:px-8">
+
+              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-12 text-center sm:px-8">
 
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
                   <CheckCircle2 size={34} />
@@ -645,15 +1007,21 @@ const JobDetail = () => {
                 </h2>
 
                 <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
+
                   Your application for{" "}
+
                   <span className="font-semibold text-slate-700">
                     {job.title}
                   </span>{" "}
+
                   at{" "}
+
                   <span className="font-semibold text-slate-700">
                     {job.company}
                   </span>{" "}
+
                   has been submitted successfully.
+
                 </p>
 
                 <button
@@ -665,14 +1033,17 @@ const JobDetail = () => {
                 </button>
 
               </div>
+
             ) : (
+
               <>
                 {/* =================================================
-                    OPTIONS
+                    APPLICATION OPTIONS
                 ================================================== */}
 
                 {applicationStep === "options" && (
-                  <div className="overflow-y-auto p-5 sm:p-7">
+
+                  <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
 
                     <div className="text-center">
 
@@ -693,6 +1064,7 @@ const JobDetail = () => {
                     <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                       {/* SAVED APPLICATION */}
+
                       <button
                         type="button"
                         onClick={loadSavedApplication}
@@ -718,6 +1090,7 @@ const JobDetail = () => {
                       </button>
 
                       {/* MANUAL APPLICATION */}
+
                       <button
                         type="button"
                         onClick={() =>
@@ -735,7 +1108,7 @@ const JobDetail = () => {
                         </h4>
 
                         <p className="mt-2 text-sm leading-6 text-slate-500">
-                          Fill in your personal information and upload your resume.
+                          Fill in your personal information and upload your photo, government document and resume.
                         </p>
 
                         <span className="mt-4 block text-xs font-bold text-blue-600">
@@ -749,14 +1122,17 @@ const JobDetail = () => {
                     <div className="mt-6 rounded-xl bg-blue-50 p-4">
 
                       <p className="text-xs leading-5 text-blue-700">
+
                         <strong>Tip:</strong> Save your application once.
                         Next time you can use the saved details to apply
                         much faster.
+
                       </p>
 
                     </div>
 
                   </div>
+
                 )}
 
                 {/* =================================================
@@ -764,14 +1140,20 @@ const JobDetail = () => {
                 ================================================== */}
 
                 {applicationStep === "manual" && (
+
                   <form
                     onSubmit={submitApplication}
-                    className="overflow-y-auto"
+                    className="flex min-h-0 flex-1 flex-col overflow-hidden"
                   >
 
-                    <div className="p-5 sm:p-7">
+                    {/* =================================================
+                        SCROLLABLE FORM CONTENT
+                    ================================================== */}
 
-                      {/* Form heading */}
+                    <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
+
+                      {/* FORM HEADING */}
+
                       <div className="mb-6">
 
                         <h3 className="text-lg font-bold text-slate-900">
@@ -797,6 +1179,7 @@ const JobDetail = () => {
                         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                           {/* NAME */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -821,9 +1204,11 @@ const JobDetail = () => {
                               />
 
                             </div>
+
                           </div>
 
                           {/* EMAIL */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -848,9 +1233,11 @@ const JobDetail = () => {
                               />
 
                             </div>
+
                           </div>
 
                           {/* PHONE */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -875,9 +1262,11 @@ const JobDetail = () => {
                               />
 
                             </div>
+
                           </div>
 
                           {/* LOCATION */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -902,9 +1291,11 @@ const JobDetail = () => {
                               />
 
                             </div>
+
                           </div>
 
                         </div>
+
                       </div>
 
                       {/* =================================================
@@ -920,6 +1311,7 @@ const JobDetail = () => {
                         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
 
                           {/* FRESHER */}
+
                           <label
                             className={`cursor-pointer rounded-xl border-2 p-4 transition ${
                               formData.experienceType === "Fresher"
@@ -954,6 +1346,7 @@ const JobDetail = () => {
                               </div>
 
                               <div>
+
                                 <p className="text-sm font-bold text-slate-800">
                                   Fresher
                                 </p>
@@ -961,12 +1354,15 @@ const JobDetail = () => {
                                 <p className="mt-0.5 text-[11px] text-slate-500">
                                   I have no professional experience
                                 </p>
+
                               </div>
 
                             </div>
+
                           </label>
 
                           {/* EXPERIENCED */}
+
                           <label
                             className={`cursor-pointer rounded-xl border-2 p-4 transition ${
                               formData.experienceType ===
@@ -1002,6 +1398,7 @@ const JobDetail = () => {
                               </div>
 
                               <div>
+
                                 <p className="text-sm font-bold text-slate-800">
                                   Experienced
                                 </p>
@@ -1009,14 +1406,17 @@ const JobDetail = () => {
                                 <p className="mt-0.5 text-[11px] text-slate-500">
                                   I have professional experience
                                 </p>
+
                               </div>
 
                             </div>
+
                           </label>
 
                         </div>
 
                         {/* EXPERIENCE YEARS */}
+
                         {formData.experienceType ===
                           "Experienced" && (
                           <div className="mt-4">
@@ -1037,6 +1437,165 @@ const JobDetail = () => {
 
                           </div>
                         )}
+
+                      </div>
+
+                      {/* =================================================
+                          PROFILE PHOTO
+                      ================================================== */}
+
+                      <div className="mt-7">
+
+                        <h4 className="text-sm font-bold text-slate-900">
+                          Profile Photo
+                        </h4>
+
+                        <p className="mt-1 text-xs text-slate-500">
+                          Upload a clear recent photo of yourself.
+                        </p>
+
+                        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-7 text-center transition hover:border-blue-400 hover:bg-blue-50">
+
+                          {formData.profilePhoto ? (
+                            <>
+
+                              <div className="relative">
+
+                                <img
+                                  src={URL.createObjectURL(
+                                    formData.profilePhoto
+                                  )}
+                                  alt="Profile preview"
+                                  className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-md"
+                                />
+
+                                <div className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-green-500 text-white ring-2 ring-white">
+                                  <CheckCircle2 size={15} />
+                                </div>
+
+                              </div>
+
+                              <span className="mt-3 max-w-full truncate text-sm font-bold text-green-700">
+                                {formData.profilePhoto.name}
+                              </span>
+
+                              <span className="mt-1 text-xs text-slate-500">
+                                Click to change photo
+                              </span>
+
+                            </>
+                          ) : (
+                            <>
+
+                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                                <Camera size={22} />
+                              </div>
+
+                              <span className="mt-3 text-sm font-bold text-slate-700">
+                                Upload your profile photo *
+                              </span>
+
+                              <span className="mt-1 text-xs text-slate-500">
+                                JPG, JPEG or PNG • Max 2MB
+                              </span>
+
+                            </>
+                          )}
+
+                          <input
+                            required
+                            type="file"
+                            name="profilePhoto"
+                            accept="image/jpeg,image/jpg,image/png"
+                            onChange={handleProfilePhotoChange}
+                            className="hidden"
+                          />
+
+                        </label>
+
+                      </div>
+
+                      {/* =================================================
+                          GOVERNMENT DOCUMENT
+                      ================================================== */}
+
+                      <div className="mt-7">
+
+                        <h4 className="text-sm font-bold text-slate-900">
+                          Government ID Document
+                        </h4>
+
+                        <p className="mt-1 text-xs text-slate-500">
+                          Upload a valid government-issued identity document.
+                        </p>
+
+                        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
+
+                          <div className="flex items-start gap-3">
+
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
+                              <ShieldCheck size={20} />
+                            </div>
+
+                            <div>
+
+                              <p className="text-sm font-bold text-blue-900">
+                                Identity Verification
+                              </p>
+
+                              <p className="mt-1 text-xs leading-5 text-blue-700">
+                                Please upload a valid government-issued
+                                document for verification.
+                              </p>
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-7 text-center transition hover:border-blue-400 hover:bg-blue-50">
+
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+                            <FileText size={22} />
+                          </div>
+
+                          <span className="mt-3 text-sm font-bold text-slate-700">
+                            Upload government document *
+                          </span>
+
+                          <span className="mt-1 text-xs text-slate-500">
+                            Aadhaar, PAN, Passport, Driving Licence • PDF, JPG, PNG • Max 5MB
+                          </span>
+
+                          <input
+                            required
+                            type="file"
+                            name="governmentDocument"
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            onChange={
+                              handleGovernmentDocumentChange
+                            }
+                            className="hidden"
+                          />
+
+                          {formData.governmentDocument && (
+                            <div className="mt-4 flex max-w-full items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
+
+                              <ShieldCheck
+                                size={15}
+                                className="shrink-0 text-green-600"
+                              />
+
+                              <span className="max-w-[260px] truncate text-xs font-semibold text-green-700">
+                                {formData.governmentDocument.name}
+                              </span>
+
+                            </div>
+                          )}
+
+                        </label>
+
                       </div>
 
                       {/* =================================================
@@ -1056,7 +1615,7 @@ const JobDetail = () => {
                           </div>
 
                           <span className="mt-3 text-sm font-bold text-slate-700">
-                            Upload your resume
+                            Upload your resume *
                           </span>
 
                           <span className="mt-1 text-xs text-slate-500">
@@ -1068,16 +1627,16 @@ const JobDetail = () => {
                             type="file"
                             name="resume"
                             accept=".pdf,.doc,.docx"
-                            onChange={handleChange}
+                            onChange={handleResumeChange}
                             className="hidden"
                           />
 
                           {formData.resume && (
-                            <div className="mt-4 flex items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
+                            <div className="mt-4 flex max-w-full items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
 
                               <FileText
                                 size={15}
-                                className="text-green-600"
+                                className="shrink-0 text-green-600"
                               />
 
                               <span className="max-w-[220px] truncate text-xs font-semibold text-green-700">
@@ -1088,6 +1647,7 @@ const JobDetail = () => {
                           )}
 
                         </label>
+
                       </div>
 
                       {/* =================================================
@@ -1103,6 +1663,7 @@ const JobDetail = () => {
                         <div className="mt-4 space-y-4">
 
                           {/* SKILLS */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -1124,6 +1685,7 @@ const JobDetail = () => {
                           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                             {/* EXPECTED SALARY */}
+
                             <div>
 
                               <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -1149,9 +1711,11 @@ const JobDetail = () => {
                                 />
 
                               </div>
+
                             </div>
 
                             {/* NOTICE PERIOD */}
+
                             <div>
 
                               <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -1166,24 +1730,31 @@ const JobDetail = () => {
                                 onChange={handleChange}
                                 className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                               >
+
                                 <option value="">
                                   Select notice period
                                 </option>
+
                                 <option value="Immediate">
                                   Immediate
                                 </option>
+
                                 <option value="15 Days">
                                   15 Days
                                 </option>
+
                                 <option value="30 Days">
                                   30 Days
                                 </option>
+
                                 <option value="60 Days">
                                   60 Days
                                 </option>
+
                                 <option value="90 Days">
                                   90 Days
                                 </option>
+
                               </select>
 
                             </div>
@@ -1191,10 +1762,11 @@ const JobDetail = () => {
                           </div>
 
                         </div>
+
                       </div>
 
                       {/* =================================================
-                          LINKS
+                          ONLINE PROFILES
                       ================================================== */}
 
                       <div className="mt-7">
@@ -1206,32 +1778,26 @@ const JobDetail = () => {
                         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                           {/* LINKEDIN */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
                               LinkedIn Profile
                             </label>
 
-                            <div className="relative">
+                            <input
+                              type="url"
+                              name="linkedin"
+                              value={formData.linkedin}
+                              onChange={handleChange}
+                              placeholder="https://linkedin.com/in/..."
+                              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                            />
 
-                              {/* <Linkedin
-                                size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                              /> */}
-
-                              <input
-                                type="url"
-                                name="linkedin"
-                                value={formData.linkedin}
-                                onChange={handleChange}
-                                placeholder="https://linkedin.com/in/..."
-                                className="h-11 w-full rounded-lg border border-slate-200 pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                              />
-
-                            </div>
                           </div>
 
                           {/* PORTFOLIO */}
+
                           <div>
 
                             <label className="mb-1.5 block text-xs font-bold text-slate-700">
@@ -1255,9 +1821,11 @@ const JobDetail = () => {
                               />
 
                             </div>
+
                           </div>
 
                         </div>
+
                       </div>
 
                       {/* =================================================
@@ -1308,9 +1876,11 @@ const JobDetail = () => {
                         FORM FOOTER
                     ================================================== */}
 
-                    <div className="sticky bottom-0 border-t border-slate-200 bg-white p-4 sm:px-7">
+                    <div className="shrink-0 border-t border-slate-200 bg-white p-4 sm:px-7">
 
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
+                        {/* BACK */}
 
                         <button
                           type="button"
@@ -1325,6 +1895,7 @@ const JobDetail = () => {
                         <div className="flex flex-col gap-2 sm:flex-row">
 
                           {/* SAVE */}
+
                           <button
                             type="button"
                             onClick={saveApplication}
@@ -1334,6 +1905,7 @@ const JobDetail = () => {
                           </button>
 
                           {/* SUBMIT */}
+
                           <button
                             type="submit"
                             className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
@@ -1345,6 +1917,7 @@ const JobDetail = () => {
                         </div>
 
                       </div>
+
                     </div>
 
                   </form>

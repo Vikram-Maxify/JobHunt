@@ -16,6 +16,7 @@ import {
   Building2,
   Globe2,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const AboutUs = () => {
   const stats = [
@@ -732,7 +733,8 @@ const AboutUs = () => {
               connections and opportunities.
             </p>
 
-            <button
+           <Link to='/subscription'>
+             <button
               type="button"
               className="mt-7 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl"
             >
@@ -743,6 +745,7 @@ const AboutUs = () => {
                 className="transition-transform group-hover:translate-x-1"
               />
             </button>
+           </Link>
 
           </div>
 
@@ -782,6 +785,7 @@ const AboutUs = () => {
 
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
 
+            <Link to='/jobs'>
               <button
                 type="button"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-blue-600 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl sm:px-8"
@@ -789,14 +793,17 @@ const AboutUs = () => {
                 Explore Jobs
                 <ArrowRight size={17} />
               </button>
+            </Link>
 
-              <button
+             <Link to='/contact'>
+               <button
                 type="button"
                 className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 sm:px-8"
               >
                 Contact Us
                 <ArrowRight size={17} />
               </button>
+             </Link>
 
             </div>
 

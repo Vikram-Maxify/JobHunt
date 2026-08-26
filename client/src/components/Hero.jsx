@@ -9,7 +9,11 @@ import {
   Sparkles,
   TrendingUp,
   ChevronDown,
+  Globe2,
+  Plane,
+  MapPin,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Hero = () => {
   const [typed, setTyped] = useState("");
@@ -174,6 +178,7 @@ const Hero = () => {
             0%, 100% {
               transform: translateY(0px) rotate(0deg);
             }
+
             50% {
               transform: translateY(-20px) rotate(2deg);
             }
@@ -183,6 +188,7 @@ const Hero = () => {
             0%, 100% {
               transform: translateY(0px) rotate(0deg);
             }
+
             50% {
               transform: translateY(20px) rotate(-2deg);
             }
@@ -243,26 +249,6 @@ const Hero = () => {
 
             100% {
               background-position: 200% 0;
-            }
-          }
-
-          @keyframes bounceDown {
-            0%, 100% {
-              transform: translateY(0);
-            }
-
-            50% {
-              transform: translateY(8px);
-            }
-          }
-
-          @keyframes rotateShape {
-            from {
-              transform: rotate(0deg);
-            }
-
-            to {
-              transform: rotate(360deg);
             }
           }
 
@@ -420,6 +406,7 @@ const Hero = () => {
           <div className="absolute bottom-0 left-0 h-1/2 w-1/2 bg-gradient-to-tr from-indigo-100/20 to-transparent" />
 
           {/* Decorative blobs */}
+
           <div
             className="
               absolute
@@ -458,6 +445,7 @@ const Hero = () => {
           />
 
           {/* Center glow */}
+
           <div
             className="
               absolute
@@ -477,6 +465,7 @@ const Hero = () => {
           />
 
           {/* Decorative shapes */}
+
           <div
             className="
               absolute
@@ -563,12 +552,15 @@ const Hero = () => {
                 w-full
                 min-w-0
                 flex-1
-                text-center
+
+                text-left
 
                 lg:text-left
               "
             >
-              {/* Badge */}
+              {/* =================================================
+                  INTERNATIONAL BADGE
+              ================================================== */}
 
               <div
                 className="
@@ -576,7 +568,6 @@ const Hero = () => {
                   animate-slide-left
                   delay-100
 
-                  mx-auto
                   inline-flex
                   max-w-full
                   items-center
@@ -584,7 +575,7 @@ const Hero = () => {
                   rounded-full
                   border
                   border-blue-100/70
-                  bg-white/70
+                  bg-white/80
                   px-3
                   py-1.5
                   text-xs
@@ -595,8 +586,6 @@ const Hero = () => {
 
                   sm:px-4
                   sm:text-sm
-
-                  lg:mx-0
                 "
               >
                 <span className="relative flex h-1.5 w-1.5 shrink-0 sm:h-2 sm:w-2">
@@ -604,14 +593,14 @@ const Hero = () => {
                   <span className="relative inline-flex h-full w-full rounded-full bg-blue-500" />
                 </span>
 
-                <span>🔥</span>
+                <Globe2 size={15} />
 
                 <span className="hidden sm:inline">
-                  50+ countries hiring now
+                  Global Jobs • 50+ Countries
                 </span>
 
                 <span className="sm:hidden">
-                  Hiring now
+                  Global Jobs
                 </span>
               </div>
 
@@ -626,6 +615,7 @@ const Hero = () => {
                   delay-200
 
                   mt-5
+                  max-w-3xl
                   text-[2.25rem]
                   font-black
                   leading-[1.05]
@@ -642,19 +632,11 @@ const Hero = () => {
                   2xl:text-[5rem]
                 "
               >
-                <span>Find Your</span>
-
+                Build Your Career
                 <br />
 
                 <span className="shimmer-text">
-                  {typed}
-                  <span
-                    className={
-                      isTyping
-                        ? "typing-cursor"
-                        : ""
-                    }
-                  />
+                  Beyond Borders
                 </span>
               </h1>
 
@@ -668,10 +650,9 @@ const Hero = () => {
                   animate-slide-up
                   delay-300
 
-                  mx-auto
                   mt-5
                   max-w-xl
-                  px-1
+                  px-0
                   text-sm
                   leading-6
                   text-gray-600
@@ -680,16 +661,58 @@ const Hero = () => {
                   sm:text-base
                   sm:leading-7
 
-                  lg:mx-0
                   lg:text-lg
                   xl:text-xl
                   xl:leading-8
                 "
               >
-                Unlock thousands of opportunities from top
-                companies. Get matched with roles that fit
-                your skills and career aspirations.
+                Discover international job opportunities from
+                trusted companies around the world. Build your
+                profile, get matched with the right roles, and
+                take your career to the country you've always
+                dreamed of.
               </p>
+
+              {/* =================================================
+                  INTERNATIONAL FEATURES
+              ================================================== */}
+
+              <div
+                className="
+                  opacity-0
+                  animate-slide-up
+                  delay-300
+
+                  mt-5
+                  grid
+                  grid-cols-1
+                  gap-2
+
+                  sm:grid-cols-3
+                  sm:gap-3
+                "
+              >
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <Globe2 size={14} />
+                  </span>
+                  Global Opportunities
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                    <Plane size={14} />
+                  </span>
+                  Work Abroad
+                </div>
+
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-600 sm:text-sm">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                    <CheckCircle size={14} />
+                  </span>
+                  Verified Jobs
+                </div>
+              </div>
 
               {/* =================================================
                   BUTTONS
@@ -711,10 +734,7 @@ const Hero = () => {
                   sm:mt-7
                   sm:flex-row
                   sm:items-center
-                  sm:justify-center
                   sm:gap-4
-
-                  lg:justify-start
                 "
               >
                 <button
@@ -750,9 +770,9 @@ const Hero = () => {
                 >
                   <span className="absolute inset-0 rounded-full bg-white/10" />
 
-                  <span className="relative z-10">
-                    Start Exploring
-                  </span>
+                  <Link to='/jobs' className="relative z-10">
+                    Explore Global Jobs
+                  </Link>
 
                   <ArrowRight
                     size={18}
@@ -801,7 +821,7 @@ const Hero = () => {
                     className="fill-current"
                   />
 
-                  <span>See How It Works</span>
+                  <Link to='/subscription'>Get Subscription</Link>
                 </button>
               </div>
 
@@ -819,21 +839,20 @@ const Hero = () => {
                   mt-8
                   grid
                   grid-cols-3
-                  gap-2
+                  gap-3
 
                   sm:mt-9
                   sm:flex
                   sm:flex-wrap
-                  sm:justify-center
+                  sm:justify-start
                   sm:gap-6
 
-                  lg:justify-start
                   lg:gap-7
                 "
               >
                 {/* JOBS */}
 
-                <div className="flex min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3">
+                <div className="flex min-w-0 items-center justify-start gap-2 sm:gap-3">
                   <div
                     className="
                       flex
@@ -865,14 +884,14 @@ const Hero = () => {
                     </p>
 
                     <p className="truncate text-[10px] text-gray-500 sm:text-sm">
-                      Jobs
+                      Global Jobs
                     </p>
                   </div>
                 </div>
 
                 {/* COMPANIES */}
 
-                <div className="flex min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3">
+                <div className="flex min-w-0 items-center justify-start gap-2 sm:gap-3">
                   <div
                     className="
                       flex
@@ -911,7 +930,7 @@ const Hero = () => {
 
                 {/* SATISFACTION */}
 
-                <div className="flex min-w-0 items-center justify-center gap-2 sm:justify-start sm:gap-3">
+                <div className="flex min-w-0 items-center justify-start gap-2 sm:gap-3">
                   <div
                     className="
                       flex
@@ -943,7 +962,7 @@ const Hero = () => {
                     </p>
 
                     <p className="truncate text-[10px] text-gray-500 sm:text-sm">
-                      Satisfaction
+                      Success Rate
                     </p>
                   </div>
                 </div>
@@ -959,7 +978,6 @@ const Hero = () => {
                   animate-slide-up
                   delay-600
 
-                  mx-auto
                   mt-7
                   w-full
                   max-w-lg
@@ -1003,6 +1021,7 @@ const Hero = () => {
                     </span>
 
                     {/* Duplicate */}
+
                     <span className="ml-8 mr-3 text-xs font-medium text-gray-400 sm:text-sm">
                       Trusted by
                     </span>
@@ -1106,8 +1125,8 @@ const Hero = () => {
 
                   <div className="relative overflow-hidden rounded-2xl shadow-2xl ring-1 ring-white/20 sm:rounded-3xl">
                     <img
-                      src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=1000&auto=format&fit=crop&q=80"
-                      alt="Team collaboration"
+                      src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=1200&auto=format&fit=crop&q=85"
+                      alt="International professionals working together"
                       className="
                         aspect-[4/3]
                         h-auto
@@ -1120,7 +1139,7 @@ const Hero = () => {
                       "
                     />
 
-                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
                   </div>
 
                   {/* =================================================
@@ -1154,20 +1173,20 @@ const Hero = () => {
                     "
                   >
                     <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100 sm:h-8 sm:w-8 md:h-10 md:w-10">
-                        <Sparkles
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-blue-100 sm:h-8 sm:w-8 md:h-10 md:w-10">
+                        <Globe2
                           size={12}
-                          className="text-green-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
+                          className="text-blue-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
                         />
                       </div>
 
                       <div>
                         <p className="whitespace-nowrap text-[9px] font-bold text-gray-800 sm:text-xs md:text-sm">
-                          1,200+ Jobs
+                          50+ Countries
                         </p>
 
                         <p className="whitespace-nowrap text-[8px] text-gray-500 sm:text-[10px] md:text-xs">
-                          Active now
+                          Global opportunities
                         </p>
                       </div>
                     </div>
@@ -1204,20 +1223,20 @@ const Hero = () => {
                     "
                   >
                     <div className="flex items-center gap-1.5 sm:gap-2.5 md:gap-3">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-yellow-50 sm:h-8 sm:w-8 md:h-10 md:w-10">
-                        <Award
+                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-50 sm:h-8 sm:w-8 md:h-10 md:w-10">
+                        <Plane
                           size={12}
-                          className="text-yellow-500 sm:h-4 sm:w-4 md:h-5 md:w-5"
+                          className="text-indigo-600 sm:h-4 sm:w-4 md:h-5 md:w-5"
                         />
                       </div>
 
                       <div>
                         <p className="whitespace-nowrap text-[9px] font-bold text-gray-800 sm:text-xs md:text-sm">
-                          4.9/5
+                          Work Abroad
                         </p>
 
                         <p className="whitespace-nowrap text-[8px] text-gray-500 sm:text-[10px] md:text-xs">
-                          Avg. rating
+                          Your next destination
                         </p>
                       </div>
                     </div>
@@ -1261,8 +1280,52 @@ const Hero = () => {
                     />
 
                     <span className="whitespace-nowrap text-[9px] font-semibold text-gray-800 sm:text-xs">
-                      340+ new
+                      Verified Opportunities
                     </span>
+                  </div>
+
+                  {/* =================================================
+                      LOCATION CARD
+                  ================================================== */}
+
+                  <div
+                    className="
+                      absolute
+                      left-1/2
+                      top-1/2
+                      hidden
+                      -translate-x-1/2
+                      -translate-y-1/2
+                      items-center
+                      gap-2
+                      rounded-2xl
+                      border
+                      border-white/40
+                      bg-white/90
+                      px-4
+                      py-3
+                      shadow-2xl
+                      backdrop-blur-xl
+
+                      md:flex
+                    "
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-red-50">
+                      <MapPin
+                        size={18}
+                        className="text-red-500"
+                      />
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-bold text-gray-800">
+                        Your Career
+                      </p>
+
+                      <p className="text-[10px] text-gray-500">
+                        Can take you anywhere
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1295,7 +1358,7 @@ const Hero = () => {
 
           <ChevronDown
             size={17}
-            className="animate-bounce-down"
+            className="animate-bounce"
           />
         </div>
       </section>

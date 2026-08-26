@@ -631,11 +631,10 @@ const Jobs = () => {
                   />
 
                   <span
-                    className={`min-w-0 flex-1 break-words text-xs leading-5 transition ${
-                      checked
+                    className={`min-w-0 flex-1 break-words text-xs leading-5 transition ${checked
                         ? "font-semibold text-blue-600"
                         : "text-slate-600 group-hover:text-blue-600"
-                    }`}
+                      }`}
                   >
                     {label}
                   </span>
@@ -746,11 +745,10 @@ const Jobs = () => {
         }}
         tabIndex={0}
         role="button"
-        className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-xl border bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-slate-200/70 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-          job.featured
+        className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-xl border bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-slate-200/70 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${job.featured
             ? "border-blue-100"
             : "border-slate-200"
-        }`}
+          }`}
       >
         {/* Featured */}
         {job.featured && (
@@ -809,11 +807,10 @@ const Jobs = () => {
                     e.stopPropagation();
                     toggleSaveJob(job.id);
                   }}
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${
-                    saved
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${saved
                       ? "bg-blue-50 text-blue-600"
                       : "text-slate-400 hover:bg-blue-50 hover:text-blue-600"
-                  }`}
+                    }`}
                   aria-label={
                     saved ? "Unsave job" : "Save job"
                   }
@@ -961,14 +958,18 @@ const Jobs = () => {
             SEARCH HEADER
         ====================================================== */}
 
+        {/* =====================================================
+    SEARCH HEADER
+====================================================== */}
+
         <section className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4">
-          <div className="flex min-w-0 flex-col gap-2.5 sm:gap-3 md:flex-row">
+          <div className="flex min-w-0 flex-row items-center gap-1.5 sm:gap-3">
 
             {/* Search */}
             <div className="relative min-w-0 flex-1">
               <Search
-                size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                size={16}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 sm:left-3.5 sm:h-[18px] sm:w-[18px]"
               />
 
               <input
@@ -977,16 +978,16 @@ const Jobs = () => {
                 onChange={(e) =>
                   setSearch(e.target.value)
                 }
-                placeholder="Search jobs, skills, companies..."
-                className="h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-11 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:pr-4"
+                placeholder="Search jobs..."
+                className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
               />
             </div>
 
             {/* Location */}
-            <div className="relative min-w-0 md:w-52 lg:w-60">
+            <div className="relative min-w-0 flex-1 sm:flex-none sm:w-52 lg:w-60">
               <MapPin
-                size={18}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                size={16}
+                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 sm:left-3.5 sm:h-[18px] sm:w-[18px]"
               />
 
               <input
@@ -995,19 +996,26 @@ const Jobs = () => {
                 onChange={(e) =>
                   setLocation(e.target.value)
                 }
-                placeholder="Search location"
-                className="h-11 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-11 pr-3 text-sm font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:pr-4"
+                placeholder="Location"
+                className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
               />
             </div>
 
             {/* Search Button */}
             <button
               type="button"
-              className="flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md sm:px-6 md:w-auto"
+              className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md sm:h-11 sm:gap-2 sm:px-6 sm:text-sm"
             >
-              <Search size={17} />
-              Search
+              <Search
+                size={15}
+                className="shrink-0 sm:h-[17px] sm:w-[17px]"
+              />
+
+              <span className="hidden xs:inline sm:inline">
+                Search
+              </span>
             </button>
+
           </div>
         </section>
 

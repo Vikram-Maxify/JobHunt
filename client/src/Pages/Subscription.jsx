@@ -1,7 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Check,
-  ChevronDown,
   Sparkles,
   ArrowRight,
   ShieldCheck,
@@ -114,15 +114,29 @@ const Subscription = () => {
   const [billing, setBilling] = useState("monthly");
   const [openFaq, setOpenFaq] = useState(null);
 
+  const navigate = useNavigate();
+
   const getPrice = (plan) => {
     if (plan.monthly === 0) return 0;
+
     return billing === "monthly"
       ? plan.monthly
       : Math.round(plan.yearly / 12);
   };
 
+  const handlePlanClick = (plan) => {
+    navigate("/purchases", {
+      state: {
+        plan: plan.name,
+        billing,
+        monthlyPrice: plan.monthly,
+        yearlyPrice: plan.yearly,
+      },
+    });
+  };
+
   return (
-    <main className=" overflow-x-hidden bg-[#f8fafc] text-slate-900">
+    <main className="overflow-x-hidden bg-[#f8fafc] text-slate-900">
       {/* =====================================================
           HERO
       ====================================================== */}
@@ -160,6 +174,7 @@ const Subscription = () => {
             >
               Monthly
             </button>
+
             <button
               onClick={() => setBilling("yearly")}
               className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition sm:px-5 sm:py-2.5 ${
@@ -169,6 +184,7 @@ const Subscription = () => {
               }`}
             >
               Yearly
+
               <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
                 SAVE
               </span>
@@ -189,7 +205,8 @@ const Subscription = () => {
             return (
               <div
                 key={plan.name}
-                className={`relative flex flex-col rounded-3xl border bg-white p-5 transition duration-300 hover:-translate-y-1 sm:p-6 md:p-7 lg:p-8 ${
+                onClick={() => handlePlanClick(plan)}
+                className={`relative flex cursor-pointer flex-col rounded-3xl border bg-white p-5 transition duration-300 hover:-translate-y-1 sm:p-6 md:p-7 lg:p-8 ${
                   plan.popular
                     ? "border-indigo-500 shadow-2xl shadow-indigo-100"
                     : "border-slate-200 shadow-sm"
@@ -231,12 +248,14 @@ const Subscription = () => {
                     <span className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
                       ₹{price.toLocaleString("en-IN")}
                     </span>
+
                     {price > 0 && (
                       <span className="mb-1 text-sm text-slate-400">
                         /month
                       </span>
                     )}
                   </div>
+
                   {billing === "yearly" && plan.monthly > 0 && (
                     <p className="mt-1 text-xs font-medium text-emerald-600 sm:mt-2">
                       Billed annually at ₹
@@ -247,6 +266,10 @@ const Subscription = () => {
 
                 {/* Button */}
                 <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePlanClick(plan);
+                  }}
                   className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold transition sm:py-3.5 ${
                     plan.popular
                       ? "bg-indigo-600 text-white hover:bg-indigo-700"
@@ -281,6 +304,7 @@ const Subscription = () => {
                         >
                           <Check size={13} strokeWidth={3} />
                         </span>
+
                         <span>{feature}</span>
                       </li>
                     ))}
@@ -300,10 +324,12 @@ const Subscription = () => {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
             <ShieldCheck size={20} className="sm:size-[21px]" />
           </div>
+
           <div>
             <p className="font-semibold text-slate-900">
               Simple, transparent pricing
             </p>
+
             <p className="mt-1 text-sm text-slate-500">
               No hidden charges. Upgrade or cancel whenever you want.
             </p>
@@ -321,9 +347,11 @@ const Subscription = () => {
               <Sparkles size={15} />
               Unlock More
             </span>
+
             <h2 className="mt-4 text-2xl font-bold text-slate-900 sm:text-3xl lg:text-4xl">
               Grow faster with powerful career tools
             </h2>
+
             <p className="mt-3 text-sm text-slate-500 sm:text-base">
               Get everything you need to build skills, find opportunities,
               and make smarter career decisions.
@@ -354,6 +382,7 @@ const Subscription = () => {
               },
             ].map((item) => {
               const Icon = item.icon;
+
               return (
                 <div
                   key={item.title}
@@ -362,9 +391,11 @@ const Subscription = () => {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition group-hover:bg-indigo-600 group-hover:text-white sm:h-12 sm:w-12">
                     <Icon size={18} className="sm:size-[21px]" />
                   </div>
+
                   <h3 className="mt-4 font-bold text-slate-900 sm:mt-6">
                     {item.title}
                   </h3>
+
                   <p className="mt-1 text-sm leading-6 text-slate-500 sm:mt-2">
                     {item.text}
                   </p>
@@ -376,7 +407,7 @@ const Subscription = () => {
       </section>
 
       {/* =====================================================
-          COMPARISON – RESPONSIVE TABLE
+          COMPARISON
       ====================================================== */}
       <section className="bg-white px-5 py-6 sm:px-8 sm:py-6 lg:px-10 lg:py-6">
         <div className="mx-auto max-w-6xl">
@@ -384,12 +415,12 @@ const Subscription = () => {
             <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">
               Compare Plans
             </span>
+
             <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl lg:text-4xl">
               Find the right plan for you
             </h2>
           </div>
 
-          {/* Desktop table (scrollable on smaller screens) */}
           <div className="mt-6 overflow-x-auto rounded-3xl border border-slate-200 md:mt-6">
             <table className="w-full min-w-[700px] border-collapse text-left">
               <thead>
@@ -397,23 +428,28 @@ const Subscription = () => {
                   <th className="px-4 py-4 text-sm font-bold text-slate-900 sm:px-6 sm:py-5">
                     Features
                   </th>
+
                   <th className="px-4 py-4 text-center text-sm font-bold sm:px-6 sm:py-5">
                     Free
                   </th>
+
                   <th className="bg-indigo-50 px-4 py-4 text-center text-sm font-bold text-indigo-600 sm:px-6 sm:py-5">
                     Pro
                   </th>
+
                   <th className="px-4 py-4 text-center text-sm font-bold sm:px-6 sm:py-5">
                     Premium
                   </th>
                 </tr>
               </thead>
+
               <tbody>
                 {comparison.map(([feature, free, pro, premium]) => (
                   <tr key={feature} className="border-t border-slate-100">
                     <td className="px-4 py-3 text-sm font-medium text-slate-700 sm:px-6 sm:py-4">
                       {feature}
                     </td>
+
                     {[free, pro, premium].map((value, index) => (
                       <td
                         key={index}
@@ -440,56 +476,6 @@ const Subscription = () => {
               </tbody>
             </table>
           </div>
-
-          {/* Mobile comparison – card style */}
-          <div className="mt-8 space-y-4 md:hidden">
-            {comparison.map(([feature, free, pro, premium]) => (
-              <div
-                key={feature}
-                className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
-              >
-                <p className="font-semibold text-slate-900">{feature}</p>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                  <div className="rounded-xl bg-white p-3">
-                    <p className="mb-1 font-bold text-slate-400">Free</p>
-                    {typeof free === "boolean" ? (
-                      free ? (
-                        <Check className="mx-auto text-emerald-500" size={16} />
-                      ) : (
-                        "—"
-                      )
-                    ) : (
-                      free
-                    )}
-                  </div>
-                  <div className="rounded-xl bg-indigo-50 p-3">
-                    <p className="mb-1 font-bold text-indigo-600">Pro</p>
-                    {typeof pro === "boolean" ? (
-                      pro ? (
-                        <Check className="mx-auto text-indigo-600" size={16} />
-                      ) : (
-                        "—"
-                      )
-                    ) : (
-                      pro
-                    )}
-                  </div>
-                  <div className="rounded-xl bg-white p-3">
-                    <p className="mb-1 font-bold text-slate-400">Premium</p>
-                    {typeof premium === "boolean" ? (
-                      premium ? (
-                        <Check className="mx-auto text-emerald-500" size={16} />
-                      ) : (
-                        "—"
-                      )
-                    ) : (
-                      premium
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 
@@ -502,13 +488,16 @@ const Subscription = () => {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 sm:h-14 sm:w-14">
               <Sparkles size={22} className="sm:size-[24px]" />
             </div>
+
             <h2 className="mt-4 text-2xl font-bold sm:text-3xl lg:text-4xl">
               Save more with yearly plans
             </h2>
+
             <p className="mt-3 text-sm text-indigo-100 sm:text-base">
               Commit to your career growth and get better value with an
               annual subscription.
             </p>
+
             <button
               onClick={() => setBilling("yearly")}
               className="mt-6 rounded-xl bg-white px-6 py-2.5 font-bold text-indigo-600 transition hover:bg-indigo-50 sm:mt-7 sm:px-7 sm:py-3"
@@ -518,84 +507,6 @@ const Subscription = () => {
           </div>
         </div>
       </section>
-
-      {/* =====================================================
-          FAQ
-      ====================================================== */}
-      {/* <section className="bg-slate-50 px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-28">
-        <div className="mx-auto max-w-3xl">
-          <div className="text-center">
-            <span className="text-sm font-bold uppercase tracking-widest text-indigo-600">
-              FAQ
-            </span>
-            <h2 className="mt-3 text-2xl font-bold text-slate-900 sm:text-3xl lg:text-4xl">
-              Frequently asked questions
-            </h2>
-          </div>
-
-          <div className="mt-8 space-y-3 sm:mt-12">
-            {faqs.map((faq, index) => {
-              const isOpen = openFaq === index;
-              return (
-                <div
-                  key={faq.question}
-                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white"
-                >
-                  <button
-                    onClick={() => setOpenFaq(isOpen ? null : index)}
-                    className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left sm:px-6 sm:py-5"
-                  >
-                    <span className="text-sm font-semibold text-slate-900 sm:text-base">
-                      {faq.question}
-                    </span>
-                    <ChevronDown
-                      size={18}
-                      className={`shrink-0 text-slate-400 transition-transform sm:size-[19px] ${
-                        isOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {isOpen && (
-                    <div className="border-t border-slate-100 px-4 pb-4 pt-3 text-sm leading-7 text-slate-500 sm:px-6 sm:pb-5 sm:pt-4">
-                      {faq.answer}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section> */}
-
-      {/* =====================================================
-          FINAL CTA
-      ====================================================== */}
-      {/* <section className="px-5 py-16 sm:px-8 sm:py-20 lg:px-10 lg:py-28">
-        <div className="relative mx-auto max-w-7xl overflow-hidden rounded-3xl bg-slate-950 px-6 py-16 text-center sm:rounded-[2rem] sm:px-10 sm:py-20 lg:py-28">
-          <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-indigo-600/20 blur-3xl sm:h-72 sm:w-72" />
-
-          <div className="relative">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-indigo-300">
-              <Sparkles size={14} className="sm:size-[15px]" />
-              CareerSphere
-            </span>
-
-            <h2 className="mx-auto mt-5 max-w-3xl text-2xl font-bold text-white sm:text-3xl lg:text-4xl xl:text-5xl">
-              Invest in your career today.
-            </h2>
-
-            <p className="mx-auto mt-3 max-w-xl text-sm text-slate-400 sm:text-base">
-              The right tools today can create better opportunities
-              tomorrow.
-            </p>
-
-            <button className="mt-6 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-3 font-bold text-white transition hover:bg-indigo-500 sm:mt-8 sm:px-7 sm:py-3.5">
-              Start Your Career Journey
-              <ArrowRight size={17} className="sm:size-[18px]" />
-            </button>
-          </div>
-        </div>
-      </section> */}
     </main>
   );
 };

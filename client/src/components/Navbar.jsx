@@ -16,6 +16,7 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
+import { FaBookmark } from "react-icons/fa";
 
 const Navbar = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
@@ -301,6 +302,10 @@ const Navbar = () => {
                       <Link to="/applications" onClick={() => setUserMenu(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600">
                         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><FileText size={17} /></span>
                         <div><p className="font-semibold">My Applications</p><p className="text-[10px] text-slate-400">Track your applications</p></div>
+                      </Link>
+                      <Link to="/savedapplication" onClick={() => setUserMenu(false)} className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"><FaBookmark  size={17} /></span>
+                        <div><p className="font-semibold">Saved Application</p><p className="text-[10px] text-slate-400">View your save application</p></div>
                       </Link>
                       <div className="my-1 h-px bg-slate-100" />
                       <button type="button" onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-red-500 transition-all hover:bg-red-50">

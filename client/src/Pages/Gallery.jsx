@@ -12,6 +12,7 @@ import {
     ChevronRight,
     Sparkles,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const GALLERY_ITEMS = [
     {
@@ -467,13 +468,15 @@ const Gallery = () => {
                             opportunities that can transform your career.
                         </p>
 
-                        <button
+                        <Link to='/jobs'>
+                            <button
                             type="button"
                             className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-blue-600 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl sm:px-8 sm:py-3.5 sm:text-base"
                         >
                             Explore Jobs
                             <ArrowRight size={18} />
                         </button>
+                        </Link>
 
                     </div>
                 </div>

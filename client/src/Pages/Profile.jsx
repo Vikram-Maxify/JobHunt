@@ -14,8 +14,6 @@ import {
   X,
   Save,
   Camera,
-//   Linkedin,
-//   Github,
   Globe,
   Building2,
   Clock3,
@@ -25,6 +23,7 @@ import {
   BookOpen,
   Target,
   Upload,
+  ShieldCheck,
 } from "lucide-react";
 
 const Profile = () => {
@@ -65,6 +64,14 @@ const Profile = () => {
     employmentType: "",
     salaryExpectation: "",
     resume: "",
+
+    // PROFILE PHOTO
+    profilePhoto: "",
+
+    // GOVERNMENT DOCUMENT
+    governmentDocumentType: "",
+    governmentDocument: "",
+    governmentDocumentName: "",
   });
 
   // =========================================================
@@ -153,6 +160,20 @@ const Profile = () => {
           parsedUser?.resume ||
           parsedUser?.resumeUrl ||
           "",
+
+        // PROFILE PHOTO
+        profilePhoto:
+          parsedUser?.profilePhoto || "",
+
+        // GOVERNMENT DOCUMENT
+        governmentDocumentType:
+          parsedUser?.governmentDocumentType || "",
+
+        governmentDocument:
+          parsedUser?.governmentDocument || "",
+
+        governmentDocumentName:
+          parsedUser?.governmentDocumentName || "",
       });
     } catch (error) {
       console.error("Profile loading error:", error);
@@ -169,6 +190,22 @@ const Profile = () => {
   }, []);
 
   // =========================================================
+  // LOCK BACKGROUND SCROLL WHEN MODAL IS OPEN
+  // =========================================================
+
+  useEffect(() => {
+    if (showEditModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [showEditModal]);
+
+  // =========================================================
   // HANDLE INPUT
   // =========================================================
 
@@ -179,6 +216,114 @@ const Profile = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  // =========================================================
+  // PROFILE PHOTO UPLOAD
+  // =========================================================
+
+  const handleProfilePhotoUpload = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    // Only image files
+    if (!file.type.startsWith("image/")) {
+      setSaveMessage("Please select a valid image file.");
+      return;
+    }
+
+    // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMessage(
+        "Profile photo size should be less than 5MB."
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        profilePhoto: reader.result,
+      }));
+
+      setSaveMessage("");
+    };
+
+    reader.onerror = () => {
+      setSaveMessage(
+        "Unable to upload profile photo."
+      );
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  // =========================================================
+  // GOVERNMENT DOCUMENT UPLOAD
+  // =========================================================
+
+  const handleGovernmentDocumentUpload = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (!formData.governmentDocumentType) {
+      setSaveMessage(
+        "Please select a government document type first."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    // 5MB limit
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMessage(
+        "Government document size should be less than 5MB."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "application/pdf",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setSaveMessage(
+        "Please upload JPG, PNG or PDF document."
+      );
+
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setFormData((prev) => ({
+        ...prev,
+        governmentDocument: reader.result,
+        governmentDocumentName: file.name,
+      }));
+
+      setSaveMessage("");
+    };
+
+    reader.onerror = () => {
+      setSaveMessage(
+        "Unable to upload government document."
+      );
+    };
+
+    reader.readAsDataURL(file);
   };
 
   // =========================================================
@@ -308,6 +453,20 @@ const Profile = () => {
 
         resume:
           formData.resume.trim(),
+
+        // SAVE PROFILE PHOTO
+        profilePhoto:
+          formData.profilePhoto,
+
+        // SAVE GOVERNMENT DOCUMENT
+        governmentDocumentType:
+          formData.governmentDocumentType,
+
+        governmentDocument:
+          formData.governmentDocument,
+
+        governmentDocumentName:
+          formData.governmentDocumentName,
       };
 
       // =====================================================
@@ -368,7 +527,6 @@ const Profile = () => {
         "Profile updated successfully!"
       );
 
-      // Close after small delay
       setTimeout(() => {
         setShowEditModal(false);
         setSaveMessage("");
@@ -434,6 +592,7 @@ const Profile = () => {
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
 
             {/* COVER */}
+
             <div className="relative h-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 sm:h-40 lg:h-48">
 
               <div className="absolute -left-10 -top-16 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
@@ -456,9 +615,17 @@ const Profile = () => {
 
                   {/* AVATAR */}
 
-                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-blue-600 to-indigo-600 text-3xl font-black text-white shadow-lg sm:h-28 sm:w-28 sm:text-4xl">
+                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-gradient-to-br from-blue-600 to-indigo-600 text-3xl font-black text-white shadow-lg sm:h-28 sm:w-28 sm:text-4xl">
 
-                    {getInitial()}
+                    {formData.profilePhoto ? (
+                      <img
+                        src={formData.profilePhoto}
+                        alt={getUserName()}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      getInitial()
+                    )}
 
                     <button
                       type="button"
@@ -481,6 +648,7 @@ const Profile = () => {
 
                     <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
                       <Mail size={14} />
+
                       <span className="truncate">
                         {user?.email || "No email added"}
                       </span>
@@ -860,6 +1028,73 @@ const Profile = () => {
 
               </section>
 
+              {/* GOVERNMENT DOCUMENT */}
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+                    <ShieldCheck size={19} />
+                  </div>
+
+                  <div>
+                    <h2 className="text-base font-bold text-slate-800">
+                      Government Document
+                    </h2>
+
+                    <p className="text-xs text-slate-400">
+                      Identity verification document
+                    </p>
+                  </div>
+
+                </div>
+
+                <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-4">
+
+                  {formData.governmentDocument ? (
+                    <div className="flex items-center gap-3">
+
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
+                        <FileText size={20} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+
+                        <p className="text-sm font-semibold text-slate-700">
+                          {formData.governmentDocumentType}
+                        </p>
+
+                        <p className="mt-0.5 truncate text-xs text-slate-400">
+                          {formData.governmentDocumentName ||
+                            "Document uploaded"}
+                        </p>
+
+                      </div>
+
+                    </div>
+                  ) : (
+                    <div className="text-center">
+
+                      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-white text-slate-400 shadow-sm">
+                        <ShieldCheck size={20} />
+                      </div>
+
+                      <p className="mt-2 text-sm font-semibold text-slate-600">
+                        No document added
+                      </p>
+
+                      <p className="mt-1 text-xs text-slate-400">
+                        Add your document from Edit Profile
+                      </p>
+
+                    </div>
+                  )}
+
+                </div>
+
+              </section>
+
               {/* SOCIAL LINKS */}
 
               <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -883,18 +1118,6 @@ const Profile = () => {
                 </div>
 
                 <div className="mt-5 space-y-2">
-
-                  {/* <SocialLink
-                    // icon={Linkedin}
-                    label="LinkedIn"
-                    value={formData.linkedin}
-                  /> */}
-
-                  {/* <SocialLink
-                    // icon={Github}
-                    label="GitHub"
-                    value={formData.github}
-                  /> */}
 
                   <SocialLink
                     icon={Globe}
@@ -976,7 +1199,71 @@ const Profile = () => {
 
               {/* FORM BODY */}
 
-              <div className="overflow-y-auto px-4 py-5 sm:px-6">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
+
+                {/* PROFILE PHOTO */}
+
+                <FormSection
+                  icon={Camera}
+                  title="Profile Photo"
+                  description="Upload your professional profile photo"
+                >
+
+                  <div className="sm:col-span-2">
+
+                    <div className="flex flex-col items-center gap-5 rounded-xl border border-slate-200 bg-slate-50 p-5 sm:flex-row">
+
+                      {/* PHOTO PREVIEW */}
+
+                      <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-3xl font-black text-white shadow-md">
+
+                        {formData.profilePhoto ? (
+                          <img
+                            src={formData.profilePhoto}
+                            alt="Profile Preview"
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          getInitial()
+                        )}
+
+                      </div>
+
+                      {/* UPLOAD */}
+
+                      <div className="min-w-0 flex-1 text-center sm:text-left">
+
+                        <p className="text-sm font-semibold text-slate-700">
+                          Upload Profile Photo
+                        </p>
+
+                        <p className="mt-1 text-xs text-slate-400">
+                          JPG, JPEG or PNG. Maximum size 5MB.
+                        </p>
+
+                        <label
+                          htmlFor="profilePhoto"
+                          className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
+                        >
+                          <Camera size={15} />
+                          Choose Photo
+                        </label>
+
+                        <input
+                          id="profilePhoto"
+                          type="file"
+                          accept="image/jpeg,image/png,image/jpg"
+                          onChange={handleProfilePhotoUpload}
+                          className="hidden"
+                        />
+
+                      </div>
+
+                    </div>
+
+                  </div>
+
+                </FormSection>
 
                 {/* PERSONAL INFORMATION */}
 
@@ -1243,6 +1530,144 @@ const Profile = () => {
 
                 </FormSection>
 
+                {/* GOVERNMENT DOCUMENT */}
+
+                <FormSection
+                  icon={ShieldCheck}
+                  title="Government Document"
+                  description="Upload one government identity document"
+                >
+
+                  <div className="sm:col-span-2">
+
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+                      {/* DOCUMENT TYPE */}
+
+                      <label
+                        htmlFor="governmentDocumentType"
+                        className="mb-1.5 block text-xs font-semibold text-slate-700"
+                      >
+                        Document Type
+                      </label>
+
+                      <div className="relative">
+
+                        <ShieldCheck
+                          size={16}
+                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                        />
+
+                        <select
+                          id="governmentDocumentType"
+                          name="governmentDocumentType"
+                          value={
+                            formData.governmentDocumentType
+                          }
+                          onChange={handleChange}
+                          className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-8 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                        >
+
+                          <option value="">
+                            Select Government Document
+                          </option>
+
+                          <option value="Aadhaar Card">
+                            Aadhaar Card
+                          </option>
+
+                          <option value="PAN Card">
+                            PAN Card
+                          </option>
+
+                          <option value="Driving Licence">
+                            Driving Licence
+                          </option>
+
+                          <option value="Passport">
+                            Passport
+                          </option>
+
+                        </select>
+
+                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
+                          ▼
+                        </span>
+
+                      </div>
+
+                      {/* DOCUMENT UPLOAD */}
+
+                      <div className="mt-4">
+
+                        <label
+                          htmlFor="governmentDocument"
+                          className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-sm font-semibold transition ${
+                            formData.governmentDocumentType
+                              ? "border-blue-200 bg-blue-50/50 text-blue-600 hover:bg-blue-50"
+                              : "cursor-not-allowed border-slate-200 bg-white text-slate-400"
+                          }`}
+                        >
+
+                          <Upload size={17} />
+
+                          {formData.governmentDocument
+                            ? "Change Document"
+                            : "Upload Document"}
+
+                        </label>
+
+                        <input
+                          id="governmentDocument"
+                          type="file"
+                          accept=".jpg,.jpeg,.png,.pdf"
+                          onChange={
+                            handleGovernmentDocumentUpload
+                          }
+                          disabled={
+                            !formData.governmentDocumentType
+                          }
+                          className="hidden"
+                        />
+
+                      </div>
+
+                      {/* DOCUMENT INFO */}
+
+                      {formData.governmentDocument && (
+                        <div className="mt-3 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3">
+
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-green-600 shadow-sm">
+                            <CheckCircle2 size={17} />
+                          </div>
+
+                          <div className="min-w-0">
+
+                            <p className="text-xs font-semibold text-green-700">
+                              {formData.governmentDocumentType}
+                            </p>
+
+                            <p className="mt-0.5 truncate text-[10px] text-green-600">
+                              {formData.governmentDocumentName}
+                            </p>
+
+                          </div>
+
+                        </div>
+                      )}
+
+                      <p className="mt-2 text-[10px] text-slate-400">
+                        You can upload only one document. Supported
+                        formats: JPG, JPEG, PNG and PDF. Maximum size
+                        5MB.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </FormSection>
+
                 {/* SOCIAL */}
 
                 <FormSection
@@ -1250,24 +1675,6 @@ const Profile = () => {
                   title="Professional Links"
                   description="Add your professional online profiles"
                 >
-
-                  {/* <InputField
-                    label="LinkedIn"
-                    name="linkedin"
-                    value={formData.linkedin}
-                    onChange={handleChange}
-                    // placeholder="https://linkedin.com/in/..."
-                    icon={Linkedin}
-                  /> */}
-
-                  {/* <InputField
-                    label="GitHub"
-                    name="github"
-                    value={formData.github}
-                    onChange={handleChange}
-                    // placeholder="https://github.com/..."
-                    icon={Github}
-                  /> */}
 
                   <InputField
                     label="Portfolio"
@@ -1309,6 +1716,7 @@ const Profile = () => {
                           : "text-red-500"
                       }`}
                     >
+
                       {saveMessage.includes(
                         "successfully"
                       ) && (
@@ -1316,6 +1724,7 @@ const Profile = () => {
                       )}
 
                       {saveMessage}
+
                     </span>
                   )}
 
@@ -1349,6 +1758,7 @@ const Profile = () => {
           </div>
         </div>
       )}
+
     </>
   );
 };
@@ -1433,6 +1843,7 @@ const SocialLink = ({
       </div>
 
       <div className="min-w-0">
+
         <p className="text-xs font-semibold text-slate-700">
           {label}
         </p>
@@ -1440,6 +1851,7 @@ const SocialLink = ({
         <p className="truncate text-[10px] text-blue-500">
           {value}
         </p>
+
       </div>
 
     </a>

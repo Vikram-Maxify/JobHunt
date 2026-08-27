@@ -165,7 +165,7 @@ const Testimonials = () => {
                 spaceBetween: 24,
               },
             }}
-            className="testimonials-swiper !pb-12"
+            className="testimonials-swiper !pb-4"
           >
 
             {TESTIMONIALS.map((testimonial) => (

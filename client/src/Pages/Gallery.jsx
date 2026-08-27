@@ -186,79 +186,169 @@ const Gallery = () => {
             {/* =====================================================
           HERO
       ===================================================== */}
-            <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+    <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
+  {/* Background Decorations */}
+  <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div className="absolute -left-32 -top-32 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
 
-                {/* Background Decorations */}
-                <div className="pointer-events-none absolute inset-0">
-                    <div className="absolute -left-32 -top-32 h-56 w-56 rounded-full bg-blue-500/20 blur-3xl sm:h-72 sm:w-72" />
+    <div className="absolute -bottom-32 -right-32 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" />
 
-                    <div className="absolute right-0 top-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl sm:h-72 sm:w-72" />
+    <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full bg-purple-500/5 blur-3xl" />
+  </div>
 
-                    <div className="absolute bottom-0 left-1/3 h-48 w-48 rounded-full bg-purple-500/10 blur-3xl" />
-                </div>
+  {/* Subtle Grid */}
+  <div
+    className="pointer-events-none absolute inset-0 opacity-[0.035]"
+    style={{
+      backgroundImage:
+        "linear-gradient(#2563eb 1px, transparent 1px), linear-gradient(90deg, #2563eb 1px, transparent 1px)",
+      backgroundSize: "45px 45px",
+    }}
+  />
 
-                <div className="relative mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
+  <div className="relative mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
+    <div className="grid min-h-[520px] items-center gap-10 py-4 sm:py-6 lg:grid-cols-[0.9fr_1.1fr] lg:gap-14 lg:py-6">
 
-                    <div className="flex min-h-[230px] items-center justify-center py-8 sm:min-h-[260px] sm:py-10 lg:min-h-[290px] lg:py-12">
+      {/* LEFT CONTENT */}
+      <div className="max-w-2xl text-center lg:text-left">
 
-                        <div className="mx-auto max-w-4xl text-center">
+        {/* Badge */}
+        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-4 py-2 shadow-sm backdrop-blur-xl">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50">
+            <Sparkles size={13} className="text-blue-600" />
+          </span>
 
-                            {/* Badge */}
-                            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1.5 backdrop-blur-md sm:mb-4">
-                                <Sparkles
-                                    size={14}
-                                    className="text-blue-200"
-                                />
+          <span className="text-xs font-bold tracking-wide text-blue-700">
+            CareerSphere Gallery
+          </span>
+        </div>
 
-                                <span className="text-[11px] font-medium text-blue-100 sm:text-xs">
-                                    CareerSphere Gallery
-                                </span>
-                            </div>
+        {/* Heading */}
+        <h1 className="text-4xl font-black leading-[1.05] tracking-tight text-slate-900 sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl">
+          Stories that
+          <span className="block bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            inspire careers.
+          </span>
+        </h1>
 
-                            {/* Heading */}
-                            <h1 className="text-3xl font-black leading-[1.05] tracking-tight text-white sm:text-4xl md:text-5xl lg:text-6xl">
-                                Explore Our
+        {/* Description */}
+        <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600 sm:text-base sm:leading-8 lg:mx-0">
+          Explore the people, opportunities, workplaces and moments
+          that make the CareerSphere journey meaningful.
+        </p>
 
-                                <span className="mt-1 block bg-gradient-to-r from-blue-200 via-indigo-200 to-purple-200 bg-clip-text text-transparent">
-                                    Career World
-                                </span>
-                            </h1>
+        {/* Stats */}
+        <div className="mx-auto mt-4 grid max-w-md grid-cols-3 divide-x divide-slate-200 rounded-2xl border border-slate-200 bg-white/80 px-2 py-4 shadow-lg shadow-slate-200/40 backdrop-blur-xl lg:mx-0">
+          
+          <div className="px-3 text-center lg:text-left">
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">
+              500+
+            </p>
 
-                            {/* Description */}
-                            <p className="mx-auto mt-3 max-w-2xl px-2 text-md leading-relaxed text-gray-300 sm:mt-4 sm:text-sm lg:text-base">
-                                Discover inspiring moments, professional journeys,
-                                workplace culture and everything that makes
-                                CareerSphere a better place to build your future.
-                            </p>
+            <p className="mt-1 text-[10px] font-medium text-slate-500 sm:text-xs">
+              Moments
+            </p>
+          </div>
 
-                            {/* Search Box */}
-                            <div className="mx-auto mt-4 max-w-xl sm:mt-5">
-                                <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/10 p-1.5 shadow-xl backdrop-blur-xl">
+          <div className="px-3 text-center lg:text-left">
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">
+              50+
+            </p>
 
-                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white sm:h-9 sm:w-9">
-                                        <Search
-                                            size={16}
-                                            className="text-blue-600"
-                                        />
-                                    </div>
+            <p className="mt-1 text-[10px] font-medium text-slate-500 sm:text-xs">
+              Companies
+            </p>
+          </div>
 
-                                    <div className="min-w-0 flex-1 text-left">
-                                        <p className="text-[10px] text-blue-200">
-                                            Explore
-                                        </p>
+          <div className="px-3 text-center lg:text-left">
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">
+              25K+
+            </p>
 
-                                        <p className="truncate text-xs font-medium text-white sm:text-sm">
-                                            Workplace, Career, Learning & More
-                                        </p>
-                                    </div>
+            <p className="mt-1 text-[10px] font-medium text-slate-500 sm:text-xs">
+              Careers
+            </p>
+          </div>
+        </div>
+      </div>
 
-                                </div>
-                            </div>
+      {/* RIGHT IMAGE COLLAGE */}
+      <div className="relative mx-auto h-[390px] w-full max-w-2xl sm:h-[460px] lg:h-[500px]">
 
-                        </div>
-                    </div>
-                </div>
-            </section>
+        {/* Main Image */}
+        <div className="absolute left-[8%] top-[5%] h-[72%] w-[58%] overflow-hidden rounded-[2rem] border border-white bg-white shadow-2xl shadow-slate-300/50 sm:left-[10%] sm:top-[4%]">
+          <img
+            src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1000&q=80"
+            alt="Career team"
+            className="h-full w-full object-cover transition duration-700 hover:scale-105"
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent" />
+
+          <div className="absolute bottom-5 left-5">
+            <p className="text-xs font-semibold text-blue-200">
+              Career Journey
+            </p>
+
+            <p className="mt-1 text-lg font-bold text-white">
+              Build. Grow. Succeed.
+            </p>
+          </div>
+        </div>
+
+        {/* Top Right Image */}
+        <div className="absolute right-[2%] top-[0%] h-[42%] w-[34%] overflow-hidden rounded-3xl border border-white bg-white shadow-xl shadow-slate-300/50 sm:right-[3%]">
+          <img
+            src="https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=700&q=80"
+            alt="Professional workplace"
+            className="h-full w-full object-cover transition duration-700 hover:scale-105"
+          />
+        </div>
+
+        {/* Bottom Right Image */}
+        <div className="absolute bottom-[2%] right-[3%] h-[48%] w-[40%] overflow-hidden rounded-3xl border border-white bg-white shadow-2xl shadow-slate-300/50 sm:right-[5%]">
+          <img
+            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80"
+            alt="Team collaboration"
+            className="h-full w-full object-cover transition duration-700 hover:scale-105"
+          />
+
+          <div className="absolute inset-0 bg-gradient-to-t from-indigo-950/70 to-transparent" />
+
+          <div className="absolute bottom-4 left-4">
+            <span className="rounded-full bg-white/20 px-3 py-1 text-[10px] font-semibold text-white backdrop-blur-md">
+              Team & Culture
+            </span>
+          </div>
+        </div>
+
+        {/* Floating Card */}
+        <div className="absolute bottom-[10%] left-[2%] z-10 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-xl shadow-slate-300/40 backdrop-blur-xl sm:bottom-[8%] sm:left-[5%]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50">
+              <Sparkles size={16} className="text-indigo-600" />
+            </div>
+
+            <div>
+              <p className="text-[10px] font-medium text-slate-500">
+                Explore
+              </p>
+
+              <p className="text-xs font-bold text-slate-900 sm:text-sm">
+                Your next opportunity
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative Circle */}
+        <div className="absolute right-[29%] top-[43%] z-20 flex h-12 w-12 items-center justify-center rounded-full border border-white bg-white/80 shadow-xl backdrop-blur-md">
+          <div className="h-2.5 w-2.5 rounded-full bg-blue-600 shadow-lg shadow-blue-400/40" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
             {/* =====================================================
           GALLERY

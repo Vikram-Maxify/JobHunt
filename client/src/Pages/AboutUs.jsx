@@ -98,57 +98,228 @@ const AboutUs = () => {
 
   return (
     <div className=" overflow-x-hidden bg-slate-50">
+   {/* =====================================================
+    COMPACT PREMIUM ABOUT US HERO SECTION
+====================================================== */}
+<section className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/40">
 
-      {/* =====================================================
-          HERO SECTION
-      ===================================================== */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
+  {/* Grid */}
+  <div
+    className="absolute inset-0 opacity-[0.04]"
+    style={{
+      backgroundImage:
+        "linear-gradient(rgba(30,41,59,0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(30,41,59,0.35) 1px, transparent 1px)",
+      backgroundSize: "45px 45px",
+    }}
+  />
 
-        {/* Background Decorations */}
-        <div className="pointer-events-none absolute inset-0">
+  {/* Glow */}
+  <div className="absolute -left-32 top-10 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+  <div className="absolute -right-32 bottom-0 h-72 w-72 rounded-full bg-purple-500/10 blur-3xl" />
 
-          <div className="absolute -left-24 -top-24 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl sm:h-80 sm:w-80" />
+  <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
-          <div className="absolute -right-24 top-10 h-72 w-72 rounded-full bg-purple-400/20 blur-3xl sm:h-96 sm:w-96" />
+    <div className="grid min-h-[430px] items-center gap-8 py-6 sm:min-h-[480px] sm:py-12 lg:grid-cols-[1fr_0.9fr] lg:gap-12 lg:py-14">
 
-          <div className="absolute bottom-0 left-1/3 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
+      {/* =================================================
+          LEFT CONTENT
+      ================================================= */}
+      <div className="relative z-20 max-w-2xl text-center lg:text-left">
+
+        {/* Badge */}
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3.5 py-1.5 text-xs font-semibold text-blue-600 shadow-sm sm:text-sm">
+
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100">
+            <Sparkles size={12} />
+          </span>
+
+          About CareerSphere
 
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Heading */}
+        <h1 className="text-3xl font-black leading-[1.08] tracking-tight text-slate-900 sm:text-4xl md:text-5xl lg:text-6xl">
 
-          <div className="flex min-h-[320px] items-center justify-center py-12 text-center sm:min-h-[370px] sm:py-16 lg:min-h-[400px]">
+          Empowering People
 
-            <div className="max-w-3xl">
+          <span className="block bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+            To Build Better Careers
+          </span>
 
-              {/* Badge */}
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur-md sm:text-sm">
-                <Sparkles size={15} />
+        </h1>
 
-                About CareerSphere
-              </div>
+        {/* Description */}
+        <p className="mx-auto mt-4 max-w-xl text-xs leading-6 text-slate-600 sm:text-sm sm:leading-7 lg:mx-0 lg:text-base">
+          CareerSphere connects ambitious professionals with
+          meaningful opportunities, trusted companies and the
+          resources they need to move their careers forward.
+        </p>
 
-              {/* Heading */}
-              <h1 className="text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl">
-                Connecting Talent
-                <span className="block text-blue-100">
-                  With Opportunity
-                </span>
-              </h1>
+        {/* Stats */}
+        <div className="mt-6 flex flex-wrap justify-center gap-5 sm:gap-7 lg:justify-start">
 
-              {/* Description */}
-              <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-blue-100/80 sm:text-base lg:text-lg">
-                CareerSphere is a modern career platform designed to
-                connect ambitious professionals with meaningful
-                opportunities and forward-thinking companies.
+          {/* Stat 1 */}
+          <div>
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">
+              50K+
+            </p>
+
+            <p className="text-[10px] text-slate-500 sm:text-xs">
+              Professionals
+            </p>
+          </div>
+
+          <div className="h-8 w-px bg-slate-300" />
+
+          {/* Stat 2 */}
+          <div>
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">
+              10K+
+            </p>
+
+            <p className="text-[10px] text-slate-500 sm:text-xs">
+              Opportunities
+            </p>
+          </div>
+
+          <div className="h-8 w-px bg-slate-300" />
+
+          {/* Stat 3 */}
+          <div>
+            <p className="text-xl font-black text-slate-900 sm:text-2xl">
+              2K+
+            </p>
+
+            <p className="text-[10px] text-slate-500 sm:text-xs">
+              Companies
+            </p>
+          </div>
+
+        </div>
+
+        {/* Trust */}
+        <div className="mt-5 flex items-center justify-center gap-2.5 lg:justify-start">
+
+          <div className="flex -space-x-2">
+
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-blue-500 text-[9px] font-bold text-white shadow-sm">
+              A
+            </div>
+
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-indigo-500 text-[9px] font-bold text-white shadow-sm">
+              R
+            </div>
+
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-purple-500 text-[9px] font-bold text-white shadow-sm">
+              S
+            </div>
+
+            <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-blue-700 text-[9px] font-bold text-white shadow-sm">
+              +
+            </div>
+
+          </div>
+
+          <p className="text-[10px] text-slate-500 sm:text-xs">
+            Trusted by thousands of professionals
+          </p>
+
+        </div>
+
+      </div>
+
+      {/* =================================================
+          RIGHT IMAGE
+      ================================================= */}
+      <div className="relative z-10 mx-auto w-full max-w-md lg:max-w-none">
+
+        {/* Glow */}
+        <div className="absolute -inset-4 rounded-[2rem] bg-blue-500/15 blur-2xl" />
+
+        {/* Image Card */}
+        <div className="relative overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/70 p-1.5 shadow-2xl backdrop-blur-sm">
+
+          <div className="relative h-[250px] overflow-hidden rounded-[1.2rem] sm:h-[300px] lg:h-[340px]">
+
+            <img
+              src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=90"
+              alt="CareerSphere professionals collaborating"
+              className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+            />
+
+            {/* Overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent" />
+
+            {/* Bottom Text */}
+            <div className="absolute bottom-4 left-4 right-4 sm:bottom-5 sm:left-5 sm:right-5">
+
+              <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-blue-300 sm:text-[10px]">
+                Career • Growth • Opportunity
               </p>
+
+              <h3 className="mt-1 text-base font-bold text-white sm:text-lg">
+                Your journey. Your opportunity.
+              </h3>
 
             </div>
 
           </div>
 
         </div>
-      </section>
+
+        {/* Floating Card - Top */}
+        <div className="absolute -right-2 -top-4 hidden rounded-xl border border-slate-100 bg-white p-3 shadow-xl sm:block lg:-right-5">
+
+          <div className="flex items-center gap-2.5">
+
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 text-green-600">
+              <CheckCircle2 size={18} />
+            </div>
+
+            <div>
+              <p className="text-xs font-bold text-slate-900">
+                Trusted Platform
+              </p>
+
+              <p className="text-[9px] text-slate-400">
+                Built for professionals
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Floating Card - Bottom */}
+        <div className="absolute -bottom-4 -left-2 hidden rounded-xl border border-slate-100 bg-white p-3 shadow-xl sm:block lg:-left-5">
+
+          <div className="flex items-center gap-2.5">
+
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <TrendingUp size={18} />
+            </div>
+
+            <div>
+              <p className="text-base font-black text-slate-900">
+                95%
+              </p>
+
+              <p className="text-[9px] text-slate-400">
+                User Satisfaction
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
 
       {/* =====================================================
           INTRODUCTION SECTION
@@ -222,7 +393,7 @@ const AboutUs = () => {
           {/* Right Visual */}
           <div className="relative">
 
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-6 shadow-2xl sm:p-8">
+            <div className="relative overflow-hidden rounded-3xl hidden sm:block bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-6 shadow-2xl sm:p-8">
 
               {/* Decorative circles */}
               <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
@@ -733,19 +904,19 @@ const AboutUs = () => {
               connections and opportunities.
             </p>
 
-           <Link to='/subscription'>
-             <button
-              type="button"
-              className="mt-7 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl"
-            >
-              Join Our Community
+            <Link to='/subscription'>
+              <button
+                type="button"
+                className="mt-7 inline-flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition-all duration-300 hover:bg-blue-700 hover:shadow-xl"
+              >
+                Join Our Community
 
-              <ArrowRight
-                size={17}
-                className="transition-transform group-hover:translate-x-1"
-              />
-            </button>
-           </Link>
+                <ArrowRight
+                  size={17}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </button>
+            </Link>
 
           </div>
 
@@ -785,25 +956,25 @@ const AboutUs = () => {
 
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
 
-            <Link to='/jobs'>
-              <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-blue-600 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl sm:px-8"
-              >
-                Explore Jobs
-                <ArrowRight size={17} />
-              </button>
-            </Link>
+              <Link to='/jobs'>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-bold text-blue-600 shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl sm:px-8"
+                >
+                  Explore Jobs
+                  <ArrowRight size={17} />
+                </button>
+              </Link>
 
-             <Link to='/contact'>
-               <button
-                type="button"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 sm:px-8"
-              >
-                Contact Us
-                <ArrowRight size={17} />
-              </button>
-             </Link>
+              <Link to='/contact'>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-6 py-3 text-sm font-bold text-white backdrop-blur-md transition-all duration-300 hover:bg-white/20 sm:px-8"
+                >
+                  Contact Us
+                  <ArrowRight size={17} />
+                </button>
+              </Link>
 
             </div>
 

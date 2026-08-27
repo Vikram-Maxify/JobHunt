@@ -4,18 +4,22 @@ const StatCard = ({
   title,
   value,
   description,
-  icon: Icon,
+  icon,
+  iconBg,
   iconClass = "bg-blue-50 text-blue-600",
   trend,
   trendPositive = true,
 }) => {
+  const Icon = icon;
+  const wrapperClass = iconBg || iconClass;
+
   return (
     <div className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div
-          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconClass}`}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${wrapperClass}`}
         >
-          <Icon size={21} />
+          {React.isValidElement(icon) ? icon : <Icon size={21} />}
         </div>
 
         {trend && (

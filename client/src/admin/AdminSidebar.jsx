@@ -16,10 +16,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 
-const AdminSidebar = ({
-  sidebarOpen,
-  setSidebarOpen,
-}) => {
+const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
 
   const menuItems = [
@@ -32,6 +29,12 @@ const AdminSidebar = ({
       name: "Users",
       path: "/admin/users",
       icon: Users,
+    },
+
+    {
+      name: "Categories",
+      path: "/admin/jobcategories",
+      icon: ShieldCheck,
     },
     {
       name: "Jobs",
@@ -104,9 +107,7 @@ const AdminSidebar = ({
               <Icon size={18} />
             </span>
 
-            <span className="min-w-0 flex-1 truncate">
-              {item.name}
-            </span>
+            <span className="min-w-0 flex-1 truncate">{item.name}</span>
 
             <ChevronRight
               size={15}
@@ -135,9 +136,7 @@ const AdminSidebar = ({
       {/* SIDEBAR */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-200 bg-white shadow-xl transition-transform duration-300 lg:translate-x-0 lg:shadow-none ${
-          sidebarOpen
-            ? "translate-x-0"
-            : "-translate-x-full"
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* LOGO */}
@@ -199,9 +198,7 @@ const AdminSidebar = ({
             Main Menu
           </p>
 
-          <nav className="space-y-1.5">
-            {menuItems.map(renderNavItem)}
-          </nav>
+          <nav className="space-y-1.5">{menuItems.map(renderNavItem)}</nav>
 
           <div className="my-6 h-px bg-slate-100" />
 
@@ -209,9 +206,7 @@ const AdminSidebar = ({
             Account
           </p>
 
-          <nav className="space-y-1.5">
-            {bottomItems.map(renderNavItem)}
-          </nav>
+          <nav className="space-y-1.5">{bottomItems.map(renderNavItem)}</nav>
         </div>
 
         {/* LOGOUT */}

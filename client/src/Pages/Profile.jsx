@@ -81,6 +81,7 @@ const Profile = () => {
   const loadUser = () => {
     try {
       const storedUser = localStorage.getItem("careerSphereCurrentUser");
+      console.log(storedUser, "user save huaa");
 
       if (!storedUser) {
         setUser(null);

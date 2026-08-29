@@ -24,9 +24,27 @@ import {
   VenusAndMars,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+
+import { useDispatch, useSelector } from "react-redux";
+import { getProfile } from "../redux/slicer/authSlice";
+
+// =============================================================
+// PROFILE
+// =============================================================
 
 const Profile = () => {
+  // =========================================================
+  // REDUX
+  // =========================================================
+
+  const dispatch = useDispatch();
+
+  const {
+    user: reduxUser,
+    loading,
+    error,
+  } = useSelector((state) => state.auth);
+
   // =========================================================
   // USER STATE
   // =========================================================
@@ -75,72 +93,85 @@ const Profile = () => {
   });
 
   // =========================================================
-  // GET USER FROM LOCAL STORAGE
-  // =========================================================
-
-  const loadUser = () => {
-    try {
-      const storedUser = localStorage.getItem("careerSphereCurrentUser");
-      console.log(storedUser, "user save huaa");
-
-      if (!storedUser) {
-        setUser(null);
-        return;
-      }
-
-      const parsedUser = JSON.parse(storedUser);
-
-      setUser(parsedUser);
-
-      setFormData({
-        name: parsedUser?.name || parsedUser?.fullName || "",
-        email: parsedUser?.email || "",
-        phone: parsedUser?.phone || parsedUser?.mobile || "",
-        location: parsedUser?.location || "",
-        dateOfBirth: parsedUser?.dateOfBirth || parsedUser?.dob || "",
-        gender: parsedUser?.gender || "",
-        qualification: parsedUser?.qualification || parsedUser?.education || "",
-        university: parsedUser?.university || parsedUser?.college || "",
-        graduationYear: parsedUser?.graduationYear || "",
-        experience: parsedUser?.experience || "",
-        currentCompany: parsedUser?.currentCompany || parsedUser?.company || "",
-        jobTitle: parsedUser?.jobTitle || parsedUser?.designation || "",
-        skills: Array.isArray(parsedUser?.skills)
-          ? parsedUser.skills.join(", ")
-          : parsedUser?.skills || "",
-        bio: parsedUser?.bio || parsedUser?.about || "",
-        linkedin: parsedUser?.linkedin || parsedUser?.linkedinUrl || "",
-        github: parsedUser?.github || parsedUser?.githubUrl || "",
-        portfolio: parsedUser?.portfolio || parsedUser?.portfolioUrl || "",
-        preferredJobRole: parsedUser?.preferredJobRole || "",
-        preferredLocation: parsedUser?.preferredLocation || "",
-        employmentType: parsedUser?.employmentType || "",
-        salaryExpectation: parsedUser?.salaryExpectation || "",
-        resume: parsedUser?.resume || parsedUser?.resumeUrl || "",
-
-        // PROFILE PHOTO
-        profilePhoto: parsedUser?.profilePhoto || "",
-
-        // GOVERNMENT DOCUMENT
-        governmentDocumentType: parsedUser?.governmentDocumentType || "",
-
-        governmentDocument: parsedUser?.governmentDocument || "",
-
-        governmentDocumentName: parsedUser?.governmentDocumentName || "",
-      });
-    } catch (error) {
-      console.error("Profile loading error:", error);
-      setUser(null);
-    }
-  };
-
-  // =========================================================
-  // LOAD USER
+  // GET PROFILE FROM BACKEND
   // =========================================================
 
   useEffect(() => {
-    loadUser();
-  }, []);
+    dispatch(getProfile());
+  }, [dispatch]);
+
+  // =========================================================
+  // SET USER FROM REDUX
+  // =========================================================
+
+  useEffect(() => {
+    if (reduxUser) {
+      setUser(reduxUser);
+
+      setFormData({
+        name:
+          reduxUser?.name || reduxUser?.fullName || reduxUser?.username || "",
+
+        email: reduxUser?.email || "",
+
+        phone: reduxUser?.phone || reduxUser?.mobile || "",
+
+        location: reduxUser?.location || "",
+
+        dateOfBirth: reduxUser?.dateOfBirth || reduxUser?.dob || "",
+
+        gender: reduxUser?.gender || "",
+
+        qualification: reduxUser?.qualification || reduxUser?.education || "",
+
+        university: reduxUser?.university || reduxUser?.college || "",
+
+        graduationYear: reduxUser?.graduationYear || "",
+
+        experience: reduxUser?.experience || "",
+
+        currentCompany: reduxUser?.currentCompany || reduxUser?.company || "",
+
+        jobTitle: reduxUser?.jobTitle || reduxUser?.designation || "",
+
+        skills: Array.isArray(reduxUser?.skills)
+          ? reduxUser.skills.join(", ")
+          : reduxUser?.skills || "",
+
+        bio: reduxUser?.bio || reduxUser?.about || "",
+
+        linkedin: reduxUser?.linkedin || reduxUser?.linkedinUrl || "",
+
+        github: reduxUser?.github || reduxUser?.githubUrl || "",
+
+        portfolio: reduxUser?.portfolio || reduxUser?.portfolioUrl || "",
+
+        preferredJobRole: reduxUser?.preferredJobRole || "",
+
+        preferredLocation: reduxUser?.preferredLocation || "",
+
+        employmentType: reduxUser?.employmentType || "",
+
+        salaryExpectation: reduxUser?.salaryExpectation || "",
+
+        resume: reduxUser?.resume || reduxUser?.resumeUrl || "",
+
+        // PROFILE PHOTO
+        profilePhoto:
+          reduxUser?.profilePhoto ||
+          reduxUser?.profileImage ||
+          reduxUser?.avatar ||
+          "",
+
+        // GOVERNMENT DOCUMENT
+        governmentDocumentType: reduxUser?.governmentDocumentType || "",
+
+        governmentDocument: reduxUser?.governmentDocument || "",
+
+        governmentDocumentName: reduxUser?.governmentDocumentName || "",
+      });
+    }
+  }, [reduxUser]);
 
   // =========================================================
   // LOCK BACKGROUND SCROLL WHEN MODAL IS OPEN
@@ -180,13 +211,11 @@ const Profile = () => {
 
     if (!file) return;
 
-    // Only image files
     if (!file.type.startsWith("image/")) {
       setSaveMessage("Please select a valid image file.");
       return;
     }
 
-    // 5MB limit
     if (file.size > 5 * 1024 * 1024) {
       setSaveMessage("Profile photo size should be less than 5MB.");
       return;
@@ -226,7 +255,6 @@ const Profile = () => {
       return;
     }
 
-    // 5MB limit
     if (file.size > 5 * 1024 * 1024) {
       setSaveMessage("Government document size should be less than 5MB.");
 
@@ -327,125 +355,75 @@ const Profile = () => {
   // =========================================================
   // SAVE PROFILE
   // =========================================================
+  // NOTE:
+  // Backend profile UPDATE is intentionally not connected yet.
+  // No localStorage is used.
+  // =========================================================
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
 
-    try {
-      const oldUser = user || {};
-
-      const updatedUser = {
-        ...oldUser,
-
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-
-        phone: formData.phone.trim(),
-        location: formData.location.trim(),
-
-        dateOfBirth: formData.dateOfBirth,
-        gender: formData.gender,
-
-        qualification: formData.qualification.trim(),
-
-        university: formData.university.trim(),
-
-        graduationYear: formData.graduationYear,
-
-        experience: formData.experience.trim(),
-
-        currentCompany: formData.currentCompany.trim(),
-
-        jobTitle: formData.jobTitle.trim(),
-
-        skills: skills,
-
-        bio: formData.bio.trim(),
-
-        linkedin: formData.linkedin.trim(),
-
-        github: formData.github.trim(),
-
-        portfolio: formData.portfolio.trim(),
-
-        preferredJobRole: formData.preferredJobRole.trim(),
-
-        preferredLocation: formData.preferredLocation.trim(),
-
-        employmentType: formData.employmentType,
-
-        salaryExpectation: formData.salaryExpectation.trim(),
-
-        resume: formData.resume.trim(),
-
-        // SAVE PROFILE PHOTO
-        profilePhoto: formData.profilePhoto,
-
-        // SAVE GOVERNMENT DOCUMENT
-        governmentDocumentType: formData.governmentDocumentType,
-
-        governmentDocument: formData.governmentDocument,
-
-        governmentDocumentName: formData.governmentDocumentName,
-      };
-
-      // =====================================================
-      // SAVE CURRENT USER
-      // =====================================================
-
-      localStorage.setItem(
-        "careerSphereCurrentUser",
-        JSON.stringify(updatedUser),
-      );
-
-      // =====================================================
-      // UPDATE USERS ARRAY
-      // =====================================================
-
-      const storedUsers =
-        JSON.parse(localStorage.getItem("careerSphereUsers")) || [];
-
-      if (Array.isArray(storedUsers)) {
-        const updatedUsers = storedUsers.map((existingUser) => {
-          const sameUser =
-            existingUser?.email?.toLowerCase() ===
-            oldUser?.email?.toLowerCase();
-
-          return sameUser
-            ? {
-                ...existingUser,
-                ...updatedUser,
-              }
-            : existingUser;
-        });
-
-        localStorage.setItem("careerSphereUsers", JSON.stringify(updatedUsers));
-      }
-
-      // =====================================================
-      // UPDATE UI
-      // =====================================================
-
-      setUser(updatedUser);
-
-      // =====================================================
-      // NOTIFY NAVBAR
-      // =====================================================
-
-      window.dispatchEvent(new Event("careerSphereAuthChanged"));
-
-      setSaveMessage("Profile updated successfully!");
-
-      setTimeout(() => {
-        setShowEditModal(false);
-        setSaveMessage("");
-      }, 1000);
-    } catch (error) {
-      console.error("Profile update error:", error);
-
-      setSaveMessage("Unable to update profile. Please try again.");
-    }
+    setSaveMessage("Profile update is currently unavailable.");
   };
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (loading && !user) {
+    return (
+      <main className="min-h-[calc(100vh-68px)] bg-slate-50 px-4 py-10">
+        <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center">
+          <div className="w-full rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+              <UserRound size={30} className="animate-pulse" />
+            </div>
+
+            <h1 className="mt-5 text-xl font-bold text-slate-800">
+              Loading Profile...
+            </h1>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Please wait while we fetch your profile.
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // =========================================================
+  // PROFILE ERROR
+  // =========================================================
+
+  if (error && !user) {
+    return (
+      <main className="min-h-[calc(100vh-68px)] bg-slate-50 px-4 py-10">
+        <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center">
+          <div className="w-full rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-500">
+              <UserRound size={30} />
+            </div>
+
+            <h1 className="mt-5 text-xl font-bold text-slate-800">
+              Unable to Load Profile
+            </h1>
+
+            <p className="mt-2 text-sm text-slate-500">{error}</p>
+
+            <button
+              type="button"
+              onClick={() => dispatch(getProfile())}
+              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+            >
+              <UserRound size={17} />
+              Try Again
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   // =========================================================
   // NOT LOGGED IN
@@ -480,6 +458,10 @@ const Profile = () => {
       </main>
     );
   }
+
+  // =========================================================
+  // MAIN PROFILE
+  // =========================================================
 
   return (
     <>
@@ -967,9 +949,7 @@ const Profile = () => {
           }}
         >
           <div className="relative my-auto flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-            {/* =================================================
-                MODAL HEADER
-            ================================================= */}
+            {/* MODAL HEADER */}
 
             <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-4 sm:px-6">
               <div className="flex items-center gap-3">
@@ -998,9 +978,7 @@ const Profile = () => {
               </button>
             </div>
 
-            {/* =================================================
-                FORM
-            ================================================= */}
+            {/* FORM */}
 
             <form
               onSubmit={handleSaveProfile}
@@ -1018,8 +996,6 @@ const Profile = () => {
                 >
                   <div className="sm:col-span-2">
                     <div className="flex flex-col items-center gap-5 rounded-xl border border-slate-200 bg-slate-50 p-5 sm:flex-row">
-                      {/* PHOTO PREVIEW */}
-
                       <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-3xl font-black text-white shadow-md">
                         {formData.profilePhoto ? (
                           <img
@@ -1031,8 +1007,6 @@ const Profile = () => {
                           getInitial()
                         )}
                       </div>
-
-                      {/* UPLOAD */}
 
                       <div className="min-w-0 flex-1 text-center sm:text-left">
                         <p className="text-sm font-semibold text-slate-700">
@@ -1314,8 +1288,6 @@ const Profile = () => {
                 >
                   <div className="sm:col-span-2">
                     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                      {/* DOCUMENT TYPE */}
-
                       <label
                         htmlFor="governmentDocumentType"
                         className="mb-1.5 block text-xs font-semibold text-slate-700"
@@ -1354,8 +1326,6 @@ const Profile = () => {
                         </span>
                       </div>
 
-                      {/* DOCUMENT UPLOAD */}
-
                       <div className="mt-4">
                         <label
                           htmlFor="governmentDocument"
@@ -1381,8 +1351,6 @@ const Profile = () => {
                           className="hidden"
                         />
                       </div>
-
-                      {/* DOCUMENT INFO */}
 
                       {formData.governmentDocument && (
                         <div className="mt-3 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3">
@@ -1437,24 +1405,12 @@ const Profile = () => {
                 </FormSection>
               </div>
 
-              {/* =================================================
-                  MODAL FOOTER
-              ================================================= */}
+              {/* MODAL FOOTER */}
 
               <div className="flex shrink-0 flex-col gap-3 border-t border-slate-100 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div className="min-h-5 text-xs">
                   {saveMessage && (
-                    <span
-                      className={`flex items-center gap-1.5 font-medium ${
-                        saveMessage.includes("successfully")
-                          ? "text-green-600"
-                          : "text-red-500"
-                      }`}
-                    >
-                      {saveMessage.includes("successfully") && (
-                        <CheckCircle2 size={14} />
-                      )}
-
+                    <span className="flex items-center gap-1.5 font-medium text-red-500">
                       {saveMessage}
                     </span>
                   )}

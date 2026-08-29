@@ -18,6 +18,7 @@ import {
   Sparkles,
   Zap,
   Users,
+  Globe2,
 } from "lucide-react";
 
 // =========================================================
@@ -631,10 +632,11 @@ const Jobs = () => {
                   />
 
                   <span
-                    className={`min-w-0 flex-1 break-words text-xs leading-5 transition ${checked
+                    className={`min-w-0 flex-1 break-words text-xs leading-5 transition ${
+                      checked
                         ? "font-semibold text-blue-600"
                         : "text-slate-600 group-hover:text-blue-600"
-                      }`}
+                    }`}
                   >
                     {label}
                   </span>
@@ -731,199 +733,329 @@ const Jobs = () => {
   // JOB CARD
   // =========================================================
 
-  const JobCard = ({ job }) => {
-    const saved = savedJobs.includes(job.id);
+ const JobCard = ({ job }) => {
+  const saved = savedJobs.includes(job.id);
 
-    return (
-      <article
-        onClick={() => openJobDetail(job)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            openJobDetail(job);
-          }
-        }}
-        tabIndex={0}
-        role="button"
-        className={`group relative w-full min-w-0 cursor-pointer overflow-hidden rounded-xl border bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-300 hover:shadow-lg hover:shadow-slate-200/70 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${job.featured
-            ? "border-blue-100"
-            : "border-slate-200"
-          }`}
-      >
-        {/* Featured */}
-        {job.featured && (
-          <div className="flex min-w-0 items-center gap-1.5 border-b border-blue-100 bg-blue-50 px-3 py-2 text-xs font-bold text-blue-600 sm:px-4">
-            <Sparkles size={13} className="shrink-0" />
-            <span className="truncate">
+  return (
+    <article
+      onClick={() => openJobDetail(job)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openJobDetail(job);
+        }
+      }}
+      tabIndex={0}
+      role="button"
+      className="group relative w-full cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_20px_55px_rgba(37,99,235,0.10)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+    >
+      {/* =====================================================
+          HOVER GLOW
+      ====================================================== */}
+      <div className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full bg-blue-500/5 blur-3xl transition-all duration-500 group-hover:bg-blue-500/10" />
+
+      {/* =====================================================
+          LEFT ACCENT
+      ====================================================== */}
+      <div
+        className={`absolute left-0 top-0 h-full w-1 transition-all duration-300 group-hover:w-1.5 ${
+          job.featured
+            ? "bg-gradient-to-b from-blue-500 to-indigo-600"
+            : job.urgent
+            ? "bg-gradient-to-b from-orange-400 to-red-500"
+            : "bg-transparent group-hover:bg-blue-500"
+        }`}
+      />
+
+      {/* =====================================================
+          TOP STATUS
+      ====================================================== */}
+      {(job.featured || job.urgent) && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-4 py-3 sm:px-6">
+          {job.featured && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-700 sm:text-xs">
+              <Sparkles size={12} />
               Featured Job
             </span>
-          </div>
-        )}
+          )}
 
-        {/* Urgent */}
-        {job.urgent && (
-          <div className="border-b border-orange-100 bg-orange-50 px-3 py-2.5 sm:px-4">
-            <div className="flex min-w-0 items-center gap-1.5 text-xs font-bold text-orange-600">
-              <Zap size={13} className="shrink-0" />
+          {job.urgent && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[10px] font-bold text-orange-700 sm:text-xs">
+              <Zap size={12} />
+              Urgently Hiring
+            </span>
+          )}
+        </div>
+      )}
 
-              <span className="truncate">
-                We're urgently hiring
-              </span>
-            </div>
+      {/* =====================================================
+          MAIN CONTENT
+      ====================================================== */}
+      <div className="relative p-4 sm:p-5 lg:p-6">
 
-            <p className="mt-0.5 break-words text-[11px] text-orange-500">
-              Hiring for immediate joining
-            </p>
-          </div>
-        )}
+        {/* ===================================================
+            HEADER
+        ==================================================== */}
+        <div className="flex items-start gap-3.5 sm:gap-4">
 
-        <div className="min-w-0 p-3 sm:p-5">
-          {/* TOP */}
-          <div className="flex min-w-0 items-start gap-2.5 sm:gap-3.5">
-            {/* Logo */}
+          {/* COMPANY LOGO */}
+          <div className="relative shrink-0">
             <div
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-slate-100 text-base font-black shadow-sm sm:h-12 sm:w-12 ${job.logoClass}`}
+              className={`flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 text-xl font-black shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-md sm:h-16 sm:w-16 sm:text-2xl ${job.logoClass}`}
             >
               {job.logo}
             </div>
 
-            {/* Job info */}
-            <div className="min-w-0 flex-1">
-              <div className="flex min-w-0 items-start gap-2">
-                <div className="min-w-0 flex-1 pr-0.5">
-                  <h2 className="break-words text-sm font-bold leading-5 text-slate-900 transition group-hover:text-blue-600 sm:text-base">
-                    {job.title}
-                  </h2>
+            {/* Verified */}
+            <span className="absolute -bottom-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 shadow-sm">
+              <Check
+                size={11}
+                strokeWidth={4}
+                className="text-white"
+              />
+            </span>
+          </div>
 
-                  <p className="mt-1 break-words text-xs font-semibold leading-5 text-slate-600 sm:text-sm">
+          {/* TITLE */}
+          <div className="min-w-0 flex-1">
+
+            <div className="flex items-start justify-between gap-3">
+
+              <div className="min-w-0 flex-1">
+
+                <h2 className="line-clamp-2 text-[15px] font-extrabold leading-5 tracking-tight text-slate-900 transition-colors duration-300 group-hover:text-blue-600 sm:text-lg sm:leading-6">
+                  {job.title}
+                </h2>
+
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+
+                  <p className="text-xs font-semibold text-slate-600 sm:text-sm">
                     {job.company}
                   </p>
+
+                  <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
+
+                  <span className="text-[10px] font-medium text-slate-400 sm:text-xs">
+                    {job.posted}
+                  </span>
+
                 </div>
-
-                {/* Save */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleSaveJob(job.id);
-                  }}
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition ${saved
-                      ? "bg-blue-50 text-blue-600"
-                      : "text-slate-400 hover:bg-blue-50 hover:text-blue-600"
-                    }`}
-                  aria-label={
-                    saved ? "Unsave job" : "Save job"
-                  }
-                >
-                  {saved ? (
-                    <BookmarkCheck size={18} />
-                  ) : (
-                    <Bookmark size={18} />
-                  )}
-                </button>
               </div>
 
-              {/* META */}
-              <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-[11px] text-slate-600 sm:gap-x-4 sm:text-xs">
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <BriefcaseBusiness
-                    size={13}
-                    className="shrink-0 text-slate-400"
-                  />
-
-                  <span className="break-words">
-                    {job.experience}
-                  </span>
-                </span>
-
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <CircleDollarSign
-                    size={13}
-                    className="shrink-0 text-slate-400"
-                  />
-
-                  <span className="break-words">
-                    {job.salary}
-                  </span>
-                </span>
-
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <MapPin
-                    size={13}
-                    className="shrink-0 text-slate-400"
-                  />
-
-                  <span className="break-words">
-                    {job.location}
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* DESCRIPTION */}
-          <p className="mt-4 line-clamp-2 break-words text-xs leading-5 text-slate-600 sm:text-sm">
-            {job.description}
-          </p>
-
-          {/* SKILLS */}
-          <div className="mt-4 flex min-w-0 flex-wrap gap-1.5 sm:gap-2">
-            {job.skills.map((skill) => (
-              <span
-                key={skill}
-                className="max-w-full break-words rounded-md bg-slate-100 px-2 py-1.5 text-[10px] font-semibold leading-4 text-slate-600 sm:px-2.5 sm:text-xs"
+              {/* SAVE BUTTON */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleSaveJob(job.id);
+                }}
+                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 sm:h-10 sm:w-10 ${
+                  saved
+                    ? "border-blue-100 bg-blue-50 text-blue-600"
+                    : "border-slate-200 bg-white text-slate-400 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
+                }`}
+                aria-label={
+                  saved ? "Unsave job" : "Save job"
+                }
               >
-                {skill}
-              </span>
-            ))}
+                {saved ? (
+                  <BookmarkCheck size={18} />
+                ) : (
+                  <Bookmark size={18} />
+                )}
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        {/* ===================================================
+            JOB HIGHLIGHTS
+        ==================================================== */}
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+
+          {/* EXPERIENCE */}
+          <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3 transition-colors group-hover:bg-blue-50/40">
+
+            <div className="flex items-center gap-2">
+
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
+                <BriefcaseBusiness size={14} />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Experience
+                </p>
+
+                <p className="mt-0.5 truncate text-[11px] font-bold text-slate-700 sm:text-xs">
+                  {job.experience}
+                </p>
+              </div>
+
+            </div>
           </div>
 
-          {/* BOTTOM */}
-          <div className="mt-4 flex min-w-0 flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2 text-[10px] text-slate-500 sm:gap-x-4 sm:text-xs">
-              <span className="flex min-w-0 items-center gap-1.5">
-                <Clock3 size={13} className="shrink-0" />
+          {/* SALARY */}
+          <div className="rounded-2xl border border-emerald-100/70 bg-emerald-50/50 p-3">
 
-                <span className="break-words">
-                  {job.posted}
-                </span>
-              </span>
+            <div className="flex items-center gap-2">
 
-              <span className="flex min-w-0 items-center gap-1.5">
-                <Users size={13} className="shrink-0" />
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
+                <CircleDollarSign size={15} />
+              </div>
 
-                <span className="break-words">
-                  {job.applicants}
-                </span>
-              </span>
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Salary
+                </p>
 
-              <span className="flex min-w-0 items-center gap-1.5">
-                <CalendarDays
-                  size={13}
-                  className="shrink-0"
+                <p className="mt-0.5 truncate text-[11px] font-extrabold text-emerald-700 sm:text-xs">
+                  {job.salary}
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* LOCATION */}
+          <div className="rounded-2xl border border-blue-100/70 bg-blue-50/50 p-3">
+
+            <div className="flex items-center gap-2">
+
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
+                <MapPin size={15} />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Location
+                </p>
+
+                <p className="mt-0.5 truncate text-[11px] font-bold text-slate-700 sm:text-xs">
+                  {job.location}
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          {/* WORK MODE */}
+          <div className="rounded-2xl border border-indigo-100/70 bg-indigo-50/50 p-3">
+
+            <div className="flex items-center gap-2">
+
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm">
+                <Globe2 size={15} />
+              </div>
+
+              <div className="min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                  Work Mode
+                </p>
+
+                <p className="mt-0.5 truncate text-[11px] font-bold text-slate-700 sm:text-xs">
+                  {job.workMode}
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* ===================================================
+            DESCRIPTION
+        ==================================================== */}
+        <p className="mt-5 line-clamp-2 text-xs leading-5 text-slate-500 sm:text-sm sm:leading-6">
+          {job.description}
+        </p>
+
+        {/* ===================================================
+            SKILLS
+        ==================================================== */}
+        <div className="mt-4 flex flex-wrap items-center gap-1.5">
+
+          {job.skills.slice(0, 4).map((skill, index) => (
+            <span
+              key={skill}
+              className={`rounded-lg px-2.5 py-1.5 text-[10px] font-semibold transition-colors sm:text-[11px] ${
+                index === 0
+                  ? "border border-blue-100 bg-blue-50 text-blue-700"
+                  : "border border-slate-200 bg-white text-slate-600"
+              }`}
+            >
+              {skill}
+            </span>
+          ))}
+
+          {job.skills.length > 4 && (
+            <span className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-semibold text-slate-500">
+              +{job.skills.length - 4}
+            </span>
+          )}
+
+        </div>
+
+        {/* ===================================================
+            FOOTER
+        ==================================================== */}
+        <div className="mt-5 border-t border-slate-100 pt-4">
+
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+            {/* LEFT META */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+
+              {/* Applicants */}
+              <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 sm:text-xs">
+                <Users
+                  size={14}
+                  className="text-slate-400"
                 />
+                {job.applicants}
+              </div>
 
-                <span className="break-words">
-                  {job.type}
-                </span>
+              {/* Job Type */}
+              <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 sm:text-xs">
+                <CalendarDays
+                  size={14}
+                  className="text-slate-400"
+                />
+                {job.type}
+              </div>
+
+              {/* Department */}
+              <span className="hidden rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-500 md:inline-flex">
+                {job.department}
               </span>
+
             </div>
 
+            {/* CTA */}
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
                 openJobDetail(job);
               }}
-              className="w-full shrink-0 rounded-lg bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md sm:w-auto"
+              className="group/btn inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-600/25 sm:w-auto sm:min-w-[135px]"
             >
               View Details
+
+              <ChevronRight
+                size={15}
+                className="transition-transform duration-300 group-hover/btn:translate-x-1"
+              />
             </button>
+
           </div>
         </div>
-      </article>
-    );
-  };
+
+      </div>
+    </article>
+  );
+};
 
   // =========================================================
   // ACTIVE FILTER COUNT
@@ -952,21 +1084,21 @@ const Jobs = () => {
 
   return (
     <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-slate-50">
+
       <div className="mx-auto w-full max-w-7xl min-w-0 px-2.5 py-3 sm:px-4 sm:py-5 md:px-5 lg:px-6 xl:px-0">
 
         {/* =====================================================
             SEARCH HEADER
         ====================================================== */}
 
-        {/* =====================================================
-    SEARCH HEADER
-====================================================== */}
-
         <section className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4">
+
           <div className="flex min-w-0 flex-row items-center gap-1.5 sm:gap-3">
 
             {/* Search */}
+
             <div className="relative min-w-0 flex-1">
+
               <Search
                 size={16}
                 className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 sm:left-3.5 sm:h-[18px] sm:w-[18px]"
@@ -981,10 +1113,13 @@ const Jobs = () => {
                 placeholder="Search jobs..."
                 className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
               />
+
             </div>
 
             {/* Location */}
+
             <div className="relative min-w-0 flex-1 sm:flex-none sm:w-52 lg:w-60">
+
               <MapPin
                 size={16}
                 className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 sm:left-3.5 sm:h-[18px] sm:w-[18px]"
@@ -999,13 +1134,16 @@ const Jobs = () => {
                 placeholder="Location"
                 className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
               />
+
             </div>
 
             {/* Search Button */}
+
             <button
               type="button"
               className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md sm:h-11 sm:gap-2 sm:px-6 sm:text-sm"
             >
+
               <Search
                 size={15}
                 className="shrink-0 sm:h-[17px] sm:w-[17px]"
@@ -1014,6 +1152,7 @@ const Jobs = () => {
               <span className="hidden xs:inline sm:inline">
                 Search
               </span>
+
             </button>
 
           </div>
@@ -1024,12 +1163,15 @@ const Jobs = () => {
         ====================================================== */}
 
         <div className="mt-3 flex w-full min-w-0 gap-2 lg:hidden">
+
           {/* FILTER */}
+
           <button
             type="button"
             onClick={() => setMobileFilters(true)}
             className="relative flex min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-3 text-xs font-bold text-slate-700 shadow-sm sm:px-4 sm:text-sm"
           >
+
             <SlidersHorizontal
               size={16}
               className="shrink-0"
@@ -1044,10 +1186,13 @@ const Jobs = () => {
                 {activeFilterCount}
               </span>
             )}
+
           </button>
 
           {/* SORT */}
+
           <div className="relative min-w-0 flex-1">
+
             <button
               type="button"
               onClick={() =>
@@ -1055,6 +1200,7 @@ const Jobs = () => {
               }
               className="flex w-full min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-3 text-xs font-bold text-slate-700 shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
             >
+
               <ChevronDown
                 size={16}
                 className="shrink-0"
@@ -1063,10 +1209,12 @@ const Jobs = () => {
               <span className="truncate">
                 {sortBy}
               </span>
+
             </button>
 
             {sortOpen && (
               <div className="absolute right-0 top-[calc(100%+6px)] z-30 w-full min-w-[170px] overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
+
                 {sortOptions.map((item) => (
                   <button
                     key={item}
@@ -1077,6 +1225,7 @@ const Jobs = () => {
                     }}
                     className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-3 text-left text-xs font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-600 sm:text-sm"
                   >
+
                     <span className="break-words">
                       {item}
                     </span>
@@ -1087,10 +1236,13 @@ const Jobs = () => {
                         className="shrink-0"
                       />
                     )}
+
                   </button>
                 ))}
+
               </div>
             )}
+
           </div>
         </div>
 
@@ -1105,8 +1257,11 @@ const Jobs = () => {
           ==================================================== */}
 
           <aside className="hidden min-w-0 lg:block">
+
             <div className="sticky top-24 max-h-[calc(100vh-7rem)] min-w-0 overflow-y-auto overflow-x-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
               <FilterContent />
+
             </div>
           </aside>
 
@@ -1117,23 +1272,33 @@ const Jobs = () => {
           <section className="min-w-0 w-full">
 
             {/* HEADER */}
+
             <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+
               <div className="min-w-0">
+
                 <h1 className="text-lg font-bold text-slate-900 sm:text-xl">
                   Latest Jobs
                 </h1>
 
                 <p className="mt-1 break-words text-xs text-slate-500 sm:text-sm">
+
                   Showing{" "}
+
                   <span className="font-bold text-slate-700">
                     {filteredJobs.length}
                   </span>{" "}
+
                   jobs matching your search
+
                 </p>
+
               </div>
 
               {/* DESKTOP SORT */}
+
               <div className="relative hidden shrink-0 sm:block">
+
                 <button
                   type="button"
                   onClick={() =>
@@ -1141,6 +1306,7 @@ const Jobs = () => {
                   }
                   className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-sm"
                 >
+
                   Sort by:
 
                   <span className="text-slate-900">
@@ -1148,10 +1314,12 @@ const Jobs = () => {
                   </span>
 
                   <ChevronDown size={15} />
+
                 </button>
 
                 {sortOpen && (
                   <div className="absolute right-0 top-12 z-30 w-52 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
+
                     {sortOptions.map((item) => (
                       <button
                         key={item}
@@ -1162,15 +1330,21 @@ const Jobs = () => {
                         }}
                         className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-3 text-left text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-600"
                       >
-                        <span>{item}</span>
+
+                        <span>
+                          {item}
+                        </span>
 
                         {sortBy === item && (
                           <Check size={15} />
                         )}
+
                       </button>
                     ))}
+
                   </div>
                 )}
+
               </div>
             </div>
 
@@ -1180,6 +1354,7 @@ const Jobs = () => {
 
             {activeFilterCount > 0 && (
               <div className="mb-4 flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
+
                 <span className="mr-1 text-xs font-bold text-slate-600">
                   Active filters:
                 </span>
@@ -1198,6 +1373,7 @@ const Jobs = () => {
                         }
                         className="flex max-w-full min-w-0 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1.5 text-[10px] font-semibold text-blue-700 sm:px-3 sm:text-xs"
                       >
+
                         <span className="max-w-[180px] break-words sm:max-w-[250px]">
                           {value}
                         </span>
@@ -1206,6 +1382,7 @@ const Jobs = () => {
                           size={12}
                           className="shrink-0"
                         />
+
                       </button>
                     ))
                 )}
@@ -1217,6 +1394,7 @@ const Jobs = () => {
                 >
                   Clear all
                 </button>
+
               </div>
             )}
 
@@ -1225,6 +1403,7 @@ const Jobs = () => {
             ================================================== */}
 
             <div className="w-full min-w-0 space-y-3.5 sm:space-y-4">
+
               {filteredJobs.length > 0 ? (
                 filteredJobs.map((job) => (
                   <JobCard
@@ -1234,11 +1413,14 @@ const Jobs = () => {
                 ))
               ) : (
                 <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-12 text-center sm:px-5 sm:py-16">
+
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
+
                     <Search
                       size={22}
                       className="text-slate-400"
                     />
+
                   </div>
 
                   <h3 className="mt-4 text-base font-bold text-slate-800">
@@ -1258,8 +1440,10 @@ const Jobs = () => {
                   >
                     Clear Filters
                   </button>
+
                 </div>
               )}
+
             </div>
 
             {/* =================================================
@@ -1267,6 +1451,7 @@ const Jobs = () => {
             ================================================== */}
 
             <div className="mt-6 flex w-full items-center justify-center gap-1.5 overflow-x-auto px-1 sm:gap-2">
+
               <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
                 1
               </button>
@@ -1282,7 +1467,9 @@ const Jobs = () => {
               <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-600">
                 <ChevronRight size={16} />
               </button>
+
             </div>
+
           </section>
         </div>
       </div>
@@ -1295,6 +1482,7 @@ const Jobs = () => {
         <div className="fixed inset-0 z-[100] h-[100dvh] w-full lg:hidden">
 
           {/* Overlay */}
+
           <button
             type="button"
             aria-label="Close filters"
@@ -1303,11 +1491,15 @@ const Jobs = () => {
           />
 
           {/* Drawer */}
+
           <aside className="absolute bottom-0 left-0 top-0 flex h-[100dvh] w-[calc(100%-28px)] max-w-sm flex-col overflow-hidden bg-white shadow-2xl sm:w-[88%]">
 
             {/* HEADER */}
+
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3.5 sm:px-5 sm:py-4">
+
               <div className="min-w-0">
+
                 <h2 className="text-lg font-bold text-slate-900">
                   Filters
                 </h2>
@@ -1315,6 +1507,7 @@ const Jobs = () => {
                 <p className="mt-1 text-xs text-slate-500">
                   Refine your job search
                 </p>
+
               </div>
 
               <button
@@ -1326,16 +1519,23 @@ const Jobs = () => {
               >
                 <X size={18} />
               </button>
+
             </div>
 
             {/* FILTER BODY */}
+
             <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-2 sm:p-5">
+
               <FilterContent />
+
             </div>
 
             {/* BOTTOM */}
+
             <div className="shrink-0 border-t border-slate-200 bg-white p-3.5 sm:p-4">
+
               <div className="mb-3 flex items-center justify-between gap-3">
+
                 <span className="min-w-0 text-xs font-semibold text-slate-600 sm:text-sm">
                   {activeFilterCount} filters selected
                 </span>
@@ -1347,6 +1547,7 @@ const Jobs = () => {
                 >
                   Clear All
                 </button>
+
               </div>
 
               <button
@@ -1358,7 +1559,9 @@ const Jobs = () => {
               >
                 Show {filteredJobs.length} Jobs
               </button>
+
             </div>
+
           </aside>
         </div>
       )}

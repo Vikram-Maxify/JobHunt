@@ -72,6 +72,7 @@ const Login = () => {
 
   const email = formData.email.trim().toLowerCase();
   const password = formData.password;
+ 
 
   if (!email || !password) {
     return;

@@ -6,6 +6,11 @@ require('dotenv').config();
 
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const jobRoutes = require('./routes/jobRoutes');
+const subscriptionRoutes = require('./routes/subscriptionRoutes');
+const galleryRoutes = require('./routes/galleryRoutes');  // NEW
+const adminRoutes = require('./routes/adminRoutes');
 const errorHandler = require('./middleware/error');
 
 // Connect to database
@@ -15,7 +20,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || 'http://localhost:3000',
     credentials: true
 }));
 
@@ -25,6 +30,11 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/jobs', jobRoutes);
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/gallery', galleryRoutes);  // NEW
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -1,23 +1,60 @@
 const express = require('express');
 const router = express.Router();
 const {
-  register,
-  login,
-  getProfile,
-  updateProfile,
-  changePassword,
-  logout
+    register,
+    login,
+    getProfile,
+    updateProfile,
+    uploadProfilePhoto,
+    uploadGovernmentDocument,
+    deleteProfilePhoto,
+    deleteGovernmentDocument,
+    deleteResume,
+    changePassword,
+    logout
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
+const {
+    uploadImage,
+    handleUploadError
+} = require('../middleware/upload');
 
-// Public routes
+// ============ PUBLIC ROUTES ============
 router.post('/register', register);
 router.post('/login', login);
 
-// Protected routes
-router.get('/profile', protect, getProfile);
-router.put('/profile', protect, updateProfile);
-router.put('/change-password', protect, changePassword);
-router.post('/logout', protect, logout);
+// ============ PROTECTED ROUTES ============
+router.use(protect);
+
+// Profile
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
+
+// Profile Photo
+router.post(
+    '/upload-photo',
+    uploadImage,
+    handleUploadError,
+    uploadProfilePhoto
+);
+router.delete('/profile-photo', deleteProfilePhoto);
+
+// Government Document
+router.post(
+    '/upload-govt-doc',
+    uploadImage,
+    handleUploadError,
+    uploadGovernmentDocument
+);
+router.delete('/govt-doc', deleteGovernmentDocument);
+
+// Resume
+router.delete('/resume', deleteResume);
+
+// Change Password
+router.put('/change-password', changePassword);
+
+// Logout
+router.post('/logout', logout);
 
 module.exports = router;

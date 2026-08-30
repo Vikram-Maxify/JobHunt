@@ -97,9 +97,9 @@ const Profile = () => {
   // GET PROFILE FROM BACKEND
   // =========================================================
 
-  useEffect(() => {
-    dispatch(getProfile());
-  }, [dispatch]);
+  // useEffect(() => {
+  //   dispatch(getProfile());
+  // }, [dispatch]);
 
   // =========================================================
   // SET USER FROM REDUX

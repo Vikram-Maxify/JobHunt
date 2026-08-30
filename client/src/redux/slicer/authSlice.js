@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
-import api from "../api";
+import api from "../../services/api";
 
 // =========================================================
 // REGISTER
@@ -14,26 +14,11 @@ export const registerUser = createAsyncThunk(
         userData
       );
 
-      const { data } = response.data;
-
-      // Save token
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-      // Save user
-      if (data) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data)
-        );
-      }
-
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-          "Registration failed"
+        "Registration failed"
       );
     }
   }
@@ -52,31 +37,15 @@ export const loginUser = createAsyncThunk(
         loginData
       );
 
-      const { data } = response.data;
-
-      // Save token
-      if (data?.token) {
-        localStorage.setItem("token", data.token);
-      }
-
-      // Save user
-      if (data) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data)
-        );
-      }
-
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-          "Login failed"
+        "Login failed"
       );
     }
   }
 );
-
 // =========================================================
 // GET PROFILE
 // =========================================================
@@ -85,15 +54,13 @@ export const getProfile = createAsyncThunk(
   "auth/getProfile",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get(
-        "/auth/profile"
-      );
+      const response = await api.get("/auth/profile");
 
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-          "Failed to fetch profile"
+        "Failed to fetch profile"
       );
     }
   }
@@ -112,21 +79,11 @@ export const updateProfile = createAsyncThunk(
         userData
       );
 
-      const { data } = response.data;
-
-      // Update localStorage
-      if (data) {
-        localStorage.setItem(
-          "user",
-          JSON.stringify(data)
-        );
-      }
-
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-          "Failed to update profile"
+        "Failed to update profile"
       );
     }
   }
@@ -145,18 +102,11 @@ export const changePassword = createAsyncThunk(
         passwordData
       );
 
-      const { token } = response.data;
-
-      // Backend sends new token
-      if (token) {
-        localStorage.setItem("token", token);
-      }
-
       return response.data;
     } catch (error) {
       return rejectWithValue(
         error.response?.data?.message ||
-          "Failed to change password"
+        "Failed to change password"
       );
     }
   }
@@ -174,19 +124,11 @@ export const logoutUser = createAsyncThunk(
         "/auth/logout"
       );
 
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
       return response.data;
     } catch (error) {
-      // Even if backend logout fails,
-      // remove local auth data
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
       return rejectWithValue(
         error.response?.data?.message ||
-          "Logout failed"
+        "Logout failed"
       );
     }
   }
@@ -196,24 +138,14 @@ export const logoutUser = createAsyncThunk(
 // INITIAL STATE
 // =========================================================
 
-const storedUser = localStorage.getItem("user");
-const storedToken = localStorage.getItem("token");
-
 const initialState = {
-  user: storedUser
-    ? JSON.parse(storedUser)
-    : null,
-
-  token: storedToken || null,
-
-  isAuthenticated: !!storedToken,
-
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  authInitialized: false,
   loading: false,
-
   error: null,
-
   success: false,
-
   message: "",
 };
 
@@ -238,13 +170,7 @@ const authSlice = createSlice({
 
     setUser: (state, action) => {
       state.user = action.payload;
-
-      localStorage.setItem(
-        "user",
-        JSON.stringify(action.payload)
-      );
     },
-
     logoutLocal: (state) => {
       state.user = null;
       state.token = null;
@@ -253,9 +179,6 @@ const authSlice = createSlice({
       state.error = null;
       state.success = false;
       state.message = "";
-
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
     },
   },
 
@@ -279,10 +202,12 @@ const authSlice = createSlice({
           state.error = null;
 
           state.user = action.payload.data;
+
           state.token =
             action.payload.data?.token || null;
 
           state.isAuthenticated = true;
+          state.authInitialized = true;
 
           state.message =
             action.payload.message ||
@@ -312,36 +237,30 @@ const authSlice = createSlice({
         state.success = false;
       })
 
-      .addCase(
-        loginUser.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.success = true;
-          state.error = null;
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.error = null;
 
-          state.user = action.payload.data;
-          state.token =
-            action.payload.data?.token || null;
+        state.user = action.payload.data || null;
 
-          state.isAuthenticated = true;
+        // Backend response ke according token yahan hai
+        state.token = action.payload.token || null;
 
-          state.message =
-            action.payload.message ||
-            "Login successful";
-        }
-      )
+        state.isAuthenticated = true;
+        state.authInitialized = true;
 
-      .addCase(
-        loginUser.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.success = false;
-          state.error =
-            action.payload ||
-            "Login failed";
-        }
-      );
+        state.message =
+          action.payload.message || "Login successful";
+      })
 
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.error =
+          action.payload ||
+          "Login failed";
+      });
     // =====================================================
     // GET PROFILE
     // =====================================================
@@ -352,34 +271,25 @@ const authSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(
-        getProfile.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.error = null;
+      .addCase(getProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
 
-          state.user = action.payload.data;
+        state.user = action.payload.data;
+        state.isAuthenticated = true;
+        state.authInitialized = true;
+      })
 
-          state.isAuthenticated = true;
+      .addCase(getProfile.rejected, (state, action) => {
+        state.loading = false;
 
-          localStorage.setItem(
-            "user",
-            JSON.stringify(
-              action.payload.data
-            )
-          );
-        }
-      )
+        state.error =
+          action.payload || "Failed to fetch profile";
 
-      .addCase(
-        getProfile.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error =
-            action.payload ||
-            "Failed to fetch profile";
-        }
-      );
+        state.user = null;
+        state.isAuthenticated = false;
+        state.authInitialized = true;
+      })
 
     // =====================================================
     // UPDATE PROFILE
@@ -399,18 +309,12 @@ const authSlice = createSlice({
           state.success = true;
           state.error = null;
 
+          // Backend se updated user Redux me set hoga
           state.user = action.payload.data;
 
           state.message =
             action.payload.message ||
             "Profile updated successfully";
-
-          localStorage.setItem(
-            "user",
-            JSON.stringify(
-              action.payload.data
-            )
-          );
         }
       )
 
@@ -428,7 +332,6 @@ const authSlice = createSlice({
     // =====================================================
     // CHANGE PASSWORD
     // =====================================================
-
     builder
       .addCase(changePassword.pending, (state) => {
         state.loading = true;
@@ -443,14 +346,9 @@ const authSlice = createSlice({
           state.success = true;
           state.error = null;
 
+          // Backend response se token aaye to Redux me rakho
           if (action.payload.token) {
-            state.token =
-              action.payload.token;
-
-            localStorage.setItem(
-              "token",
-              action.payload.token
-            );
+            state.token = action.payload.token;
           }
 
           state.message =
@@ -488,6 +386,7 @@ const authSlice = createSlice({
           state.user = null;
           state.token = null;
           state.isAuthenticated = false;
+          state.authInitialized = true;
 
           state.success = true;
           state.error = null;
@@ -495,9 +394,6 @@ const authSlice = createSlice({
           state.message =
             action.payload.message ||
             "Logged out successfully";
-
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
         }
       )
 
@@ -506,16 +402,16 @@ const authSlice = createSlice({
         (state, action) => {
           state.loading = false;
 
+          // Even if backend logout fails,
+          // clear Redux authentication state
           state.user = null;
           state.token = null;
           state.isAuthenticated = false;
 
+          state.success = false;
           state.error =
             action.payload ||
             "Logout failed";
-
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
         }
       );
   },

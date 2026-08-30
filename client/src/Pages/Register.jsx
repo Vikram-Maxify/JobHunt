@@ -125,16 +125,10 @@ const Register = () => {
 
       alert(
         result?.message ||
-          "Account created successfully!"
+        "Account created successfully!"
       );
 
-      /*
-      |--------------------------------------------------------------------------
-      | Go to Login
-      |--------------------------------------------------------------------------
-      */
-
-      navigate("/login");
+      navigate("/");
 
     } catch (error) {
       console.error("Registration Error:", error);

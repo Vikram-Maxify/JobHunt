@@ -19,215 +19,261 @@ import SavedApplication from "./Pages/SavedApplication";
 
 import PrivateRoute from "./components/PrivateRoute";
 
-// =====================================================
-// USER LAYOUT
-// =====================================================
-
 import UserLayout from "./components/UserLayout";
 
 // =====================================================
-// ADMIN IMPORTS
+// ADMIN
 // =====================================================
 
-import AdminLayout from "./admin/AdminLayout";
+import AdminLayout from "./admin/components/AdminLayout";
+import Users from "./admin/pages/Users";
+import Jobcategories from "./admin/pages/Jobcategories";
+import AdminJobs from "./admin/pages/Jobs";
+import CreateJob from "./admin/pages/CreateJob";
+
+import { JobCategoryProvider } from "./admin/context/JobCategoryContext";
+import { ApplicationProvider } from "./admin/context/ApplicationContext";
+import { SubscriptionProvider } from "./admin/context/SubscriptionContext";
+
+import Applications from "./admin/pages/Applications";
+import ApplicationDetails from "./admin/pages/ApplicationDetails";
+
+import Subscriptions from "./admin/pages/Subscriptions";
+import SubscriptionEdit from "./admin/pages/SubscriptionEdit";
+import SubscriptionCreate from "./admin/pages/SubscriptionCreate";
+
+import AdminGallery from "./admin/pages/Gallery";
+import Settings from "./admin/pages/Settings";
+
 import AdminLogin from "./admin/pages/AdminLogin";
-import AdminPrivateRoute from "./admin/AdminPrivateRoute";
-
 import AdminDashboard from "./admin/pages/Dashboard";
-
-// Future Admin Pages
-// import AdminUsers from "./admin/pages/AdminUsers";
-// import AdminJobs from "./admin/pages/AdminJobs";
-// import AdminApplications from "./admin/pages/AdminApplications";
-// import AdminSubscriptions from "./admin/pages/AdminSubscriptions";
-// import AdminGallery from "./admin/pages/AdminGallery";
-// import AdminContacts from "./admin/pages/AdminContacts";
-// import AdminSettings from "./admin/pages/AdminSettings";
+import { getProfile } from "./redux/slicer/authSlice";
+import { useDispatch } from "react-redux";
+import { useEffect } from "react";
 
 function App() {
+
+  const dispatch = useDispatch();
+
+  useEffect(() =>{
+    dispatch(getProfile());
+  }, [dispatch]);
+  
   return (
-    <Routes>
+    <JobCategoryProvider>
+      <ApplicationProvider>
+        <SubscriptionProvider>
+          <Routes>
 
-      {/* =====================================================
-          USER SIDE
-      ===================================================== */}
+            {/* =====================================================
+                USER SIDE
+            ===================================================== */}
 
-      <Route element={<UserLayout />}>
+            <Route element={<UserLayout />}>
 
-        {/* =================================================
-            USER PUBLIC ROUTES
-        ================================================= */}
+              {/* PUBLIC USER ROUTES */}
 
-        <Route
-          path="/"
-          element={<Home />}
-        />
+              <Route
+                path="/"
+                element={<Home />}
+              />
 
-        <Route
-          path="/subscription"
-          element={<Subscription />}
-        />
+              <Route
+                path="/subscription"
+                element={<Subscription />}
+              />
 
-        <Route
-          path="/gallery"
-          element={<Gallery />}
-        />
+              <Route
+                path="/gallery"
+                element={<Gallery />}
+              />
 
-        <Route
-          path="/contact"
-          element={<ContactUs />}
-        />
+              <Route
+                path="/contact"
+                element={<ContactUs />}
+              />
 
-        <Route
-          path="/about"
-          element={<AboutUs />}
-        />
+              <Route
+                path="/about"
+                element={<AboutUs />}
+              />
 
-        <Route
-          path="/register"
-          element={<Register />}
-        />
+              <Route
+                path="/register"
+                element={<Register />}
+              />
 
-        <Route
-          path="/login"
-          element={<Login />}
-        />
+              {/* USER LOGIN */}
 
-        <Route
-          path="/jobs"
-          element={<Jobs />}
-        />
+              <Route
+                path="/login"
+                element={<Login />}
+              />
 
-        <Route
-          path="/jobs/:id"
-          element={<JobDetail />}
-        />
+              <Route
+                path="/jobs"
+                element={<Jobs />}
+              />
 
-        <Route
-          path="/Carrier"
-          element={<CarrierResources />}
-        />
+              <Route
+                path="/jobs/:id"
+                element={<JobDetail />}
+              />
 
-        <Route
-          path="/skills"
-          element={<SkillDevelopment />}
-        />
+              <Route
+                path="/Carrier"
+                element={<CarrierResources />}
+              />
 
-        <Route
-          path="/purchases"
-          element={<Purchases />}
-        />
+              <Route
+                path="/skills"
+                element={<SkillDevelopment />}
+              />
 
-        {/* =================================================
-            USER PRIVATE ROUTES
-        ================================================= */}
+              <Route
+                path="/purchases"
+                element={<Purchases />}
+              />
 
-        <Route element={<PrivateRoute />}>
+              {/* =================================================
+                  USER PRIVATE ROUTES
+              ================================================= */}
 
-          <Route
-            path="/profile"
-            element={<Profile />}
-          />
+              <Route
+                element={
+                  <PrivateRoute
+                    allowedRoles={["user"]}
+                  />
+                }
+              >
+                <Route
+                  path="/profile"
+                  element={<Profile />}
+                />
 
-          <Route
-            path="/applications"
-            element={<MyApplication />}
-          />
+                <Route
+                  path="/applications"
+                  element={<MyApplication />}
+                />
 
-          <Route
-            path="/savedapplication"
-            element={<SavedApplication />}
-          />
+                <Route
+                  path="/savedapplication"
+                  element={<SavedApplication />}
+                />
+              </Route>
 
-        </Route>
+            </Route>
 
-      </Route>
+            {/* =====================================================
+                ADMIN LOGIN
+                Separate Admin Login
+            ===================================================== */}
 
+            <Route
+              path="/admin/login"
+              element={<AdminLogin />}
+            />
 
-      {/* =====================================================
-          ADMIN LOGIN
-          
-          IMPORTANT:
-          Admin login ke upar User Navbar/Footer nahi aayega.
-      ===================================================== */}
+            {/* =====================================================
+                ADMIN PRIVATE ROUTES
+                Same PrivateRoute
+            ===================================================== */}
 
-      <Route
-        path="/admin/login"
-        element={<AdminLogin />}
-      />
+            <Route
+              element={
+                <PrivateRoute
+                  allowedRoles={["admin"]}
+                />
+              }
+            >
+              <Route
+                path="/admin"
+                element={<AdminLayout />}
+              >
 
+                {/* DASHBOARD */}
 
-      {/* =====================================================
-          ADMIN PRIVATE ROUTES
-      ===================================================== */}
+                <Route
+                  index
+                  element={<AdminDashboard />}
+                />
 
-      <Route element={<AdminPrivateRoute />}>
+                {/* USERS */}
 
-        <Route
-          path="/admin"
-          element={<AdminLayout />}
-        >
+                <Route
+                  path="users"
+                  element={<Users />}
+                />
 
-          {/* =================================================
-              /admin
-              ↓
-              Dashboard
-          ================================================= */}
+                {/* JOB CATEGORIES */}
 
-          <Route
-            index
-            element={<AdminDashboard />}
-          />
+                <Route
+                  path="jobcategories"
+                  element={<Jobcategories />}
+                />
 
+                {/* JOBS */}
 
-          {/* =================================================
-              FUTURE ADMIN ROUTES
-          ================================================= */}
+                <Route
+                  path="jobs"
+                  element={<AdminJobs />}
+                />
 
-          {/*
+                <Route
+                  path="jobs/create"
+                  element={<CreateJob />}
+                />
 
-          <Route
-            path="users"
-            element={<AdminUsers />}
-          />
+                {/* APPLICATIONS */}
 
-          <Route
-            path="jobs"
-            element={<AdminJobs />}
-          />
+                <Route
+                  path="applications"
+                  element={<Applications />}
+                />
 
-          <Route
-            path="applications"
-            element={<AdminApplications />}
-          />
+                <Route
+                  path="applications/:applicationId"
+                  element={<ApplicationDetails />}
+                />
 
-          <Route
-            path="subscriptions"
-            element={<AdminSubscriptions />}
-          />
+                {/* SUBSCRIPTIONS */}
 
-          <Route
-            path="gallery"
-            element={<AdminGallery />}
-          />
+                <Route
+                  path="subscriptions"
+                  element={<Subscriptions />}
+                />
 
-          <Route
-            path="contacts"
-            element={<AdminContacts />}
-          />
+                <Route
+                  path="subscriptions/create"
+                  element={<SubscriptionCreate />}
+                />
 
-          <Route
-            path="settings"
-            element={<AdminSettings />}
-          />
+                <Route
+                  path="subscriptions/edit/:id"
+                  element={<SubscriptionEdit />}
+                />
 
-          */}
+                {/* GALLERY */}
 
-        </Route>
+                <Route
+                  path="gallery"
+                  element={<AdminGallery />}
+                />
 
-      </Route>
+                {/* SETTINGS */}
 
-    </Routes>
+                <Route
+                  path="settings"
+                  element={<Settings />}
+                />
+
+              </Route>
+            </Route>
+
+          </Routes>
+        </SubscriptionProvider>
+      </ApplicationProvider>
+    </JobCategoryProvider>
   );
 }
 

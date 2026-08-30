@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:5001/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -18,24 +18,26 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // =====================================================
 // RESPONSE INTERCEPTOR
 // =====================================================
 
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response?.status === 401) {
-      console.log("❌ Unauthorized - session expired");
+api.interceptors.request.use(
+  (config) => {
+    // FormData bhejte waqt Content-Type mat force karo — axios khud
+    // multipart boundary set kar lega. Isse file upload kaam karega.
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
     }
 
+    return config;
+  },
+  (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

@@ -1,60 +1,35 @@
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
-const {
-    register,
-    login,
-    getProfile,
-    updateProfile,
-    uploadProfilePhoto,
-    uploadGovernmentDocument,
-    deleteProfilePhoto,
-    deleteGovernmentDocument,
-    deleteResume,
-    changePassword,
-    logout
-} = require('../controllers/authController');
-const { protect } = require('../middleware/auth');
-const {
-    uploadImage,
-    handleUploadError
-} = require('../middleware/upload');
 
-// ============ PUBLIC ROUTES ============
-router.post('/register', register);
-router.post('/login', login);
+const {
+  register,
+  login,
+  getProfile,
+  updateProfile,
+  changePassword,
+  logout,
+} = require("../controllers/authController");
 
-// ============ PROTECTED ROUTES ============
+const { protect } = require("../middleware/auth");
+
+const {
+  uploadProfileFields,
+  handleUploadError,
+} = require("../middleware/upload");
+
+router.post("/register", register);
+
+router.post("/login", login);
+
 router.use(protect);
+console.log({ uploadProfileFields, handleUploadError, updateProfile });
+router.get("/profile", getProfile);
 
-// Profile
-router.get('/profile', getProfile);
-router.put('/profile', updateProfile);
+router.put("/profile", uploadProfileFields, handleUploadError, updateProfile);
 
-// Profile Photo
-router.post(
-    '/upload-photo',
-    uploadImage,
-    handleUploadError,
-    uploadProfilePhoto
-);
-router.delete('/profile-photo', deleteProfilePhoto);
+router.put("/change-password", changePassword);
 
-// Government Document
-router.post(
-    '/upload-govt-doc',
-    uploadImage,
-    handleUploadError,
-    uploadGovernmentDocument
-);
-router.delete('/govt-doc', deleteGovernmentDocument);
-
-// Resume
-router.delete('/resume', deleteResume);
-
-// Change Password
-router.put('/change-password', changePassword);
-
-// Logout
-router.post('/logout', logout);
+router.post("/logout", logout);
 
 module.exports = router;

@@ -25,8 +25,9 @@ import {
   X,
 } from "lucide-react";
 
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getProfile } from "../redux/slicer/authSlice";
+import { getProfile, updateProfile } from "../redux/slicer/authSlice";
 
 // =============================================================
 // PROFILE
@@ -42,6 +43,7 @@ const Profile = () => {
   const {
     user: reduxUser,
     loading,
+    updating,
     error,
   } = useSelector((state) => state.auth);
 
@@ -54,6 +56,8 @@ const Profile = () => {
   const [showEditModal, setShowEditModal] = useState(false);
 
   const [saveMessage, setSaveMessage] = useState("");
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+  const [governmentDocumentFile, setGovernmentDocumentFile] = useState(null);
 
   // =========================================================
   // FORM STATE
@@ -62,7 +66,7 @@ const Profile = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    phone: "",
+    mobile: "",
     location: "",
     dateOfBirth: "",
     gender: "",
@@ -96,9 +100,11 @@ const Profile = () => {
   // GET PROFILE FROM BACKEND
   // =========================================================
 
-  // useEffect(() => {
-  //   dispatch(getProfile());
-  // }, [dispatch]);
+  useEffect(() => {
+    if (!reduxUser) {
+      dispatch(getProfile());
+    }
+  }, [dispatch, reduxUser]);
 
   // =========================================================
   // SET USER FROM REDUX
@@ -114,7 +120,7 @@ const Profile = () => {
 
         email: reduxUser?.email || "",
 
-        phone: reduxUser?.phone || reduxUser?.mobile || "",
+        mobile: reduxUser?.mobile || reduxUser?.phone || "",
 
         location: reduxUser?.location || "",
 
@@ -154,19 +160,33 @@ const Profile = () => {
 
         salaryExpectation: reduxUser?.salaryExpectation || "",
 
-        resume: reduxUser?.resume || reduxUser?.resumeUrl || "",
+        resume:
+          typeof reduxUser?.resume === "string"
+            ? reduxUser.resume
+            : reduxUser?.resume?.displayUrl ||
+              reduxUser?.resume?.url ||
+              reduxUser?.resumeUrl ||
+              "",
 
         // PROFILE PHOTO
         profilePhoto:
-          reduxUser?.profilePhoto ||
-          reduxUser?.profileImage ||
-          reduxUser?.avatar ||
-          "",
+          typeof reduxUser?.profilePhoto === "string"
+            ? reduxUser.profilePhoto
+            : reduxUser?.profilePhoto?.displayUrl ||
+              reduxUser?.profilePhoto?.url ||
+              reduxUser?.profileImage ||
+              reduxUser?.avatar ||
+              "",
 
         // GOVERNMENT DOCUMENT
         governmentDocumentType: reduxUser?.governmentDocumentType || "",
 
-        governmentDocument: reduxUser?.governmentDocument || "",
+        governmentDocument:
+          typeof reduxUser?.governmentDocument === "string"
+            ? reduxUser.governmentDocument
+            : reduxUser?.governmentDocument?.displayUrl ||
+              reduxUser?.governmentDocument?.url ||
+              "",
 
         governmentDocumentName: reduxUser?.governmentDocumentName || "",
       });
@@ -211,15 +231,29 @@ const Profile = () => {
 
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setSaveMessage("Please select a valid image file.");
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/webp",
+      "image/gif",
+    ];
+
+    if (!allowedTypes.includes(file.type)) {
+      setSaveMessage(
+        "Please select a valid image file (JPG, PNG, WEBP or GIF).",
+      );
+      e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
       setSaveMessage("Profile photo size should be less than 5MB.");
+      e.target.value = "";
       return;
     }
+
+    setProfilePhotoFile(file);
 
     const reader = new FileReader();
 
@@ -228,12 +262,11 @@ const Profile = () => {
         ...prev,
         profilePhoto: reader.result,
       }));
-
       setSaveMessage("");
     };
 
     reader.onerror = () => {
-      setSaveMessage("Unable to upload profile photo.");
+      setSaveMessage("Unable to preview profile photo.");
     };
 
     reader.readAsDataURL(file);
@@ -250,14 +283,6 @@ const Profile = () => {
 
     if (!formData.governmentDocumentType) {
       setSaveMessage("Please select a government document type first.");
-
-      e.target.value = "";
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setSaveMessage("Government document size should be less than 5MB.");
-
       e.target.value = "";
       return;
     }
@@ -266,15 +291,24 @@ const Profile = () => {
       "image/jpeg",
       "image/png",
       "image/jpg",
+      "image/webp",
+      "image/gif",
       "application/pdf",
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setSaveMessage("Please upload JPG, PNG or PDF document.");
-
+      setSaveMessage("Please upload JPG, PNG, WEBP, GIF or PDF document.");
       e.target.value = "";
       return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMessage("Government document size should be less than 5MB.");
+      e.target.value = "";
+      return;
+    }
+
+    setGovernmentDocumentFile(file);
 
     const reader = new FileReader();
 
@@ -284,12 +318,11 @@ const Profile = () => {
         governmentDocument: reader.result,
         governmentDocumentName: file.name,
       }));
-
       setSaveMessage("");
     };
 
     reader.onerror = () => {
-      setSaveMessage("Unable to upload government document.");
+      setSaveMessage("Unable to preview government document.");
     };
 
     reader.readAsDataURL(file);
@@ -355,15 +388,90 @@ const Profile = () => {
   // =========================================================
   // SAVE PROFILE
   // =========================================================
-  // NOTE:
-  // Backend profile UPDATE is intentionally not connected yet.
-  // No localStorage is used.
-  // =========================================================
 
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = async (e) => {
     e.preventDefault();
 
-    setSaveMessage("Profile update is currently unavailable.");
+    setSaveMessage("");
+
+    const data = new FormData();
+
+    const append = (key, value) => {
+      data.append(key, value ?? "");
+    };
+
+    // Personal
+    append("name", formData.name);
+    append("email", formData.email);
+    append("mobile", formData.mobile);
+    append("location", formData.location);
+    append("dateOfBirth", formData.dateOfBirth);
+    append("gender", formData.gender);
+
+    // Education
+    append("qualification", formData.qualification);
+    append("university", formData.university);
+    append("graduationYear", formData.graduationYear);
+
+    // Experience
+    append("jobTitle", formData.jobTitle);
+    append("currentCompany", formData.currentCompany);
+    append("experience", formData.experience);
+
+    // Skills
+    append(
+      "skills",
+      Array.isArray(formData.skills)
+        ? formData.skills.join(",")
+        : formData.skills,
+    );
+
+    // About
+    append("bio", formData.bio);
+
+    // Job preferences
+    append("preferredJobRole", formData.preferredJobRole);
+    append("preferredLocation", formData.preferredLocation);
+    append("employmentType", formData.employmentType);
+    append("salaryExpectation", formData.salaryExpectation);
+
+    // Professional links
+    append("linkedin", formData.linkedin);
+    append("github", formData.github);
+    append("portfolio", formData.portfolio);
+
+    // Resume is currently a URL field in this page
+    append("resume", formData.resume);
+
+    // Government document metadata
+    append("governmentDocumentType", formData.governmentDocumentType);
+    append("governmentDocumentName", formData.governmentDocumentName);
+
+    // Actual files
+    if (profilePhotoFile) {
+      data.append("profilePhoto", profilePhotoFile);
+    }
+
+    if (governmentDocumentFile) {
+      data.append("governmentDocument", governmentDocumentFile);
+    }
+
+    try {
+      const result = await dispatch(updateProfile(data)).unwrap();
+
+      setSaveMessage(result?.message || "Profile updated successfully.");
+
+      setProfilePhotoFile(null);
+      setGovernmentDocumentFile(null);
+
+      setShowEditModal(false);
+    } catch (err) {
+      setSaveMessage(
+        typeof err === "string"
+          ? err
+          : err?.message || "Failed to update profile.",
+      );
+    }
   };
 
   // =========================================================
@@ -618,7 +726,7 @@ const Profile = () => {
                   <InfoItem
                     icon={Phone}
                     label="Phone Number"
-                    value={formData.phone}
+                    value={formData.mobile}
                   />
 
                   <InfoItem
@@ -1028,7 +1136,7 @@ const Profile = () => {
                         <input
                           id="profilePhoto"
                           type="file"
-                          accept="image/jpeg,image/png,image/jpg"
+                          accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
                           onChange={handleProfilePhotoUpload}
                           className="hidden"
                         />
@@ -1067,8 +1175,8 @@ const Profile = () => {
 
                   <InputField
                     label="Phone Number"
-                    name="phone"
-                    value={formData.phone}
+                    name="mobile"
+                    value={formData.mobile}
                     onChange={handleChange}
                     placeholder="Enter your phone number"
                     icon={Phone}
@@ -1428,10 +1536,11 @@ const Profile = () => {
 
                   <button
                     type="submit"
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg sm:flex-none"
+                    disabled={updating}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
                   >
                     <Save size={16} />
-                    Save Changes
+                    {updating ? "Saving..." : "Save Changes"}
                   </button>
                 </div>
               </div>

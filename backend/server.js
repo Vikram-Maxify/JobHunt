@@ -12,6 +12,8 @@ const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const galleryRoutes = require("./routes/galleryRoutes"); // NEW
 const adminRoutes = require("./routes/adminRoutes");
 const adminSubscriptionRoutes = require("./routes/adminSubscriptionRoutes");
+const testimonialRoutes = require("./routes/testimonialRoutes");
+const adminTestimonialRoutes = require("./routes/adminTestimonialRoutes");
 const errorHandler = require("./middleware/error");
 
 // Connect to database
@@ -39,6 +41,8 @@ app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/gallery", galleryRoutes); // NEW
 app.use("/api/admin", adminRoutes);
 app.use("/api/admin/subscriptions", adminSubscriptionRoutes);
+app.use("/api/testimonials", testimonialRoutes);
+app.use("/api/admin/testimonials", adminTestimonialRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

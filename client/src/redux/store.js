@@ -3,6 +3,7 @@ import authReducer from '../redux/slicer/authSlice'
 import categoryReducer from '../redux/slicer/categorySlice'
 import jobsReducer from '../redux/slicer/jobSlice'
 import galleryReducer from '../redux/slicer/gallerySlice'
+import subscriptionReducer from '../redux/slicer/adminsubscriptionSlice'
 
 
 export const store = configureStore({
@@ -11,5 +12,6 @@ export const store = configureStore({
     categories: categoryReducer,
     jobs: jobsReducer,
     gallery: galleryReducer,
+    subscription: subscriptionReducer,
   },
 });

@@ -1,3 +1,4 @@
+// models/Subscription.js
 const mongoose = require("mongoose");
 
 const SubscriptionSchema = new mongoose.Schema(
@@ -26,16 +27,12 @@ const SubscriptionSchema = new mongoose.Schema(
         message: "At least one feature is required",
       },
     },
-    // Countries jaha ye plan applicable hai - admin manually add karega
-    countries: {
-      type: [String],
-      required: [true, "At least one country is required"],
-      validate: {
-        validator: function (arr) {
-          return arr && arr.length > 0;
-        },
-        message: "At least one country must be selected",
-      },
+    // Number of countries where this plan is applicable
+    numberOfCountries: {
+      type: Number,
+      required: [true, "Number of countries is required"],
+      min: [1, "At least 1 country must be selected"],
+      default: 1,
     },
     // Waiting time in days (admin sets manually)
     waitingTime: {
@@ -97,7 +94,7 @@ const SubscriptionSchema = new mongoose.Schema(
 // Indexes
 SubscriptionSchema.index({ planName: 1 });
 SubscriptionSchema.index({ isActive: 1 });
-SubscriptionSchema.index({ countries: 1 });
+SubscriptionSchema.index({ numberOfCountries: 1 });
 
 // Virtual for formatted price
 SubscriptionSchema.virtual("formattedPrice").get(function () {

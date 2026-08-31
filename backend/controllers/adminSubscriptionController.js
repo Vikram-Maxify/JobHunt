@@ -1,14 +1,14 @@
+// controllers/adminSubscriptionController.js
 const Subscription = require("../models/Subscription");
 
 // @desc    Get all plans (admin - includes inactive)
 // @route   GET /api/admin/subscriptions
 exports.getAllPlansAdmin = async (req, res) => {
   try {
-    const { isActive, country } = req.query;
+    const { isActive } = req.query;
 
     const filter = {};
     if (isActive !== undefined) filter.isActive = isActive === "true";
-    if (country) filter.countries = country; // matches if country is in array
 
     const plans = await Subscription.find(filter).sort({ price: 1 });
 
@@ -57,7 +57,7 @@ exports.createPlan = async (req, res) => {
       planName,
       price,
       features,
-      countries,
+      numberOfCountries, // Changed from countries to numberOfCountries
       waitingTime,
       maxJobs,
       maxApplications,
@@ -69,17 +69,26 @@ exports.createPlan = async (req, res) => {
       color,
     } = req.body;
 
+    // Validation
     if (
       !planName ||
       price === undefined ||
       !features ||
-      !countries ||
+      numberOfCountries === undefined ||
       waitingTime === undefined
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "planName, price, features, countries and waitingTime are required",
+          "planName, price, features, numberOfCountries and waitingTime are required",
+      });
+    }
+
+    // Check if number of countries is valid
+    if (parseInt(numberOfCountries) < 1) {
+      return res.status(400).json({
+        success: false,
+        message: "Number of countries must be at least 1",
       });
     }
 
@@ -97,20 +106,20 @@ exports.createPlan = async (req, res) => {
 
     const plan = await Subscription.create({
       planName: planName.trim(),
-      price,
+      price: parseFloat(price),
       features: Array.isArray(features)
         ? features.filter((f) => f && f.trim() !== "")
         : features,
-      countries: Array.isArray(countries) ? countries : [countries],
-      waitingTime,
-      maxJobs,
-      maxApplications,
-      isActive,
+      numberOfCountries: parseInt(numberOfCountries), // Use numberOfCountries
+      waitingTime: parseInt(waitingTime),
+      maxJobs: maxJobs ? parseInt(maxJobs) : 10,
+      maxApplications: maxApplications ? parseInt(maxApplications) : 50,
+      isActive: isActive !== undefined ? isActive : true,
       isPopular: !!isPopular,
-      discountPercentage,
-      description,
-      badge,
-      color,
+      discountPercentage: discountPercentage ? parseFloat(discountPercentage) : 0,
+      description: description || "",
+      badge: badge || "",
+      color: color || "#3B82F6",
       createdBy: req.user?._id,
     });
 
@@ -128,6 +137,7 @@ exports.createPlan = async (req, res) => {
       });
     }
 
+    console.error("Create plan error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to create plan",
@@ -153,7 +163,7 @@ exports.updatePlan = async (req, res) => {
       planName,
       price,
       features,
-      countries,
+      numberOfCountries, // Changed from countries to numberOfCountries
       waitingTime,
       maxJobs,
       maxApplications,
@@ -165,6 +175,7 @@ exports.updatePlan = async (req, res) => {
       color,
     } = req.body;
 
+    // Check duplicate plan name
     if (planName && planName.trim() !== plan.planName) {
       const existing = await Subscription.findOne({
         planName: planName.trim(),
@@ -178,25 +189,33 @@ exports.updatePlan = async (req, res) => {
       plan.planName = planName.trim();
     }
 
-    if (price !== undefined) plan.price = price;
+    // Update fields
+    if (price !== undefined) plan.price = parseFloat(price);
     if (features !== undefined) {
       plan.features = Array.isArray(features)
         ? features.filter((f) => f && f.trim() !== "")
         : plan.features;
     }
-    if (countries !== undefined) {
-      plan.countries = Array.isArray(countries) ? countries : [countries];
+    if (numberOfCountries !== undefined) {
+      if (parseInt(numberOfCountries) < 1) {
+        return res.status(400).json({
+          success: false,
+          message: "Number of countries must be at least 1",
+        });
+      }
+      plan.numberOfCountries = parseInt(numberOfCountries);
     }
-    if (waitingTime !== undefined) plan.waitingTime = waitingTime;
-    if (maxJobs !== undefined) plan.maxJobs = maxJobs;
-    if (maxApplications !== undefined) plan.maxApplications = maxApplications;
+    if (waitingTime !== undefined) plan.waitingTime = parseInt(waitingTime);
+    if (maxJobs !== undefined) plan.maxJobs = parseInt(maxJobs);
+    if (maxApplications !== undefined) plan.maxApplications = parseInt(maxApplications);
     if (isActive !== undefined) plan.isActive = isActive;
     if (discountPercentage !== undefined)
-      plan.discountPercentage = discountPercentage;
+      plan.discountPercentage = parseFloat(discountPercentage);
     if (description !== undefined) plan.description = description;
     if (badge !== undefined) plan.badge = badge;
     if (color !== undefined) plan.color = color;
 
+    // Handle isPopular - only one plan can be popular
     if (isPopular !== undefined) {
       if (isPopular) {
         await Subscription.updateMany(
@@ -223,6 +242,7 @@ exports.updatePlan = async (req, res) => {
       });
     }
 
+    console.error("Update plan error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to update plan",
@@ -251,6 +271,7 @@ exports.deletePlan = async (req, res) => {
       message: "Plan deleted successfully",
     });
   } catch (error) {
+    console.error("Delete plan error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to delete plan",
@@ -281,6 +302,7 @@ exports.togglePlanActive = async (req, res) => {
       data: plan,
     });
   } catch (error) {
+    console.error("Toggle plan status error:", error);
     res.status(500).json({
       success: false,
       message: "Failed to toggle plan status",

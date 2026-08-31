@@ -1,9 +1,9 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from '../redux/slicer/authSlice'
-import categoryReducer from '../redux/slicer/categorySlice'
-import jobsReducer from '../redux/slicer/jobSlice'
-import galleryReducer from '../redux/slicer/gallerySlice'
-
+import authReducer from "../redux/slicer/authSlice";
+import categoryReducer from "../redux/slicer/categorySlice";
+import galleryReducer from "../redux/slicer/gallerySlice";
+import jobsReducer from "../redux/slicer/jobSlice";
+import testimonialReducer from "../redux/slicer/testimonialSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,5 +11,6 @@ export const store = configureStore({
     categories: categoryReducer,
     jobs: jobsReducer,
     gallery: galleryReducer,
+    testimonials: testimonialReducer,
   },
 });

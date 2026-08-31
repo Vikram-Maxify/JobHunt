@@ -1,150 +1,451 @@
-const axios = require('axios');
-const FormData = require('form-data');
+
+const axios = require("axios");
+const FormData = require("form-data");
+
+/**
+ * Get URL from ImgBB image object/string
+ */
+const getImageUrl = (value) => {
+  if (!value) return "";
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (typeof value === "object") {
+    return (
+      value.url ||
+      value.display_url ||
+      value.displayUrl ||
+      ""
+    );
+  }
+
+  return "";
+};
+
 
 /**
  * Universal Image Upload to ImgBB
- * Can be used from any controller
- * 
+ *
  * @param {Buffer} imageBuffer - Image buffer from multer
  * @param {string} filename - Original filename
  * @param {Object} options - Additional options
- * @returns {Promise<Object>} - Upload response with image data
+ * @returns {Promise<Object>} - Upload response with normalized image data
  */
-const uploadToImgBB = async (imageBuffer, filename, options = {}) => {
+const uploadToImgBB = async (
+  imageBuffer,
+  filename,
+  options = {}
+) => {
   try {
-    // Validate inputs
+
+    // ----------------------------------------------------------
+    // Validate image buffer
+    // ----------------------------------------------------------
+
     if (!imageBuffer) {
-      throw new Error('Image buffer is required');
+      throw new Error("Image buffer is required");
     }
+
+
+    // ----------------------------------------------------------
+    // Validate API key
+    // ----------------------------------------------------------
 
     if (!process.env.IMGBB_API_KEY) {
-      throw new Error('ImgBB API key is not configured');
+      throw new Error(
+        "ImgBB API key is not configured"
+      );
     }
 
-    // Prepare form data
+
+    // ----------------------------------------------------------
+    // Validate API URL
+    // ----------------------------------------------------------
+
+    if (!process.env.IMGBB_API_URL) {
+      throw new Error(
+        "ImgBB API URL is not configured"
+      );
+    }
+
+
+    // ----------------------------------------------------------
+    // Prepare FormData
+    // ----------------------------------------------------------
+
     const formData = new FormData();
-    formData.append('key', process.env.IMGBB_API_KEY);
-    formData.append('image', imageBuffer.toString('base64'));
-    formData.append('name', options.name || filename || 'image');
-    
-    // Optional: Set expiration (default: never expires)
+
+    formData.append(
+      "key",
+      process.env.IMGBB_API_KEY
+    );
+
+    formData.append(
+      "image",
+      imageBuffer.toString("base64")
+    );
+
+    formData.append(
+      "name",
+      options.name ||
+        filename ||
+        "image"
+    );
+
+
+    // ----------------------------------------------------------
+    // Optional expiration
+    // ----------------------------------------------------------
+
     if (options.expiration) {
-      formData.append('expiration', options.expiration);
+      formData.append(
+        "expiration",
+        options.expiration
+      );
     }
 
-    // Make API request
-    const response = await axios.post(process.env.IMGBB_API_URL, formData, {
-      headers: {
-        ...formData.getHeaders()
-      },
-      timeout: 30000 // 30 seconds timeout
-    });
 
-    // Check response
-    if (response.data && response.data.success) {
-      return {
-        success: true,
-        data: {
-          url: response.data.data.url,
-          displayUrl: response.data.data.display_url,
-          deleteUrl: response.data.data.delete_url,
-          thumb: response.data.data.thumb,
-          medium: response.data.data.medium,
-          small: response.data.data.small || response.data.data.thumb,
-          filename: response.data.data.image?.filename || filename,
-          size: response.data.data.size,
-          width: response.data.data.width,
-          height: response.data.data.height,
-          expiration: response.data.data.expiration,
-          id: response.data.data.id,
-          title: response.data.data.title,
-          description: response.data.data.description
-        }
-      };
-    } else {
-      throw new Error('Upload failed: ' + JSON.stringify(response.data));
+    // ----------------------------------------------------------
+    // Upload to ImgBB
+    // ----------------------------------------------------------
+
+    const response = await axios.post(
+      process.env.IMGBB_API_URL,
+      formData,
+      {
+        headers: {
+          ...formData.getHeaders()
+        },
+
+        timeout: 30000,
+
+        maxContentLength:
+          Infinity,
+
+        maxBodyLength:
+          Infinity
+      }
+    );
+
+
+    // ----------------------------------------------------------
+    // Validate response
+    // ----------------------------------------------------------
+
+    if (
+      !response.data ||
+      !response.data.success ||
+      !response.data.data
+    ) {
+
+      throw new Error(
+        "Upload failed: " +
+        JSON.stringify(
+          response.data
+        )
+      );
     }
+
+
+    const img =
+      response.data.data;
+
+
+    // ----------------------------------------------------------
+    // Normalize ImgBB response
+    //
+    // IMPORTANT:
+    // thumb / medium / small can be OBJECTS.
+    // We save only their URL strings.
+    // ----------------------------------------------------------
+
+    const normalizedData = {
+
+      // Main image URL
+      url:
+        getImageUrl(img.url),
+
+
+      // Display URL
+      displayUrl:
+        getImageUrl(
+          img.display_url
+        ) ||
+        getImageUrl(
+          img.displayUrl
+        ) ||
+        getImageUrl(
+          img.url
+        ),
+
+
+      // Delete URL
+      deleteUrl:
+        getImageUrl(
+          img.delete_url
+        ) ||
+        getImageUrl(
+          img.deleteUrl
+        ),
+
+
+      // Thumbnail URL
+      thumb:
+        getImageUrl(
+          img.thumb
+        ),
+
+
+      // Medium image URL
+      medium:
+        getImageUrl(
+          img.medium
+        ),
+
+
+      // Small image URL
+      small:
+        getImageUrl(
+          img.small
+        ) ||
+        getImageUrl(
+          img.thumb
+        ),
+
+
+      // Original filename
+      filename:
+        img.image?.filename ||
+        img.filename ||
+        filename ||
+        "",
+
+
+      // File size
+      size:
+        typeof img.size === "number"
+          ? img.size
+          : undefined,
+
+
+      // Width
+      width:
+        typeof img.width === "number"
+          ? img.width
+          : undefined,
+
+
+      // Height
+      height:
+        typeof img.height === "number"
+          ? img.height
+          : undefined,
+
+
+      // Expiration
+      expiration:
+        img.expiration || null,
+
+
+      // ImgBB ID
+      id:
+        img.id || "",
+
+
+      // Title
+      title:
+        img.title || "",
+
+
+      // Description
+      description:
+        img.description || ""
+    };
+
+
+    // ----------------------------------------------------------
+    // Return normalized result
+    // ----------------------------------------------------------
+
+    return {
+      success: true,
+      data: normalizedData
+    };
+
   } catch (error) {
-    console.error('ImgBB Upload Error:', {
-      message: error.message,
-      response: error.response?.data
-    });
-    
-    // Throw user-friendly error
+
+    console.error(
+      "ImgBB Upload Error:",
+      {
+        message:
+          error.message,
+
+        response:
+          error.response?.data
+      }
+    );
+
+
     throw new Error(
-      error.response?.data?.error?.message || 
-      error.message || 
-      'Failed to upload image to ImgBB'
+      error.response?.data?.error?.message ||
+      error.message ||
+      "Failed to upload image to ImgBB"
     );
   }
 };
+
 
 /**
  * Delete image from ImgBB using delete URL
- * 
- * @param {string} deleteUrl - Delete URL from upload response
- * @returns {Promise<boolean>} - True if deleted successfully
+ *
+ * @param {string} deleteUrl
+ * @returns {Promise<boolean>}
  */
-const deleteFromImgBB = async (deleteUrl) => {
+const deleteFromImgBB = async (
+  deleteUrl
+) => {
+
   try {
+
     if (!deleteUrl) {
-      console.warn('No delete URL provided');
+
+      console.warn(
+        "No delete URL provided"
+      );
+
       return false;
     }
 
-    const response = await axios.delete(deleteUrl, {
-      timeout: 10000
-    });
-    
-    return response.status === 200 || response.status === 204;
+
+    const response =
+      await axios.delete(
+        deleteUrl,
+        {
+          timeout: 10000
+        }
+      );
+
+
+    return (
+      response.status === 200 ||
+      response.status === 204
+    );
+
   } catch (error) {
-    console.error('ImgBB Delete Error:', error.message);
-    // Don't throw error, just log and return false
+
+    console.error(
+      "ImgBB Delete Error:",
+      error.message
+    );
+
+    // Don't throw
     return false;
   }
 };
+
 
 /**
  * Get image info from ImgBB
- * 
- * @param {string} imageId - Image ID from ImgBB
- * @returns {Promise<Object>} - Image information
+ *
+ * @param {string} imageId
+ * @returns {Promise<Object>}
  */
-const getImageInfo = async (imageId) => {
+const getImageInfo = async (
+  imageId
+) => {
+
   try {
-    const response = await axios.get(`https://api.imgbb.com/1/info`, {
-      params: {
-        key: process.env.IMGBB_API_KEY,
-        id: imageId
-      }
-    });
-    
+
+    if (!imageId) {
+      throw new Error(
+        "Image ID is required"
+      );
+    }
+
+
+    if (!process.env.IMGBB_API_KEY) {
+      throw new Error(
+        "ImgBB API key is not configured"
+      );
+    }
+
+
+    const response =
+      await axios.get(
+        "https://api.imgbb.com/1/info",
+        {
+          params: {
+            key:
+              process.env.IMGBB_API_KEY,
+
+            id:
+              imageId
+          },
+
+          timeout: 10000
+        }
+      );
+
+
     return response.data;
+
   } catch (error) {
-    console.error('ImgBB Get Info Error:', error.message);
-    throw new Error('Failed to get image information');
+
+    console.error(
+      "ImgBB Get Info Error:",
+      error.message
+    );
+
+    throw new Error(
+      error.response?.data?.error?.message ||
+      "Failed to get image information"
+    );
   }
 };
 
+
 /**
- * Check if API key is valid
- * 
- * @returns {Promise<boolean>} - True if valid
+ * Check if ImgBB API key is valid
+ *
+ * @returns {Promise<boolean>}
  */
 const validateApiKey = async () => {
+
   try {
-    // Try to upload a small test image
-    const testBuffer = Buffer.from(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-      'base64'
+
+    // 1x1 transparent PNG
+    const testBuffer =
+      Buffer.from(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        "base64"
+      );
+
+
+    const result =
+      await uploadToImgBB(
+        testBuffer,
+        "test.png"
+      );
+
+
+    return (
+      result &&
+      result.success === true
     );
-    
-    const result = await uploadToImgBB(testBuffer, 'test.png');
-    return result.success;
+
   } catch (error) {
+
+    console.error(
+      "ImgBB API validation error:",
+      error.message
+    );
+
     return false;
   }
 };
+
 
 module.exports = {
   uploadToImgBB,

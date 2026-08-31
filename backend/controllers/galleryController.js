@@ -1,338 +1,977 @@
-const Gallery = require('../models/Gallery');
-const { uploadToImgBB, deleteFromImgBB } = require('../utils/imgbb');
+const mongoose = require("mongoose");
+const Gallery = require("../models/Gallery");
+const { uploadToImgBB, deleteFromImgBB } = require("../utils/imgbb");
 
-// ============ ADMIN CONTROLLERS ============
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
 
-// @desc    Create gallery image (Admin only)
+// Convert any ImgBB image field into a string URL
+const getImageUrl = (value) => {
+    if (!value) return "";
+
+    if (typeof value === "string") {
+        return value;
+    }
+
+    if (typeof value === "object") {
+        return (
+            value.url ||
+            value.display_url ||
+            value.displayUrl ||
+            value.image?.url ||
+            ""
+        );
+    }
+
+    return "";
+};
+
+
+// Normalize ImgBB response according to Gallery schema
+const normalizeImageData = (img, reqFile = null) => {
+    if (!img) {
+        return null;
+    }
+
+    return {
+        url: getImageUrl(img.url),
+
+        displayUrl:
+            getImageUrl(img.displayUrl) ||
+            getImageUrl(img.display_url) ||
+            getImageUrl(img.url),
+
+        deleteUrl: getImageUrl(img.deleteUrl),
+
+        thumb:
+            getImageUrl(img.thumb) ||
+            getImageUrl(img.thumbnail),
+
+        medium:
+            getImageUrl(img.medium),
+
+        filename:
+            typeof img.filename === "string"
+                ? img.filename
+                : reqFile?.originalname || "",
+
+        size:
+            typeof img.size === "number"
+                ? img.size
+                : reqFile?.size || undefined,
+
+        width:
+            typeof img.width === "number"
+                ? img.width
+                : undefined,
+
+        height:
+            typeof img.height === "number"
+                ? img.height
+                : undefined,
+
+        imgbbId:
+            typeof img.imgbbId === "string"
+                ? img.imgbbId
+                : typeof img.id === "string"
+                    ? img.id
+                    : ""
+    };
+};
+
+
+// Parse tags safely
+const parseTags = (tags) => {
+    if (!tags) {
+        return [];
+    }
+
+    if (Array.isArray(tags)) {
+        return tags;
+    }
+
+    if (typeof tags === "string") {
+        try {
+            const parsed = JSON.parse(tags);
+
+            if (Array.isArray(parsed)) {
+                return parsed;
+            }
+        } catch (error) {
+            // If JSON parsing fails, treat it as comma separated
+        }
+
+        return tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter(Boolean);
+    }
+
+    return [];
+};
+
+
+// ============================================================
+// ADMIN CONTROLLERS
+// ============================================================
+
+
+// @desc    Create gallery image
 // @route   POST /api/admin/gallery
 exports.createGalleryImage = async (req, res) => {
     try {
-        const { heading, subHeading, category, isFeatured, altText, tags, sortOrder } = req.body;
+        const {
+            heading,
+            subHeading,
+            category,
+            isFeatured,
+            altText,
+            tags,
+            sortOrder
+        } = req.body;
 
-        // Check if image is uploaded
+
+        // --------------------------------------------------------
+        // Validate image
+        // --------------------------------------------------------
+
         if (!req.file) {
             return res.status(400).json({
                 success: false,
-                message: 'Image is required'
+                message: "Image is required"
             });
         }
 
+
+        // --------------------------------------------------------
+        // Validate required text fields
+        // --------------------------------------------------------
+
+        if (!heading || !heading.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Heading is required"
+            });
+        }
+
+        if (!subHeading || !subHeading.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "SubHeading is required"
+            });
+        }
+
+
+        // --------------------------------------------------------
         // Upload image to ImgBB
+        // --------------------------------------------------------
+
         const uploadResult = await uploadToImgBB(
             req.file.buffer,
             req.file.originalname,
-            { name: `gallery-${heading || 'image'}` }
+            {
+                name: `gallery-${heading || "image"}`
+            }
         );
 
-        // Parse tags from string if needed
-        const parsedTags = typeof tags === 'string'
-            ? JSON.parse(tags)
-            : tags || [];
 
-        // Create gallery image
+        // --------------------------------------------------------
+        // Validate ImgBB response
+        // --------------------------------------------------------
+
+        if (!uploadResult || !uploadResult.data) {
+            return res.status(500).json({
+                success: false,
+                message: "Invalid response from ImgBB"
+            });
+        }
+
+
+        const imageData = normalizeImageData(
+            uploadResult.data,
+            req.file
+        );
+
+
+        if (!imageData || !imageData.url) {
+            console.error(
+                "Invalid ImgBB image data:",
+                uploadResult.data
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "Image upload failed: URL not received from ImgBB"
+            });
+        }
+
+
+        // --------------------------------------------------------
+        // Parse tags
+        // --------------------------------------------------------
+
+        const parsedTags = parseTags(tags);
+
+
+        // --------------------------------------------------------
+        // Create gallery document
+        // --------------------------------------------------------
+
         const galleryImage = await Gallery.create({
-            image: uploadResult.data,
-            heading,
-            subHeading,
-            category: category || 'Workplace',
-            isFeatured: isFeatured || false,
-            altText: altText || heading,
+            image: imageData,
+
+            heading: heading.trim(),
+
+            subHeading: subHeading.trim(),
+
+            category: category || "Workplace",
+
+            isFeatured:
+                isFeatured === true ||
+                isFeatured === "true",
+
+            altText:
+                altText && altText.trim()
+                    ? altText.trim()
+                    : heading.trim(),
+
             tags: parsedTags,
-            sortOrder: sortOrder || 0,
-            createdBy: req.user._id
+
+            sortOrder:
+                sortOrder !== undefined
+                    ? Number(sortOrder) || 0
+                    : 0,
+
+            createdBy: req.user?._id
         });
 
-        res.status(201).json({
+
+        // --------------------------------------------------------
+        // Response
+        // --------------------------------------------------------
+
+        return res.status(201).json({
             success: true,
-            message: 'Gallery image added successfully',
+            message: "Gallery image added successfully",
             data: galleryImage
         });
 
     } catch (error) {
-        console.error('Create gallery image error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Create gallery image error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to add gallery image'
+            message:
+                error.message ||
+                "Failed to add gallery image"
         });
     }
 };
+
+
+
+// ============================================================
+// GET ALL GALLERY - ADMIN
+// ============================================================
+
 
 // @desc    Get all gallery images (Admin)
 // @route   GET /api/admin/gallery
 exports.getAllGalleryAdmin = async (req, res) => {
     try {
-        const { category, isActive, isFeatured, search } = req.query;
+
+        const {
+            category,
+            isActive,
+            isFeatured,
+            search
+        } = req.query;
+
 
         const filter = {};
-        if (category) filter.category = category;
-        if (isActive !== undefined) filter.isActive = isActive === 'true';
-        if (isFeatured !== undefined) filter.isFeatured = isFeatured === 'true';
+
+
+        if (category) {
+            filter.category = category;
+        }
+
+
+        if (isActive !== undefined) {
+            filter.isActive = isActive === "true";
+        }
+
+
+        if (isFeatured !== undefined) {
+            filter.isFeatured = isFeatured === "true";
+        }
+
 
         if (search) {
+
             filter.$or = [
-                { heading: { $regex: search, $options: 'i' } },
-                { subHeading: { $regex: search, $options: 'i' } },
-                { category: { $regex: search, $options: 'i' } }
+                {
+                    heading: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    subHeading: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    category: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
             ];
         }
 
-        const galleryImages = await Gallery.find(filter)
-            .populate('createdBy', 'name email')
-            .sort({ sortOrder: 1, createdAt: -1 });
 
-        res.status(200).json({
+        const galleryImages = await Gallery.find(filter)
+            .populate("createdBy", "name email")
+            .sort({
+                sortOrder: 1,
+                createdAt: -1
+            });
+
+
+        return res.status(200).json({
             success: true,
             count: galleryImages.length,
             data: galleryImages
         });
 
     } catch (error) {
-        console.error('Get all gallery admin error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get all gallery admin error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery images'
+            message:
+                error.message ||
+                "Failed to fetch gallery images"
         });
     }
 };
+
+
+
+// ============================================================
+// GET SINGLE GALLERY - ADMIN
+// ============================================================
+
 
 // @desc    Get single gallery image (Admin)
 // @route   GET /api/admin/gallery/:id
 exports.getGalleryByIdAdmin = async (req, res) => {
     try {
-        const galleryImage = await Gallery.findById(req.params.id)
-            .populate('createdBy', 'name email');
+
+        const galleryImage = await Gallery.findById(
+            req.params.id
+        ).populate(
+            "createdBy",
+            "name email"
+        );
+
 
         if (!galleryImage) {
             return res.status(404).json({
                 success: false,
-                message: 'Gallery image not found'
+                message: "Gallery image not found"
             });
         }
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
             data: galleryImage
         });
 
     } catch (error) {
-        console.error('Get gallery by id admin error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get gallery by id admin error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery image'
+            message:
+                error.message ||
+                "Failed to fetch gallery image"
         });
     }
 };
+
+
+
+// ============================================================
+// UPDATE GALLERY - ADMIN
+// ============================================================
+
 
 // @desc    Update gallery image (Admin)
 // @route   PUT /api/admin/gallery/:id
 exports.updateGalleryImage = async (req, res) => {
     try {
-        const galleryImage = await Gallery.findById(req.params.id);
+
+        const galleryImage = await Gallery.findById(
+            req.params.id
+        );
+
+
         if (!galleryImage) {
             return res.status(404).json({
                 success: false,
-                message: 'Gallery image not found'
+                message: "Gallery image not found"
             });
         }
 
-        const { heading, subHeading, category, isActive, isFeatured, altText, tags, sortOrder } = req.body;
 
-        // Update fields
-        if (heading) galleryImage.heading = heading;
-        if (subHeading) galleryImage.subHeading = subHeading;
-        if (category) galleryImage.category = category;
-        if (isActive !== undefined) galleryImage.isActive = isActive;
-        if (isFeatured !== undefined) galleryImage.isFeatured = isFeatured;
-        if (altText !== undefined) galleryImage.altText = altText;
-        if (sortOrder !== undefined) galleryImage.sortOrder = sortOrder;
+        const {
+            heading,
+            subHeading,
+            category,
+            isActive,
+            isFeatured,
+            altText,
+            tags,
+            sortOrder
+        } = req.body;
 
-        // Parse tags from string if needed
-        if (tags) {
-            galleryImage.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+
+        // --------------------------------------------------------
+        // Update text fields
+        // --------------------------------------------------------
+
+        if (heading !== undefined) {
+            galleryImage.heading = heading.trim();
         }
 
+
+        if (subHeading !== undefined) {
+            galleryImage.subHeading =
+                subHeading.trim();
+        }
+
+
+        if (category !== undefined) {
+            galleryImage.category = category;
+        }
+
+
+        if (isActive !== undefined) {
+            galleryImage.isActive =
+                isActive === true ||
+                isActive === "true";
+        }
+
+
+        if (isFeatured !== undefined) {
+            galleryImage.isFeatured =
+                isFeatured === true ||
+                isFeatured === "true";
+        }
+
+
+        if (altText !== undefined) {
+            galleryImage.altText =
+                altText.trim();
+        }
+
+
+        if (sortOrder !== undefined) {
+            galleryImage.sortOrder =
+                Number(sortOrder) || 0;
+        }
+
+
+        // --------------------------------------------------------
+        // Update tags
+        // --------------------------------------------------------
+
+        if (tags !== undefined) {
+            galleryImage.tags = parseTags(tags);
+        }
+
+
+        // --------------------------------------------------------
         // Update image if new image uploaded
+        // --------------------------------------------------------
+
         if (req.file) {
+
             // Delete old image from ImgBB
-            if (galleryImage.image && galleryImage.image.deleteUrl) {
-                await deleteFromImgBB(galleryImage.image.deleteUrl);
+            if (
+                galleryImage.image &&
+                galleryImage.image.deleteUrl
+            ) {
+
+                try {
+
+                    await deleteFromImgBB(
+                        galleryImage.image.deleteUrl
+                    );
+
+                } catch (deleteError) {
+
+                    console.error(
+                        "Old ImgBB image delete error:",
+                        deleteError
+                    );
+
+                    // Don't stop update if delete fails
+                }
             }
 
-            // Upload new image
-            const uploadResult = await uploadToImgBB(
-                req.file.buffer,
-                req.file.originalname,
-                { name: `gallery-${heading || galleryImage.heading}` }
-            );
 
-            galleryImage.image = uploadResult.data;
+            // Upload new image
+            const uploadResult =
+                await uploadToImgBB(
+                    req.file.buffer,
+                    req.file.originalname,
+                    {
+                        name:
+                            `gallery-${
+                                heading ||
+                                galleryImage.heading ||
+                                "image"
+                            }`
+                    }
+                );
+
+
+            if (
+                !uploadResult ||
+                !uploadResult.data
+            ) {
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Invalid response from ImgBB"
+                });
+            }
+
+
+            // IMPORTANT:
+            // Normalize ImgBB response before saving
+            const imageData =
+                normalizeImageData(
+                    uploadResult.data,
+                    req.file
+                );
+
+
+            if (
+                !imageData ||
+                !imageData.url
+            ) {
+
+                console.error(
+                    "Invalid ImgBB image data:",
+                    uploadResult.data
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message:
+                        "Image upload failed: URL not received from ImgBB"
+                });
+            }
+
+
+            galleryImage.image = imageData;
         }
+
+
+        // --------------------------------------------------------
+        // Save
+        // --------------------------------------------------------
 
         await galleryImage.save();
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
-            message: 'Gallery image updated successfully',
+            message:
+                "Gallery image updated successfully",
             data: galleryImage
         });
 
     } catch (error) {
-        console.error('Update gallery image error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Update gallery image error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to update gallery image'
+            message:
+                error.message ||
+                "Failed to update gallery image"
         });
     }
 };
+
+
+
+// ============================================================
+// DELETE GALLERY - ADMIN
+// ============================================================
+
 
 // @desc    Delete gallery image (Admin)
 // @route   DELETE /api/admin/gallery/:id
 exports.deleteGalleryImage = async (req, res) => {
     try {
-        const galleryImage = await Gallery.findById(req.params.id);
+
+        const galleryImage = await Gallery.findById(
+            req.params.id
+        );
+
+
         if (!galleryImage) {
             return res.status(404).json({
                 success: false,
-                message: 'Gallery image not found'
+                message: "Gallery image not found"
             });
         }
 
+
         // Delete image from ImgBB
-        if (galleryImage.image && galleryImage.image.deleteUrl) {
-            await deleteFromImgBB(galleryImage.image.deleteUrl);
+        if (
+            galleryImage.image &&
+            galleryImage.image.deleteUrl
+        ) {
+
+            try {
+
+                await deleteFromImgBB(
+                    galleryImage.image.deleteUrl
+                );
+
+            } catch (deleteError) {
+
+                console.error(
+                    "ImgBB delete error:",
+                    deleteError
+                );
+            }
         }
+
 
         await galleryImage.deleteOne();
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
-            message: 'Gallery image deleted successfully'
+            message:
+                "Gallery image deleted successfully"
         });
 
     } catch (error) {
-        console.error('Delete gallery image error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Delete gallery image error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to delete gallery image'
+            message:
+                error.message ||
+                "Failed to delete gallery image"
         });
     }
 };
+
+
+
+// ============================================================
+// TOGGLE ACTIVE STATUS
+// ============================================================
+
 
 // @desc    Toggle gallery image active status
 // @route   PATCH /api/admin/gallery/:id/toggle
 exports.toggleGalleryStatus = async (req, res) => {
     try {
-        const galleryImage = await Gallery.findById(req.params.id);
+
+        const galleryImage = await Gallery.findById(
+            req.params.id
+        );
+
+
         if (!galleryImage) {
             return res.status(404).json({
                 success: false,
-                message: 'Gallery image not found'
+                message: "Gallery image not found"
             });
         }
 
-        galleryImage.isActive = !galleryImage.isActive;
+
+        galleryImage.isActive =
+            !galleryImage.isActive;
+
+
         await galleryImage.save();
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
-            message: `Gallery image ${galleryImage.isActive ? 'activated' : 'deactivated'} successfully`,
+            message:
+                `Gallery image ${
+                    galleryImage.isActive
+                        ? "activated"
+                        : "deactivated"
+                } successfully`,
             data: galleryImage
         });
 
     } catch (error) {
-        console.error('Toggle gallery status error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Toggle gallery status error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to toggle gallery status'
+            message:
+                error.message ||
+                "Failed to toggle gallery status"
         });
     }
 };
+
+
+
+// ============================================================
+// TOGGLE FEATURED
+// ============================================================
+
 
 // @desc    Toggle gallery image featured status
 // @route   PATCH /api/admin/gallery/:id/toggle-featured
 exports.toggleGalleryFeatured = async (req, res) => {
     try {
-        const galleryImage = await Gallery.findById(req.params.id);
+
+        const galleryImage = await Gallery.findById(
+            req.params.id
+        );
+
+
         if (!galleryImage) {
             return res.status(404).json({
                 success: false,
-                message: 'Gallery image not found'
+                message: "Gallery image not found"
             });
         }
 
-        galleryImage.isFeatured = !galleryImage.isFeatured;
+
+        galleryImage.isFeatured =
+            !galleryImage.isFeatured;
+
+
         await galleryImage.save();
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
-            message: `Gallery image ${galleryImage.isFeatured ? 'featured' : 'unfeatured'} successfully`,
+            message:
+                `Gallery image ${
+                    galleryImage.isFeatured
+                        ? "featured"
+                        : "unfeatured"
+                } successfully`,
             data: galleryImage
         });
 
     } catch (error) {
-        console.error('Toggle gallery featured error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Toggle gallery featured error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to toggle featured status'
+            message:
+                error.message ||
+                "Failed to toggle featured status"
         });
     }
 };
 
-// @desc    Bulk delete gallery images (Admin)
+
+
+// ============================================================
+// BULK DELETE
+// ============================================================
+
+
+// @desc    Bulk delete gallery images
 // @route   DELETE /api/admin/gallery/bulk
 exports.bulkDeleteGallery = async (req, res) => {
     try {
+
         const { ids } = req.body;
 
-        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+
+        if (
+            !ids ||
+            !Array.isArray(ids) ||
+            ids.length === 0
+        ) {
+
             return res.status(400).json({
                 success: false,
-                message: 'Please provide an array of image IDs'
+                message:
+                    "Please provide an array of image IDs"
             });
         }
 
-        // Get all gallery images
-        const galleryImages = await Gallery.find({ _id: { $in: ids } });
 
-        // Delete all images from ImgBB
+        // Validate MongoDB IDs
+        const validIds = ids.filter((id) =>
+            mongoose.Types.ObjectId.isValid(id)
+        );
+
+
+        if (validIds.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "No valid image IDs provided"
+            });
+        }
+
+
+        // Get gallery images
+        const galleryImages =
+            await Gallery.find({
+                _id: {
+                    $in: validIds
+                }
+            });
+
+
+        // Delete images from ImgBB
         for (const image of galleryImages) {
-            if (image.image && image.image.deleteUrl) {
-                await deleteFromImgBB(image.image.deleteUrl);
+
+            if (
+                image.image &&
+                image.image.deleteUrl
+            ) {
+
+                try {
+
+                    await deleteFromImgBB(
+                        image.image.deleteUrl
+                    );
+
+                } catch (deleteError) {
+
+                    console.error(
+                        `ImgBB delete error for ${image._id}:`,
+                        deleteError
+                    );
+                }
             }
         }
 
-        // Delete from database
-        await Gallery.deleteMany({ _id: { $in: ids } });
 
-        res.status(200).json({
+        // Delete from database
+        await Gallery.deleteMany({
+            _id: {
+                $in: validIds
+            }
+        });
+
+
+        return res.status(200).json({
             success: true,
-            message: `${galleryImages.length} gallery image(s) deleted successfully`
+            message:
+                `${galleryImages.length} gallery image(s) deleted successfully`
         });
 
     } catch (error) {
-        console.error('Bulk delete gallery error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Bulk delete gallery error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to delete gallery images'
+            message:
+                error.message ||
+                "Failed to delete gallery images"
         });
     }
 };
 
-// @desc    Get gallery statistics (Admin)
+
+
+// ============================================================
+// GALLERY STATISTICS - ADMIN
+// ============================================================
+
+
+// @desc    Get gallery statistics
 // @route   GET /api/admin/gallery/stats
 exports.getGalleryStats = async (req, res) => {
     try {
-        const totalImages = await Gallery.countDocuments();
-        const activeImages = await Gallery.countDocuments({ isActive: true });
-        const featuredImages = await Gallery.countDocuments({ isFeatured: true });
+
+        const totalImages =
+            await Gallery.countDocuments();
+
+
+        const activeImages =
+            await Gallery.countDocuments({
+                isActive: true
+            });
+
+
+        const featuredImages =
+            await Gallery.countDocuments({
+                isFeatured: true
+            });
+
 
         // Category wise count
-        const categoryStats = await Gallery.aggregate([
-            { $group: { _id: '$category', count: { $sum: 1 } } },
-            { $sort: { count: -1 } }
-        ]);
+        const categoryStats =
+            await Gallery.aggregate([
+                {
+                    $group: {
+                        _id: "$category",
+                        count: {
+                            $sum: 1
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        count: -1
+                    }
+                }
+            ]);
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
             data: {
                 totalImages,
@@ -343,303 +982,720 @@ exports.getGalleryStats = async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Get gallery stats error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get gallery stats error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery statistics'
+            message:
+                error.message ||
+                "Failed to fetch gallery statistics"
         });
     }
 };
 
-// ============ USER CONTROLLERS ============
 
-// @desc    Get all active gallery images (User)
+
+// ============================================================
+// USER CONTROLLERS
+// ============================================================
+
+
+// @desc    Get all active gallery images
 // @route   GET /api/gallery
 exports.getAllGalleryUser = async (req, res) => {
     try {
-        const { category, limit = 20, page = 1 } = req.query;
 
-        const filter = { isActive: true };
-        if (category) filter.category = category;
+        const {
+            category,
+            limit = 20,
+            page = 1
+        } = req.query;
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const galleryImages = await Gallery.find(filter)
-            .select('image heading subHeading category isFeatured createdAt altText tags')
-            .sort({ isFeatured: -1, sortOrder: 1, createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+        const parsedLimit =
+            Math.max(
+                parseInt(limit) || 20,
+                1
+            );
 
-        const total = await Gallery.countDocuments(filter);
 
-        // Format response for user
-        const formattedData = galleryImages.map(item => ({
-            id: item._id,
-            image: item.image?.displayUrl || item.image?.url || null,
-            heading: item.heading,
-            subHeading: item.subHeading,
-            category: item.category,
-            isFeatured: item.isFeatured,
-            createdAt: item.createdAt,
-            altText: item.altText || item.heading,
-            tags: item.tags || []
-        }));
+        const parsedPage =
+            Math.max(
+                parseInt(page) || 1,
+                1
+            );
 
-        res.status(200).json({
+
+        const filter = {
+            isActive: true
+        };
+
+
+        if (category) {
+            filter.category = category;
+        }
+
+
+        const skip =
+            (parsedPage - 1) *
+            parsedLimit;
+
+
+        const galleryImages =
+            await Gallery.find(filter)
+                .select(
+                    "image heading subHeading category isFeatured createdAt altText tags"
+                )
+                .sort({
+                    isFeatured: -1,
+                    sortOrder: 1,
+                    createdAt: -1
+                })
+                .skip(skip)
+                .limit(parsedLimit);
+
+
+        const total =
+            await Gallery.countDocuments(filter);
+
+
+        const formattedData =
+            galleryImages.map((item) => ({
+                id: item._id,
+
+                image:
+                    item.image?.displayUrl ||
+                    item.image?.url ||
+                    null,
+
+                heading: item.heading,
+
+                subHeading:
+                    item.subHeading,
+
+                category:
+                    item.category,
+
+                isFeatured:
+                    item.isFeatured,
+
+                createdAt:
+                    item.createdAt,
+
+                altText:
+                    item.altText ||
+                    item.heading,
+
+                tags:
+                    item.tags || []
+            }));
+
+
+        return res.status(200).json({
             success: true,
             count: galleryImages.length,
             total,
-            page: parseInt(page),
-            totalPages: Math.ceil(total / parseInt(limit)),
+            page: parsedPage,
+            totalPages:
+                Math.ceil(
+                    total / parsedLimit
+                ),
             data: formattedData
         });
 
     } catch (error) {
-        console.error('Get all gallery user error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get all gallery user error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery images'
+            message:
+                error.message ||
+                "Failed to fetch gallery images"
         });
     }
 };
 
-// @desc    Get single gallery image (User)
+
+
+// ============================================================
+// GET SINGLE GALLERY - USER
+// ============================================================
+
+
+// @desc    Get single gallery image
 // @route   GET /api/gallery/:id
 exports.getGalleryByIdUser = async (req, res) => {
     try {
-        const galleryImage = await Gallery.findOne({
-            _id: req.params.id,
-            isActive: true
-        });
+
+        const galleryImage =
+            await Gallery.findOne({
+                _id: req.params.id,
+                isActive: true
+            });
+
 
         if (!galleryImage) {
             return res.status(404).json({
                 success: false,
-                message: 'Gallery image not found'
+                message:
+                    "Gallery image not found"
             });
         }
 
+
         // Increment views
-        galleryImage.views = (galleryImage.views || 0) + 1;
+        galleryImage.views =
+            (galleryImage.views || 0) + 1;
+
+
         await galleryImage.save();
 
-        res.status(200).json({
+
+        return res.status(200).json({
             success: true,
             data: {
+
                 id: galleryImage._id,
-                image: galleryImage.image?.displayUrl || galleryImage.image?.url || null,
-                heading: galleryImage.heading,
-                subHeading: galleryImage.subHeading,
-                category: galleryImage.category,
-                isFeatured: galleryImage.isFeatured,
-                createdAt: galleryImage.createdAt,
-                altText: galleryImage.altText || galleryImage.heading,
-                tags: galleryImage.tags || [],
-                views: galleryImage.views
+
+                image:
+                    galleryImage.image?.displayUrl ||
+                    galleryImage.image?.url ||
+                    null,
+
+                heading:
+                    galleryImage.heading,
+
+                subHeading:
+                    galleryImage.subHeading,
+
+                category:
+                    galleryImage.category,
+
+                isFeatured:
+                    galleryImage.isFeatured,
+
+                createdAt:
+                    galleryImage.createdAt,
+
+                altText:
+                    galleryImage.altText ||
+                    galleryImage.heading,
+
+                tags:
+                    galleryImage.tags || [],
+
+                views:
+                    galleryImage.views
             }
         });
 
     } catch (error) {
-        console.error('Get gallery by id user error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get gallery by id user error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery image'
+            message:
+                error.message ||
+                "Failed to fetch gallery image"
         });
     }
 };
 
-// @desc    Get featured gallery images (User)
+
+
+// ============================================================
+// FEATURED GALLERY
+// ============================================================
+
+
+// @desc    Get featured gallery images
 // @route   GET /api/gallery/featured
 exports.getFeaturedGallery = async (req, res) => {
     try {
-        const { limit = 6 } = req.query;
 
-        const galleryImages = await Gallery.find({
-            isActive: true,
-            isFeatured: true
-        })
-            .select('image heading subHeading category createdAt altText')
-            .sort({ sortOrder: 1, createdAt: -1 })
-            .limit(parseInt(limit));
+        const {
+            limit = 6
+        } = req.query;
 
-        const formattedData = galleryImages.map(item => ({
-            id: item._id,
-            image: item.image?.displayUrl || item.image?.url || null,
-            heading: item.heading,
-            subHeading: item.subHeading,
-            category: item.category,
-            createdAt: item.createdAt,
-            altText: item.altText || item.heading
-        }));
 
-        res.status(200).json({
+        const parsedLimit =
+            Math.max(
+                parseInt(limit) || 6,
+                1
+            );
+
+
+        const galleryImages =
+            await Gallery.find({
+                isActive: true,
+                isFeatured: true
+            })
+                .select(
+                    "image heading subHeading category createdAt altText"
+                )
+                .sort({
+                    sortOrder: 1,
+                    createdAt: -1
+                })
+                .limit(parsedLimit);
+
+
+        const formattedData =
+            galleryImages.map((item) => ({
+                id: item._id,
+
+                image:
+                    item.image?.displayUrl ||
+                    item.image?.url ||
+                    null,
+
+                heading:
+                    item.heading,
+
+                subHeading:
+                    item.subHeading,
+
+                category:
+                    item.category,
+
+                createdAt:
+                    item.createdAt,
+
+                altText:
+                    item.altText ||
+                    item.heading
+            }));
+
+
+        return res.status(200).json({
             success: true,
-            count: galleryImages.length,
+            count: formattedData.length,
             data: formattedData
         });
 
     } catch (error) {
-        console.error('Get featured gallery error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get featured gallery error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch featured gallery images'
+            message:
+                error.message ||
+                "Failed to fetch featured gallery images"
         });
     }
 };
 
-// @desc    Get gallery by category (User)
+
+
+// ============================================================
+// GALLERY BY CATEGORY
+// ============================================================
+
+
+// @desc    Get gallery by category
 // @route   GET /api/gallery/category/:category
 exports.getGalleryByCategory = async (req, res) => {
     try {
-        const { category } = req.params;
-        const { limit = 20, page = 1 } = req.query;
+
+        const {
+            category
+        } = req.params;
+
+
+        const {
+            limit = 20,
+            page = 1
+        } = req.query;
+
+
+        const parsedLimit =
+            Math.max(
+                parseInt(limit) || 20,
+                1
+            );
+
+
+        const parsedPage =
+            Math.max(
+                parseInt(page) || 1,
+                1
+            );
+
 
         const filter = {
             isActive: true,
             category: category
         };
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const galleryImages = await Gallery.find(filter)
-            .select('image heading subHeading category isFeatured createdAt altText')
-            .sort({ isFeatured: -1, sortOrder: 1, createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+        const skip =
+            (parsedPage - 1) *
+            parsedLimit;
 
-        const total = await Gallery.countDocuments(filter);
 
-        const formattedData = galleryImages.map(item => ({
-            id: item._id,
-            image: item.image?.displayUrl || item.image?.url || null,
-            heading: item.heading,
-            subHeading: item.subHeading,
-            category: item.category,
-            isFeatured: item.isFeatured,
-            createdAt: item.createdAt,
-            altText: item.altText || item.heading
-        }));
+        const galleryImages =
+            await Gallery.find(filter)
+                .select(
+                    "image heading subHeading category isFeatured createdAt altText"
+                )
+                .sort({
+                    isFeatured: -1,
+                    sortOrder: 1,
+                    createdAt: -1
+                })
+                .skip(skip)
+                .limit(parsedLimit);
 
-        res.status(200).json({
+
+        const total =
+            await Gallery.countDocuments(
+                filter
+            );
+
+
+        const formattedData =
+            galleryImages.map((item) => ({
+                id: item._id,
+
+                image:
+                    item.image?.displayUrl ||
+                    item.image?.url ||
+                    null,
+
+                heading:
+                    item.heading,
+
+                subHeading:
+                    item.subHeading,
+
+                category:
+                    item.category,
+
+                isFeatured:
+                    item.isFeatured,
+
+                createdAt:
+                    item.createdAt,
+
+                altText:
+                    item.altText ||
+                    item.heading
+            }));
+
+
+        return res.status(200).json({
             success: true,
-            count: galleryImages.length,
+            count: formattedData.length,
             total,
-            page: parseInt(page),
-            totalPages: Math.ceil(total / parseInt(limit)),
-            category: category,
+            page: parsedPage,
+            totalPages:
+                Math.ceil(
+                    total / parsedLimit
+                ),
+            category,
             data: formattedData
         });
 
     } catch (error) {
-        console.error('Get gallery by category error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get gallery by category error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery images by category'
+            message:
+                error.message ||
+                "Failed to fetch gallery images by category"
         });
     }
 };
 
-// @desc    Search gallery images (User)
+
+
+// ============================================================
+// SEARCH GALLERY
+// ============================================================
+
+
+// @desc    Search gallery images
 // @route   GET /api/gallery/search
 exports.searchGallery = async (req, res) => {
     try {
-        const { q, limit = 20, page = 1 } = req.query;
 
-        if (!q) {
+        const {
+            q,
+            limit = 20,
+            page = 1
+        } = req.query;
+
+
+        if (!q || !q.trim()) {
             return res.status(400).json({
                 success: false,
-                message: 'Search query is required'
+                message:
+                    "Search query is required"
             });
         }
 
+
+        const parsedLimit =
+            Math.max(
+                parseInt(limit) || 20,
+                1
+            );
+
+
+        const parsedPage =
+            Math.max(
+                parseInt(page) || 1,
+                1
+            );
+
+
+        const searchQuery =
+            q.trim();
+
+
         const filter = {
             isActive: true,
+
             $or: [
-                { heading: { $regex: q, $options: 'i' } },
-                { subHeading: { $regex: q, $options: 'i' } },
-                { category: { $regex: q, $options: 'i' } },
-                { tags: { $in: [new RegExp(q, 'i')] } }
+
+                {
+                    heading: {
+                        $regex: searchQuery,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    subHeading: {
+                        $regex: searchQuery,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    category: {
+                        $regex: searchQuery,
+                        $options: "i"
+                    }
+                },
+
+                {
+                    tags: {
+                        $in: [
+                            new RegExp(
+                                searchQuery,
+                                "i"
+                            )
+                        ]
+                    }
+                }
             ]
         };
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
 
-        const galleryImages = await Gallery.find(filter)
-            .select('image heading subHeading category isFeatured createdAt altText')
-            .sort({ isFeatured: -1, createdAt: -1 })
-            .skip(skip)
-            .limit(parseInt(limit));
+        const skip =
+            (parsedPage - 1) *
+            parsedLimit;
 
-        const total = await Gallery.countDocuments(filter);
 
-        const formattedData = galleryImages.map(item => ({
-            id: item._id,
-            image: item.image?.displayUrl || item.image?.url || null,
-            heading: item.heading,
-            subHeading: item.subHeading,
-            category: item.category,
-            isFeatured: item.isFeatured,
-            createdAt: item.createdAt,
-            altText: item.altText || item.heading
-        }));
+        const galleryImages =
+            await Gallery.find(filter)
+                .select(
+                    "image heading subHeading category isFeatured createdAt altText"
+                )
+                .sort({
+                    isFeatured: -1,
+                    createdAt: -1
+                })
+                .skip(skip)
+                .limit(parsedLimit);
 
-        res.status(200).json({
+
+        const total =
+            await Gallery.countDocuments(
+                filter
+            );
+
+
+        const formattedData =
+            galleryImages.map((item) => ({
+                id: item._id,
+
+                image:
+                    item.image?.displayUrl ||
+                    item.image?.url ||
+                    null,
+
+                heading:
+                    item.heading,
+
+                subHeading:
+                    item.subHeading,
+
+                category:
+                    item.category,
+
+                isFeatured:
+                    item.isFeatured,
+
+                createdAt:
+                    item.createdAt,
+
+                altText:
+                    item.altText ||
+                    item.heading
+            }));
+
+
+        return res.status(200).json({
             success: true,
-            count: galleryImages.length,
+            count: formattedData.length,
             total,
-            page: parseInt(page),
-            totalPages: Math.ceil(total / parseInt(limit)),
-            query: q,
+            page: parsedPage,
+            totalPages:
+                Math.ceil(
+                    total / parsedLimit
+                ),
+            query: searchQuery,
             data: formattedData
         });
 
     } catch (error) {
-        console.error('Search gallery error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Search gallery error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to search gallery images'
+            message:
+                error.message ||
+                "Failed to search gallery images"
         });
     }
 };
 
-// @desc    Get gallery categories with counts (User)
+
+
+// ============================================================
+// GALLERY CATEGORIES
+// ============================================================
+
+
+// @desc    Get gallery categories with counts
 // @route   GET /api/gallery/categories
 exports.getGalleryCategories = async (req, res) => {
     try {
-        const categories = await Gallery.aggregate([
-            { $match: { isActive: true } },
-            {
-                $group: {
-                    _id: '$category',
-                    count: { $sum: 1 },
-                    images: { $push: '$$ROOT' }
-                }
-            },
-            {
-                $project: {
-                    category: '$_id',
-                    count: 1,
-                    thumbnail: { $arrayElemAt: ['$images.image.displayUrl', 0] }
-                }
-            },
-            { $sort: { count: -1 } }
-        ]);
 
-        res.status(200).json({
+        const categories =
+            await Gallery.aggregate([
+
+                {
+                    $match: {
+                        isActive: true
+                    }
+                },
+
+                {
+                    $group: {
+
+                        _id: "$category",
+
+                        count: {
+                            $sum: 1
+                        },
+
+                        images: {
+                            $push: "$$ROOT"
+                        }
+                    }
+                },
+
+                {
+                    $project: {
+
+                        category: "$_id",
+
+                        count: 1,
+
+                        thumbnail: {
+                            $let: {
+                                vars: {
+                                    firstImage: {
+                                        $arrayElemAt: [
+                                            "$images",
+                                            0
+                                        ]
+                                    }
+                                },
+
+                                in: {
+                                    $ifNull: [
+                                        "$$firstImage.image.displayUrl",
+                                        "$$firstImage.image.url"
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                },
+
+                {
+                    $sort: {
+                        count: -1
+                    }
+                }
+            ]);
+
+
+        return res.status(200).json({
             success: true,
             count: categories.length,
-            data: categories.map(cat => ({
+
+            data: categories.map((cat) => ({
                 name: cat.category,
+
                 count: cat.count,
-                thumbnail: cat.thumbnail || null
+
+                thumbnail:
+                    cat.thumbnail || null
             }))
         });
 
     } catch (error) {
-        console.error('Get gallery categories error:', error);
-        res.status(500).json({
+
+        console.error(
+            "Get gallery categories error:",
+            error
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message || 'Failed to fetch gallery categories'
+            message:
+                error.message ||
+                "Failed to fetch gallery categories"
         });
     }
 };

@@ -7,6 +7,7 @@ import React, {
   useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Plus,
   Pencil,
@@ -27,90 +28,32 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import StateCard from "../components/StateCard";
-
-// Mock Gallery Data - Replace with API integration
-const mockGalleryData = [
-  {
-    id: "GAL001",
-    image:
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?w=600&h=400&fit=crop",
-    heading: "Modern Work Environment",
-    subHeading: "Creating productive and collaborative spaces",
-    category: "Workplace",
-    createdAt: "2026-08-20",
-  },
-  {
-    id: "GAL002",
-    image:
-      "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=600&h=400&fit=crop",
-    heading: "Team Collaboration",
-    subHeading: "Working together to achieve great results",
-    category: "Workplace",
-    createdAt: "2026-08-21",
-  },
-  {
-    id: "GAL003",
-    image:
-      "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&h=400&fit=crop",
-    heading: "Professional Growth",
-    subHeading: "Building successful career paths",
-    category: "Career",
-    createdAt: "2026-08-22",
-  },
-  {
-    id: "GAL004",
-    image:
-      "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&h=400&fit=crop",
-    heading: "Business Meeting",
-    subHeading: "Strategic planning and execution",
-    category: "Career",
-    createdAt: "2026-08-23",
-  },
-  {
-    id: "GAL005",
-    image:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&h=400&fit=crop",
-    heading: "Learning Together",
-    subHeading: "Continuous education and skill development",
-    category: "Learning",
-    createdAt: "2026-08-24",
-  },
-  {
-    id: "GAL006",
-    image:
-      "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&h=400&fit=crop",
-    heading: "Workshop Session",
-    subHeading: "Hands-on training and practical learning",
-    category: "Learning",
-    createdAt: "2026-08-25",
-  },
-  {
-    id: "GAL007",
-    image:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=400&fit=crop",
-    heading: "Professional Woman",
-    subHeading: "Empowering women in the workplace",
-    category: "Professionals",
-    createdAt: "2026-08-26",
-  },
-  {
-    id: "GAL008",
-    image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=400&fit=crop",
-    heading: "Executive Portrait",
-    subHeading: "Leadership and professional excellence",
-    category: "Professionals",
-    createdAt: "2026-08-27",
-  },
-];
+import {
+  getAllGalleryAdmin,
+  createGalleryImage,
+  updateGalleryImage,
+  deleteGalleryImage,
+  toggleGalleryStatus,
+  toggleGalleryFeatured,
+  getGalleryStats,
+  clearGalleryMessages,
+} from "../../redux/slicer/gallerySlice";
 
 const Gallery = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  // State Management
-  const [galleryItems, setGalleryItems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Redux state
+  const galleryItems = useSelector((state) => state.gallery?.adminGallery || []);
+  const loading = useSelector((state) => state.gallery?.loading || false);
+  const error = useSelector((state) => state.gallery?.error || null);
+  const createLoading = useSelector((state) => state.gallery?.createLoading || false);
+  const updateLoading = useSelector((state) => state.gallery?.updateLoading || false);
+  const deleteLoading = useSelector((state) => state.gallery?.deleteLoading || false);
+  const successMessage = useSelector((state) => state.gallery?.successMessage || null);
+  const stats = useSelector((state) => state.gallery?.adminGalleryStats || null);
+
+  // Local state
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [editingItem, setEditingItem] = useState(null);
@@ -120,26 +63,49 @@ const Gallery = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Fetch gallery items - Replace with actual API call
+  // Fetch gallery items and stats
   const fetchGalleryItems = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setGalleryItems(mockGalleryData);
+      await dispatch(getAllGalleryAdmin()).unwrap();
+      await dispatch(getGalleryStats()).unwrap();
     } catch (err) {
-      setError("Failed to load gallery images. Please try again.");
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch gallery:", err);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     fetchGalleryItems();
   }, [fetchGalleryItems]);
 
-  // Calculate statistics
+  // Show success notification
+  useEffect(() => {
+    if (successMessage) {
+      showNotification(successMessage, "success");
+      dispatch(clearGalleryMessages());
+      fetchGalleryItems(); // Refresh the list
+    }
+  }, [successMessage, dispatch, fetchGalleryItems]);
+
+  // Show error notification
+  useEffect(() => {
+    if (error) {
+      showNotification(error, "error");
+      dispatch(clearGalleryMessages());
+    }
+  }, [error, dispatch]);
+
+  // Calculate statistics from API data
   const statistics = useMemo(() => {
+    if (stats) {
+      return {
+        totalImages: stats.totalImages || 0,
+        workplaceImages: stats.categoryStats?.find(c => c._id === 'Workplace')?.count || 0,
+        careerImages: stats.categoryStats?.find(c => c._id === 'Career')?.count || 0,
+        professionalsImages: stats.categoryStats?.find(c => c._id === 'Professionals')?.count || 0,
+        learningImages: stats.categoryStats?.find(c => c._id === 'Learning')?.count || 0,
+      };
+    }
+    // Fallback calculation from items
     const totalImages = galleryItems.length;
     const workplaceImages = galleryItems.filter(
       (item) => item.category === "Workplace",
@@ -161,7 +127,7 @@ const Gallery = () => {
       professionalsImages,
       learningImages,
     };
-  }, [galleryItems]);
+  }, [galleryItems, stats]);
 
   // Filter gallery items
   const filteredGalleryItems = useMemo(() => {
@@ -171,8 +137,8 @@ const Gallery = () => {
       const searchLower = searchTerm.toLowerCase().trim();
       result = result.filter(
         (item) =>
-          item.heading.toLowerCase().includes(searchLower) ||
-          item.category.toLowerCase().includes(searchLower) ||
+          item.heading?.toLowerCase().includes(searchLower) ||
+          item.category?.toLowerCase().includes(searchLower) ||
           (item.subHeading &&
             item.subHeading.toLowerCase().includes(searchLower)),
       );
@@ -189,14 +155,12 @@ const Gallery = () => {
   }, [galleryItems, searchTerm, categoryFilter]);
 
   // Handle add gallery item
-  const handleAddGalleryItem = async (newItem) => {
+  const handleAddGalleryItem = async (formData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setGalleryItems((prev) => [...prev, newItem]);
+      await dispatch(createGalleryImage(formData)).unwrap();
       setIsAddModalOpen(false);
-      showNotification("Image added successfully", "success");
     } catch (err) {
-      showNotification("Failed to add image", "error");
+      console.error("Failed to create gallery image:", err);
     }
   };
 
@@ -207,17 +171,14 @@ const Gallery = () => {
   };
 
   // Handle save edited gallery item
-  const handleSaveGalleryItem = async (updatedItem) => {
+  const handleSaveGalleryItem = async (formData) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setGalleryItems((prev) =>
-        prev.map((item) => (item.id === updatedItem.id ? updatedItem : item)),
-      );
+      const id = editingItem?._id || editingItem?.id;
+      await dispatch(updateGalleryImage({ id, formData })).unwrap();
       setIsEditModalOpen(false);
       setEditingItem(null);
-      showNotification("Image updated successfully", "success");
     } catch (err) {
-      showNotification("Failed to update image", "error");
+      console.error("Failed to update gallery image:", err);
     }
   };
 
@@ -232,15 +193,32 @@ const Gallery = () => {
     if (!deletingItem) return;
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setGalleryItems((prev) =>
-        prev.filter((item) => item.id !== deletingItem.id),
-      );
+      const id = deletingItem?._id || deletingItem?.id;
+      await dispatch(deleteGalleryImage(id)).unwrap();
       setIsDeleteModalOpen(false);
       setDeletingItem(null);
-      showNotification("Image deleted successfully", "success");
     } catch (err) {
-      showNotification("Failed to delete image", "error");
+      console.error("Failed to delete gallery image:", err);
+    }
+  };
+
+  // Toggle status
+  const handleToggleStatus = async (item) => {
+    try {
+      const id = item?._id || item?.id;
+      await dispatch(toggleGalleryStatus(id)).unwrap();
+    } catch (err) {
+      console.error("Failed to toggle status:", err);
+    }
+  };
+
+  // Toggle featured
+  const handleToggleFeatured = async (item) => {
+    try {
+      const id = item?._id || item?.id;
+      await dispatch(toggleGalleryFeatured(id)).unwrap();
+    } catch (err) {
+      console.error("Failed to toggle featured:", err);
     }
   };
 
@@ -258,6 +236,7 @@ const Gallery = () => {
 
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
       month: "short",
@@ -298,12 +277,12 @@ const Gallery = () => {
   };
 
   // Loading state
-  if (loading) {
+  if (loading && galleryItems.length === 0) {
     return <GalleryLoadingState />;
   }
 
   // Error state
-  if (error) {
+  if (error && galleryItems.length === 0) {
     return <GalleryErrorState error={error} onRetry={fetchGalleryItems} />;
   }
 
@@ -405,7 +384,7 @@ const Gallery = () => {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-700"
               >
-                <option value="all">All</option>
+                <option value="all">All Categories</option>
                 <option value="Workplace">Workplace</option>
                 <option value="Career">Career</option>
                 <option value="Professionals">Professionals</option>
@@ -435,72 +414,131 @@ const Gallery = () => {
         ) : (
           <div className="p-4 sm:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {filteredGalleryItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
-                >
-                  {/* Image Preview */}
-                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
-                    <img
-                      src={item.image}
-                      alt={item.heading}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                        e.target.parentElement.innerHTML = `
-                          <div class="flex items-center justify-center h-full">
-                            <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                            </svg>
-                          </div>
-                        `;
-                      }}
-                    />
-                    {/* Category Badge */}
-                    <div className="absolute top-3 left-3">
-                      <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${getCategoryBadgeColor(
-                          item.category,
-                        )}`}
-                      >
-                        {getCategoryIcon(item.category)}
-                        {item.category}
-                      </span>
-                    </div>
-                    {/* Actions Overlay */}
-                    <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => handleEditGalleryItem(item)}
-                        className="p-2 rounded-lg bg-white/90 text-slate-600 hover:text-blue-600 hover:bg-white transition-colors shadow-sm"
-                        title="Edit image"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteGalleryItem(item)}
-                        className="p-2 rounded-lg bg-white/90 text-slate-600 hover:text-red-600 hover:bg-white transition-colors shadow-sm"
-                        title="Delete image"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
+              {filteredGalleryItems.map((item) => {
+                // Get image URL from the nested image object
+                const imageUrl = item.image?.displayUrl || item.image?.url || item.image;
+                return (
+                  <div
+                    key={item._id || item.id}
+                    className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-shadow group relative"
+                  >
+                    {/* Status Badge */}
+                    {!item.isActive && (
+                      <div className="absolute top-3 left-3 z-10">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                          Inactive
+                        </span>
+                      </div>
+                    )}
+                    {item.isFeatured && (
+                      <div className="absolute top-3 right-3 z-10">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700">
+                          Featured
+                        </span>
+                      </div>
+                    )}
 
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="text-sm font-semibold text-slate-800 mb-1 truncate">
-                      {item.heading}
-                    </h3>
-                    <p className="text-xs text-slate-500 line-clamp-2 mb-3">
-                      {item.subHeading}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Added: {formatDate(item.createdAt)}
-                    </p>
+                    {/* Image Preview */}
+                    <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={item.heading || item.altText || "Gallery image"}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                            e.target.parentElement.innerHTML = `
+                              <div class="flex items-center justify-center h-full">
+                                <svg class="w-12 h-12 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
+                              </div>
+                            `;
+                          }}
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <ImageIcon className="w-12 h-12 text-slate-400" />
+                        </div>
+                      )}
+                      
+                      {/* Category Badge */}
+                      <div className="absolute bottom-3 left-3">
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${getCategoryBadgeColor(
+                            item.category,
+                          )}`}
+                        >
+                          {getCategoryIcon(item.category)}
+                          {item.category}
+                        </span>
+                      </div>
+                      
+                      {/* Actions Overlay */}
+                      <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleToggleStatus(item)}
+                          className={`p-2 rounded-lg shadow-sm transition-colors ${
+                            item.isActive
+                              ? "bg-white/90 text-green-600 hover:bg-green-50"
+                              : "bg-white/90 text-red-600 hover:bg-red-50"
+                          }`}
+                          title={item.isActive ? "Deactivate" : "Activate"}
+                        >
+                          {item.isActive ? (
+                            <Eye className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handleEditGalleryItem(item)}
+                          className="p-2 rounded-lg bg-white/90 text-slate-600 hover:text-blue-600 hover:bg-white transition-colors shadow-sm"
+                          title="Edit image"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteGalleryItem(item)}
+                          className="p-2 rounded-lg bg-white/90 text-slate-600 hover:text-red-600 hover:bg-white transition-colors shadow-sm"
+                          title="Delete image"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-slate-800 mb-1 truncate">
+                        {item.heading}
+                      </h3>
+                      <p className="text-xs text-slate-500 line-clamp-2 mb-3">
+                        {item.subHeading}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs text-slate-400">
+                          Added: {formatDate(item.createdAt)}
+                        </p>
+                        {item.tags && item.tags.length > 0 && (
+                          <div className="flex gap-1">
+                            {item.tags.slice(0, 2).map((tag, idx) => (
+                              <span key={idx} className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                                #{tag}
+                              </span>
+                            ))}
+                            {item.tags.length > 2 && (
+                              <span className="text-xs text-slate-400">
+                                +{item.tags.length - 2}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -512,6 +550,7 @@ const Gallery = () => {
           mode="add"
           onClose={() => setIsAddModalOpen(false)}
           onSave={handleAddGalleryItem}
+          isLoading={createLoading}
         />
       )}
 
@@ -525,6 +564,7 @@ const Gallery = () => {
             setEditingItem(null);
           }}
           onSave={handleSaveGalleryItem}
+          isLoading={updateLoading}
         />
       )}
 
@@ -537,6 +577,7 @@ const Gallery = () => {
             setDeletingItem(null);
           }}
           onConfirm={handleConfirmDelete}
+          isDeleting={deleteLoading}
         />
       )}
 
@@ -557,25 +598,31 @@ const Gallery = () => {
 };
 
 // Gallery Form Modal Component
-const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
+const GalleryFormModal = ({ mode, item, onClose, onSave, isLoading }) => {
   const [formData, setFormData] = useState({
-    image: item?.image || "",
     heading: item?.heading || "",
     subHeading: item?.subHeading || "",
     category: item?.category || "Workplace",
+    altText: item?.altText || "",
+    tags: item?.tags || [],
+    isFeatured: item?.isFeatured || false,
+    isActive: item?.isActive !== undefined ? item.isActive : true,
   });
-  const [imagePreview, setImagePreview] = useState(item?.image || "");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(
+    item?.image?.displayUrl || item?.image?.url || item?.image || null
+  );
+  const [tagInput, setTagInput] = useState("");
   const [errors, setErrors] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef(null);
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.image) newErrors.image = "Image is required";
     if (!formData.heading.trim()) newErrors.heading = "Heading is required";
     if (!formData.subHeading.trim())
       newErrors.subHeading = "SubHeading is required";
     if (!formData.category) newErrors.category = "Category is required";
+    if (mode === "add" && !imageFile) newErrors.image = "Image is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -583,27 +630,55 @@ const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result });
         setImagePreview(reader.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
+  const handleAddTag = () => {
+    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
+      setFormData({
+        ...formData,
+        tags: [...formData.tags, tagInput.trim()],
+      });
+      setTagInput("");
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags.filter((tag) => tag !== tagToRemove),
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
 
-    setIsSaving(true);
-    const galleryData = {
-      ...formData,
-      id: item?.id || `GAL${String(Date.now()).slice(-6)}`,
-      createdAt: item?.createdAt || new Date().toISOString().split("T")[0],
-    };
-    await onSave(galleryData);
-    setIsSaving(false);
+    const submitData = new FormData();
+    
+    // Append text fields
+    Object.keys(formData).forEach((key) => {
+      if (key === "tags") {
+        submitData.append(key, JSON.stringify(formData[key]));
+      } else if (key === "isFeatured" || key === "isActive") {
+        submitData.append(key, String(formData[key]));
+      } else {
+        submitData.append(key, formData[key]);
+      }
+    });
+
+    // Append image file
+    if (imageFile) {
+      submitData.append("image", imageFile);
+    }
+
+    await onSave(submitData);
   };
 
   return (
@@ -632,7 +707,7 @@ const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
           {/* Image Upload */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Upload Image *
+              Upload Image {mode === "add" && "*"}
             </label>
             <div
               onClick={() => fileInputRef.current?.click()}
@@ -653,8 +728,8 @@ const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setImagePreview("");
-                      setFormData({ ...formData, image: "" });
+                      setImagePreview(null);
+                      setImageFile(null);
                     }}
                     className="absolute top-2 right-2 p-1.5 rounded-lg bg-white/90 text-slate-600 hover:text-red-600 transition-colors"
                   >
@@ -751,6 +826,96 @@ const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
             )}
           </div>
 
+          {/* Alt Text */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Alt Text
+            </label>
+            <input
+              type="text"
+              value={formData.altText}
+              onChange={(e) =>
+                setFormData({ ...formData, altText: e.target.value })
+              }
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+              placeholder="Alternative text for accessibility"
+            />
+          </div>
+
+          {/* Tags */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Tags
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleAddTag();
+                  }
+                }}
+                className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                placeholder="Type a tag and press Enter"
+              />
+              <button
+                type="button"
+                onClick={handleAddTag}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors text-sm font-medium text-slate-700"
+              >
+                Add
+              </button>
+            </div>
+            {formData.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="ml-1 hover:text-red-600"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Status Toggles */}
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.isActive}
+                onChange={(e) =>
+                  setFormData({ ...formData, isActive: e.target.checked })
+                }
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              Active
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.isFeatured}
+                onChange={(e) =>
+                  setFormData({ ...formData, isFeatured: e.target.checked })
+                }
+                className="rounded border-slate-300 text-yellow-600 focus:ring-yellow-500"
+              />
+              Featured
+            </label>
+          </div>
+
           {/* Form Actions */}
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
             <button
@@ -762,11 +927,11 @@ const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isLoading}
               className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg transition-shadow disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
-              {isSaving
+              {isLoading
                 ? "Saving..."
                 : mode === "add"
                   ? "Add Image"
@@ -780,14 +945,8 @@ const GalleryFormModal = ({ mode, item, onClose, onSave }) => {
 };
 
 // Delete Gallery Modal Component
-const DeleteGalleryModal = ({ item, onClose, onConfirm }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    await onConfirm();
-    setIsDeleting(false);
-  };
+const DeleteGalleryModal = ({ item, onClose, onConfirm, isDeleting }) => {
+  const imageUrl = item?.image?.displayUrl || item?.image?.url || item?.image;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -816,18 +975,24 @@ const DeleteGalleryModal = ({ item, onClose, onConfirm }) => {
 
           <div className="mt-4 p-4 bg-slate-50 rounded-xl">
             <div className="flex items-center gap-3">
-              <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                <img
-                  src={item.image}
-                  alt={item.heading}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              {imageUrl ? (
+                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                  <img
+                    src={imageUrl}
+                    alt={item?.heading || "Gallery image"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
+                  <ImageIcon className="w-8 h-8 text-slate-400" />
+                </div>
+              )}
               <div>
                 <p className="text-sm font-medium text-slate-800">
-                  {item.heading}
+                  {item?.heading}
                 </p>
-                <p className="text-xs text-slate-500">{item.category}</p>
+                <p className="text-xs text-slate-500">{item?.category}</p>
               </div>
             </div>
           </div>
@@ -840,7 +1005,7 @@ const DeleteGalleryModal = ({ item, onClose, onConfirm }) => {
               Cancel
             </button>
             <button
-              onClick={handleDelete}
+              onClick={onConfirm}
               disabled={isDeleting}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >

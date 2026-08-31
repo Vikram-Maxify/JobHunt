@@ -4,11 +4,11 @@ const Subscription = require("../models/Subscription");
 // @route   GET /api/admin/subscriptions
 exports.getAllPlansAdmin = async (req, res) => {
   try {
-    const { billingType, isActive } = req.query;
+    const { isActive, country } = req.query;
 
     const filter = {};
-    if (billingType) filter.billingType = billingType;
     if (isActive !== undefined) filter.isActive = isActive === "true";
+    if (country) filter.countries = country; // matches if country is in array
 
     const plans = await Subscription.find(filter).sort({ price: 1 });
 
@@ -55,24 +55,31 @@ exports.createPlan = async (req, res) => {
   try {
     const {
       planName,
-      billingType,
       price,
       features,
+      countries,
+      waitingTime,
       maxJobs,
       maxApplications,
       isActive,
       isPopular,
       discountPercentage,
       description,
-      savingsLabel,
       badge,
       color,
     } = req.body;
 
-    if (!planName || price === undefined || !features) {
+    if (
+      !planName ||
+      price === undefined ||
+      !features ||
+      !countries ||
+      waitingTime === undefined
+    ) {
       return res.status(400).json({
         success: false,
-        message: "planName, price and features are required",
+        message:
+          "planName, price, features, countries and waitingTime are required",
       });
     }
 
@@ -84,28 +91,27 @@ exports.createPlan = async (req, res) => {
       });
     }
 
-    // agar naya plan popular mark ho raha hai, baaki plans se popular hata do
     if (isPopular) {
       await Subscription.updateMany({}, { $set: { isPopular: false } });
     }
 
     const plan = await Subscription.create({
       planName: planName.trim(),
-      billingType,
       price,
       features: Array.isArray(features)
         ? features.filter((f) => f && f.trim() !== "")
         : features,
+      countries: Array.isArray(countries) ? countries : [countries],
+      waitingTime,
       maxJobs,
       maxApplications,
       isActive,
       isPopular: !!isPopular,
       discountPercentage,
       description,
-      savingsLabel,
       badge,
       color,
-      createdBy: req.user?._id, // 'protect' middleware se aata hai
+      createdBy: req.user?._id,
     });
 
     res.status(201).json({
@@ -114,7 +120,6 @@ exports.createPlan = async (req, res) => {
       data: plan,
     });
   } catch (error) {
-    // mongoose validation error ko clean message me convert
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((e) => e.message);
       return res.status(400).json({
@@ -146,16 +151,16 @@ exports.updatePlan = async (req, res) => {
 
     const {
       planName,
-      billingType,
       price,
       features,
+      countries,
+      waitingTime,
       maxJobs,
       maxApplications,
       isActive,
       isPopular,
       discountPercentage,
       description,
-      savingsLabel,
       badge,
       color,
     } = req.body;
@@ -173,20 +178,22 @@ exports.updatePlan = async (req, res) => {
       plan.planName = planName.trim();
     }
 
-    if (billingType !== undefined) plan.billingType = billingType;
     if (price !== undefined) plan.price = price;
     if (features !== undefined) {
       plan.features = Array.isArray(features)
         ? features.filter((f) => f && f.trim() !== "")
         : plan.features;
     }
+    if (countries !== undefined) {
+      plan.countries = Array.isArray(countries) ? countries : [countries];
+    }
+    if (waitingTime !== undefined) plan.waitingTime = waitingTime;
     if (maxJobs !== undefined) plan.maxJobs = maxJobs;
     if (maxApplications !== undefined) plan.maxApplications = maxApplications;
     if (isActive !== undefined) plan.isActive = isActive;
     if (discountPercentage !== undefined)
       plan.discountPercentage = discountPercentage;
     if (description !== undefined) plan.description = description;
-    if (savingsLabel !== undefined) plan.savingsLabel = savingsLabel;
     if (badge !== undefined) plan.badge = badge;
     if (color !== undefined) plan.color = color;
 
@@ -252,7 +259,7 @@ exports.deletePlan = async (req, res) => {
   }
 };
 
-// @desc    Toggle plan active/inactive (soft delete alternative)
+// @desc    Toggle plan active/inactive
 // @route   PATCH /api/admin/subscriptions/:id/toggle-active
 exports.togglePlanActive = async (req, res) => {
   try {

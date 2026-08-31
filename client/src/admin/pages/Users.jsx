@@ -1,5 +1,6 @@
 // src/admin/pages/Users.jsx
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Users as UsersIcon,
   Search,
@@ -20,213 +21,93 @@ import {
   Phone,
 } from "lucide-react";
 import StateCard from "../components/StateCard";
-
-// Temporary mock data - Replace with API integration
-const mockUsersData = [
-  {
-    id: "USR001",
-    name: "Rahul Sharma",
-    email: "rahul.sharma@example.com",
-    phone: "+91 98765 43210",
-    role: "Software Engineer",
-    profession: "Engineering",
-    location: "Bangalore, India",
-    joinedDate: "2024-01-15",
-    status: "active",
-    subscription: {
-      plan: "Premium",
-      status: "active",
-      startDate: "2024-01-20",
-      expiresAt: "2025-01-20",
-    },
-  },
-  {
-    id: "USR002",
-    name: "Priya Patel",
-    email: "priya.patel@example.com",
-    phone: "+91 98765 43211",
-    role: "UX Designer",
-    profession: "Design",
-    location: "Mumbai, India",
-    joinedDate: "2024-02-01",
-    status: "active",
-    subscription: {
-      plan: "Professional",
-      status: "active",
-      startDate: "2024-02-05",
-      expiresAt: "2024-08-05",
-    },
-  },
-  {
-    id: "USR003",
-    name: "Amit Kumar",
-    email: "amit.kumar@example.com",
-    phone: "+91 98765 43212",
-    role: "Data Analyst",
-    profession: "Analytics",
-    location: "Delhi, India",
-    joinedDate: "2024-02-15",
-    status: "active",
-    subscription: null,
-  },
-  {
-    id: "USR004",
-    name: "Sneha Reddy",
-    email: "sneha.reddy@example.com",
-    phone: "+91 98765 43213",
-    role: "Marketing Manager",
-    profession: "Marketing",
-    location: "Hyderabad, India",
-    joinedDate: "2024-03-01",
-    status: "active",
-    subscription: {
-      plan: "Premium",
-      status: "active",
-      startDate: "2024-03-05",
-      expiresAt: "2025-03-05",
-    },
-  },
-  {
-    id: "USR005",
-    name: "Vikram Singh",
-    email: "vikram.singh@example.com",
-    phone: "+91 98765 43214",
-    role: "Product Manager",
-    profession: "Product",
-    location: "Pune, India",
-    joinedDate: "2024-03-15",
-    status: "inactive",
-    subscription: null,
-  },
-  {
-    id: "USR006",
-    name: "Ananya Iyer",
-    email: "ananya.iyer@example.com",
-    phone: "+91 98765 43215",
-    role: "Frontend Developer",
-    profession: "Engineering",
-    location: "Chennai, India",
-    joinedDate: "2024-04-01",
-    status: "active",
-    subscription: {
-      plan: "Professional",
-      status: "active",
-      startDate: "2024-04-05",
-      expiresAt: "2024-10-05",
-    },
-  },
-  {
-    id: "USR007",
-    name: "Karthik Nair",
-    email: "karthik.nair@example.com",
-    phone: "+91 98765 43216",
-    role: "DevOps Engineer",
-    profession: "Engineering",
-    location: "Kochi, India",
-    joinedDate: "2024-04-15",
-    status: "active",
-    subscription: {
-      plan: "Premium",
-      status: "expired",
-      startDate: "2023-04-15",
-      expiresAt: "2024-04-15",
-    },
-  },
-  {
-    id: "USR008",
-    name: "Meera Krishnan",
-    email: "meera.krishnan@example.com",
-    phone: "+91 98765 43217",
-    role: "HR Specialist",
-    profession: "Human Resources",
-    location: "Ahmedabad, India",
-    joinedDate: "2024-05-01",
-    status: "active",
-    subscription: null,
-  },
-  {
-    id: "USR009",
-    name: "Arjun Desai",
-    email: "arjun.desai@example.com",
-    phone: "+91 98765 43218",
-    role: "Full Stack Developer",
-    profession: "Engineering",
-    location: "Jaipur, India",
-    joinedDate: "2024-05-15",
-    status: "active",
-    subscription: {
-      plan: "Basic",
-      status: "active",
-      startDate: "2024-05-20",
-      expiresAt: "2024-11-20",
-    },
-  },
-  {
-    id: "USR010",
-    name: "Neha Gupta",
-    email: "neha.gupta@example.com",
-    phone: "+91 98765 43219",
-    role: "Content Writer",
-    profession: "Content",
-    location: "Lucknow, India",
-    joinedDate: "2024-06-01",
-    status: "active",
-    subscription: null,
-  },
-];
+import {
+  getAllUsersAdmin,
+  deleteUserAdmin,
+  updateUserAdmin,
+  toggleUserActive,
+  toggleUserVerified,
+  clearUserMessages,
+} from "../../redux/slicer/adminUserSlice";
 
 const Users = () => {
-  // State Management
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+
+  // Redux state
+  const users = useSelector((state) => state.adminUser?.users || []);
+  const loading = useSelector((state) => state.adminUser?.fetchLoading || false);
+  const error = useSelector((state) => state.adminUser?.fetchError || null);
+  const deleteLoading = useSelector((state) => state.adminUser?.deleteLoading || false);
+  const updateLoading = useSelector((state) => state.adminUser?.updateLoading || false);
+  const successMessage = useSelector((state) => state.adminUser?.successMessage || null);
+  const statistics = useSelector((state) => state.adminUser?.statistics || null);
+  const total = useSelector((state) => state.adminUser?.total || 0);
+  const totalPages = useSelector((state) => state.adminUser?.totalPages || 1);
+
+  // Local state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
+  const [currentPage, setCurrentPage] = useState(1);
   const [editingUser, setEditingUser] = useState(null);
   const [deletingUser, setDeletingUser] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Fetch users - Replace with actual API call
-  const fetchUsers = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // When backend is ready, replace with actual API call
-      setUsers(mockUsersData);
-    } catch (err) {
-      setError("Failed to load users. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Fetch users
+  const fetchUsers = useCallback((page = 1) => {
+    const params = {
+      page,
+      limit: 20,
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    };
+    
+    if (searchTerm) params.search = searchTerm;
+    if (filterType === "active") params.isActive = "true";
+    else if (filterType === "inactive") params.isActive = "false";
+    
+    dispatch(getAllUsersAdmin(params));
+  }, [dispatch, searchTerm, filterType]);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    fetchUsers(currentPage);
+  }, [fetchUsers, currentPage]);
 
-  // Calculate statistics dynamically
-  const statistics = useMemo(() => {
+  // Handle success/error messages
+  useEffect(() => {
+    if (successMessage) {
+      showNotification(successMessage, "success");
+      dispatch(clearUserMessages());
+      fetchUsers(currentPage);
+    }
+  }, [successMessage, dispatch, fetchUsers, currentPage]);
+
+  useEffect(() => {
+    if (error) {
+      showNotification(error, "error");
+      dispatch(clearUserMessages());
+    }
+  }, [error, dispatch]);
+
+  // Calculate statistics from API or fallback
+  const stats = useMemo(() => {
+    if (statistics) {
+      return {
+        totalUsers: statistics.totalUsers || 0,
+        activeSubscriptions: statistics.activeUsers || 0,
+        withoutSubscription: (statistics.totalUsers || 0) - (statistics.activeUsers || 0),
+        recentlyRegistered: 0, // Calculate from users list
+      };
+    }
+    // Fallback calculation from users
     const totalUsers = users.length;
-
-    const activeSubscriptions = users.filter(
-      (user) => user.subscription?.status === "active",
-    ).length;
-
-    const withoutSubscription = users.filter(
-      (user) =>
-        !user.subscription ||
-        user.subscription.status === "none" ||
-        user.subscription.status === "expired",
-    ).length;
-
+    const activeUsers = users.filter((user) => user.isActive).length;
+    const verifiedUsers = users.filter((user) => user.isVerified).length;
+    
     const recentlyRegistered = users.filter((user) => {
-      const joinDate = new Date(user.joinedDate);
+      const joinDate = new Date(user.createdAt);
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       return joinDate >= thirtyDaysAgo;
@@ -234,13 +115,13 @@ const Users = () => {
 
     return {
       totalUsers,
-      activeSubscriptions,
-      withoutSubscription,
+      activeSubscriptions: activeUsers,
+      withoutSubscription: totalUsers - activeUsers,
       recentlyRegistered,
     };
-  }, [users]);
+  }, [users, statistics]);
 
-  // Filter and search users
+  // Filter and search users (client-side filtering)
   const filteredUsers = useMemo(() => {
     let result = [...users];
 
@@ -249,42 +130,28 @@ const Users = () => {
       const searchLower = searchTerm.toLowerCase().trim();
       result = result.filter(
         (user) =>
-          user.name.toLowerCase().includes(searchLower) ||
-          user.email.toLowerCase().includes(searchLower),
+          user.name?.toLowerCase().includes(searchLower) ||
+          user.email?.toLowerCase().includes(searchLower) ||
+          user.mobile?.toLowerCase().includes(searchLower)
       );
     }
 
-    // Apply subscription filter
-    switch (filterType) {
-      case "subscribed":
-        result = result.filter(
-          (user) => user.subscription?.status === "active",
-        );
-        break;
-      case "no-subscription":
-        result = result.filter(
-          (user) =>
-            !user.subscription ||
-            user.subscription.status === "none" ||
-            user.subscription.status === "expired",
-        );
-        break;
-      case "expired":
-        result = result.filter(
-          (user) => user.subscription?.status === "expired",
-        );
-        break;
-      default:
-        break;
+    // Apply subscription filter (using isActive as proxy)
+    if (filterType === "active") {
+      result = result.filter((user) => user.isActive === true);
+    } else if (filterType === "inactive") {
+      result = result.filter((user) => user.isActive === false);
+    } else if (filterType === "verified") {
+      result = result.filter((user) => user.isVerified === true);
     }
 
     // Apply sort
     if (sortOrder === "newest") {
-      result.sort((a, b) => new Date(b.joinedDate) - new Date(a.joinedDate));
+      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     } else if (sortOrder === "oldest") {
-      result.sort((a, b) => new Date(a.joinedDate) - new Date(b.joinedDate));
+      result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
     } else if (sortOrder === "name") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
+      result.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
     }
 
     return result;
@@ -299,19 +166,12 @@ const Users = () => {
   // Handle save edited user
   const handleSaveUser = async (updatedUser) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setUsers((prevUsers) =>
-        prevUsers.map((user) =>
-          user.id === updatedUser.id ? updatedUser : user,
-        ),
-      );
+      const id = updatedUser._id || updatedUser.id;
+      await dispatch(updateUserAdmin({ id, userData: updatedUser })).unwrap();
       setIsEditModalOpen(false);
       setEditingUser(null);
-      showNotification("User updated successfully", "success");
     } catch (err) {
-      showNotification("Failed to update user", "error");
+      console.error("Failed to update user:", err);
     }
   };
 
@@ -326,17 +186,22 @@ const Users = () => {
     if (!deletingUser) return;
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.id !== deletingUser.id),
-      );
+      const id = deletingUser._id || deletingUser.id;
+      await dispatch(deleteUserAdmin(id)).unwrap();
       setIsDeleteModalOpen(false);
       setDeletingUser(null);
-      showNotification("User deleted successfully", "success");
     } catch (err) {
-      showNotification("Failed to delete user", "error");
+      console.error("Failed to delete user:", err);
+    }
+  };
+
+  // Toggle user active status
+  const handleToggleActive = async (user) => {
+    try {
+      const id = user._id || user.id;
+      await dispatch(toggleUserActive(id)).unwrap();
+    } catch (err) {
+      console.error("Failed to toggle user status:", err);
     }
   };
 
@@ -353,10 +218,12 @@ const Users = () => {
     setSearchTerm("");
     setFilterType("all");
     setSortOrder("newest");
+    setCurrentPage(1);
   };
 
   // Get user initials for avatar
   const getUserInitials = (name) => {
+    if (!name) return "U";
     return name
       .split(" ")
       .map((word) => word[0])
@@ -367,6 +234,7 @@ const Users = () => {
 
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
       month: "short",
@@ -374,14 +242,24 @@ const Users = () => {
     });
   };
 
+  // Get role badge
+  const getRoleBadge = (role) => {
+    const colors = {
+      admin: "bg-purple-50 text-purple-700",
+      recruiter: "bg-blue-50 text-blue-700",
+      jobseeker: "bg-green-50 text-green-700",
+    };
+    return colors[role] || "bg-slate-50 text-slate-700";
+  };
+
   // Loading state
-  if (loading) {
+  if (loading && users.length === 0) {
     return <UsersLoadingState />;
   }
 
   // Error state
-  if (error) {
-    return <UsersErrorState error={error} onRetry={fetchUsers} />;
+  if (error && users.length === 0) {
+    return <UsersErrorState error={error} onRetry={() => fetchUsers(currentPage)} />;
   }
 
   return (
@@ -398,9 +276,12 @@ const Users = () => {
           <p className="text-sm text-slate-500 mt-1">
             View, manage and monitor all registered CareerSphere users.
           </p>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Total: {total} users • Page {currentPage} of {totalPages}
+          </p>
         </div>
         <button
-          onClick={fetchUsers}
+          onClick={() => fetchUsers(currentPage)}
           className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors w-full sm:w-auto justify-center"
         >
           <RefreshCw className="w-4 h-4" />
@@ -408,34 +289,34 @@ const Users = () => {
         </button>
       </div>
 
-      {/* Statistics Cards - Responsive Grid */}
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
         <StateCard
           title="Total Users"
-          value={statistics.totalUsers}
+          value={stats.totalUsers}
           icon={<UsersIcon className="w-6 h-6 text-blue-600" />}
           description="Registered users"
           iconBg="bg-blue-50"
         />
         <StateCard
-          title="Active Subscriptions"
-          value={statistics.activeSubscriptions}
-          icon={<CreditCard className="w-6 h-6 text-green-600" />}
-          description="Currently subscribed"
+          title="Active Users"
+          value={stats.activeSubscriptions}
+          icon={<CheckCircle2 className="w-6 h-6 text-green-600" />}
+          description="Active accounts"
           iconBg="bg-green-50"
         />
         <StateCard
-          title="Without Subscription"
-          value={statistics.withoutSubscription}
+          title="Inactive Users"
+          value={stats.withoutSubscription}
           icon={<UserX className="w-6 h-6 text-slate-600" />}
-          description="No active plan"
+          description="Inactive accounts"
           iconBg="bg-slate-50"
         />
         <StateCard
           title="Recently Registered"
-          value={statistics.recentlyRegistered}
+          value={stats.recentlyRegistered}
           icon={<UserPlus className="w-6 h-6 text-indigo-600" />}
-          description="New users"
+          description="New users (30 days)"
           iconBg="bg-indigo-50"
         />
       </div>
@@ -455,31 +336,35 @@ const Users = () => {
               </p>
             </div>
 
-            {/* Search and Filters - Mobile First */}
+            {/* Search and Filters */}
             <div className="flex flex-col gap-3">
-              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by name or email..."
+                  placeholder="Search by name, email or phone..."
                   value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-colors"
                 />
               </div>
 
-              {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <select
                   value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
+                  onChange={(e) => {
+                    setFilterType(e.target.value);
+                    setCurrentPage(1);
+                  }}
                   className="w-full sm:w-auto px-3 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm text-slate-700"
                 >
                   <option value="all">All Users</option>
-                  <option value="subscribed">Subscribed</option>
-                  <option value="no-subscription">No Subscription</option>
-                  <option value="expired">Expired</option>
+                  <option value="active">Active Only</option>
+                  <option value="inactive">Inactive Only</option>
+                  <option value="verified">Verified Only</option>
                 </select>
 
                 <select
@@ -492,18 +377,14 @@ const Users = () => {
                   <option value="name">Name A-Z</option>
                 </select>
 
-                {(searchTerm ||
-                  filterType !== "all" ||
-                  sortOrder !== "newest") && (
+                {(searchTerm || filterType !== "all" || sortOrder !== "newest") && (
                   <button
                     onClick={clearFilters}
                     className="w-full sm:w-auto p-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
                     title="Clear filters"
                   >
                     <X className="w-4 h-4 text-slate-500" />
-                    <span className="sm:hidden text-sm text-slate-600">
-                      Clear
-                    </span>
+                    <span className="sm:hidden text-sm text-slate-600">Clear</span>
                   </button>
                 )}
               </div>
@@ -511,7 +392,7 @@ const Users = () => {
           </div>
         </div>
 
-        {/* Desktop Table - Hidden on mobile */}
+        {/* Users Table */}
         {filteredUsers.length === 0 ? (
           <UsersEmptyState
             hasFilters={searchTerm || filterType !== "all"}
@@ -519,25 +400,25 @@ const Users = () => {
           />
         ) : (
           <>
-            {/* Desktop Table View (md and up) */}
+            {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[800px]">
                 <thead>
-                  <tr className="border-b border-slate-100">
+                  <tr className="border-b border-slate-100 bg-slate-50/50">
                     <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       User
                     </th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      Profile / Role
+                      Role
                     </th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      Subscription
-                    </th>
-                    <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                      Joined Date
+                      Contact
                     </th>
                     <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       Status
+                    </th>
+                    <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      Joined
                     </th>
                     <th className="text-right px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                       Actions
@@ -547,7 +428,7 @@ const Users = () => {
                 <tbody className="divide-y divide-slate-50">
                   {filteredUsers.map((user) => (
                     <tr
-                      key={user.id}
+                      key={user._id || user.id}
                       className="hover:bg-slate-50/50 transition-colors group"
                     >
                       {/* User */}
@@ -558,80 +439,86 @@ const Users = () => {
                           </div>
                           <div className="min-w-0">
                             <p className="text-sm font-medium text-slate-800 truncate">
-                              {user.name}
+                              {user.name || "Unknown"}
                             </p>
                             <p className="text-xs text-slate-500 truncate">
-                              {user.email}
+                              {user.email || "No email"}
                             </p>
                           </div>
                         </div>
                       </td>
 
-                      {/* Profile / Role */}
+                      {/* Role */}
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getRoleBadge(user.role)}`}>
+                          {user.role || "jobseeker"}
+                        </span>
+                      </td>
+
+                      {/* Contact */}
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <p className="text-sm text-slate-700 flex items-center gap-1.5">
-                            <Briefcase className="w-3.5 h-3.5 text-slate-400" />
-                            {user.role || "Not specified"}
-                          </p>
-                          <p className="text-xs text-slate-500 flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                            {user.location || "Not specified"}
-                          </p>
+                          {user.mobile && (
+                            <p className="text-sm text-slate-700 flex items-center gap-1.5">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              {user.mobile}
+                            </p>
+                          )}
+                          {user.location && (
+                            <p className="text-sm text-slate-500 flex items-center gap-1.5">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                              {user.location}
+                            </p>
+                          )}
                         </div>
                       </td>
 
-                      {/* Subscription */}
+                      {/* Status */}
                       <td className="px-6 py-4">
-                        {user.subscription?.status === "active" ? (
-                          <div className="space-y-1">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                              <CheckCircle2 className="w-3 h-3" />
-                              {user.subscription.plan || "Active"}
-                            </span>
-                            {user.subscription.expiresAt && (
-                              <p className="text-xs text-slate-500">
-                                Expires:{" "}
-                                {formatDate(user.subscription.expiresAt)}
-                              </p>
-                            )}
-                          </div>
-                        ) : user.subscription?.status === "expired" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                            <AlertCircle className="w-3 h-3" />
-                            Expired
+                        <div className="space-y-1">
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                              user.isActive
+                                ? "bg-green-50 text-green-700"
+                                : "bg-red-50 text-red-700"
+                            }`}
+                          >
+                            {user.isActive ? "Active" : "Inactive"}
                           </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                            No Subscription
-                          </span>
-                        )}
+                          {user.isVerified && (
+                            <div className="text-xs text-blue-600 font-medium">
+                              ✓ Verified
+                            </div>
+                          )}
+                        </div>
                       </td>
 
                       {/* Joined Date */}
                       <td className="px-6 py-4">
                         <p className="text-sm text-slate-700 flex items-center gap-1.5">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                          {formatDate(user.joinedDate)}
+                          {formatDate(user.createdAt)}
                         </p>
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                            user.status === "active"
-                              ? "bg-green-50 text-green-700"
-                              : "bg-slate-100 text-slate-600"
-                          }`}
-                        >
-                          {user.status === "active" ? "Active" : "Inactive"}
-                        </span>
                       </td>
 
                       {/* Actions */}
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleToggleActive(user)}
+                            className={`p-2 rounded-lg transition-colors ${
+                              user.isActive
+                                ? "text-green-400 hover:text-red-600 hover:bg-red-50"
+                                : "text-red-400 hover:text-green-600 hover:bg-green-50"
+                            }`}
+                            title={user.isActive ? "Deactivate" : "Activate"}
+                          >
+                            {user.isActive ? (
+                              <CheckCircle2 className="w-4 h-4" />
+                            ) : (
+                              <RefreshCw className="w-4 h-4" />
+                            )}
+                          </button>
                           <button
                             onClick={() => handleEditUser(user)}
                             className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
@@ -654,10 +541,10 @@ const Users = () => {
               </table>
             </div>
 
-            {/* Mobile Card View (below md) */}
+            {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-slate-100">
               {filteredUsers.map((user) => (
-                <div key={user.id} className="p-4 space-y-3">
+                <div key={user._id || user.id} className="p-4 space-y-3">
                   {/* User Info */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -666,86 +553,110 @@ const Users = () => {
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-slate-800 truncate">
-                          {user.name}
+                          {user.name || "Unknown"}
                         </p>
                         <p className="text-xs text-slate-500 truncate">
-                          {user.email}
+                          {user.email || "No email"}
                         </p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1 mt-1">
-                          <Briefcase className="w-3 h-3" />
-                          {user.role || "Not specified"}
-                        </p>
-                        <p className="text-xs text-slate-500 flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {user.location || "Not specified"}
-                        </p>
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadge(user.role)} mt-1`}>
+                          {user.role || "jobseeker"}
+                        </span>
                       </div>
                     </div>
 
                     {/* Actions */}
                     <div className="flex gap-1 flex-shrink-0">
                       <button
+                        onClick={() => handleToggleActive(user)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          user.isActive
+                            ? "text-green-400 hover:text-red-600 hover:bg-red-50"
+                            : "text-red-400 hover:text-green-600 hover:bg-green-50"
+                        }`}
+                      >
+                        {user.isActive ? (
+                          <CheckCircle2 className="w-4 h-4" />
+                        ) : (
+                          <RefreshCw className="w-4 h-4" />
+                        )}
+                      </button>
+                      <button
                         onClick={() => handleEditUser(user)}
                         className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                        title="Edit user"
                       >
                         <Pencil className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteUser(user)}
                         className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                        title="Delete user"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
 
-                  {/* Subscription & Status */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {user.subscription?.status === "active" ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
-                        <CheckCircle2 className="w-3 h-3" />
-                        {user.subscription.plan || "Active"}
-                      </span>
-                    ) : user.subscription?.status === "expired" ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
-                        <AlertCircle className="w-3 h-3" />
-                        Expired
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
-                        No Subscription
-                      </span>
-                    )}
-
+                  {/* User Details */}
+                  <div className="flex flex-wrap gap-2">
                     <span
                       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        user.status === "active"
+                        user.isActive
                           ? "bg-green-50 text-green-700"
-                          : "bg-slate-100 text-slate-600"
+                          : "bg-red-50 text-red-700"
                       }`}
                     >
-                      {user.status === "active" ? "Active" : "Inactive"}
+                      {user.isActive ? "Active" : "Inactive"}
                     </span>
-
+                    {user.isVerified && (
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
+                        Verified
+                      </span>
+                    )}
+                    {user.mobile && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-600">
+                        <Phone className="w-3 h-3" />
+                        {user.mobile}
+                      </span>
+                    )}
+                    {user.location && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-600">
+                        <MapPin className="w-3 h-3" />
+                        {user.location}
+                      </span>
+                    )}
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-600">
                       <Calendar className="w-3 h-3" />
-                      {formatDate(user.joinedDate)}
+                      {formatDate(user.createdAt)}
                     </span>
                   </div>
-
-                  {/* Subscription Expiry */}
-                  {user.subscription?.status === "active" &&
-                    user.subscription.expiresAt && (
-                      <p className="text-xs text-slate-500">
-                        Expires: {formatDate(user.subscription.expiresAt)}
-                      </p>
-                    )}
                 </div>
               ))}
             </div>
           </>
+        )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+            <div className="text-sm text-slate-500">
+              Showing {((currentPage - 1) * 20) + 1} to {Math.min(currentPage * 20, total)} of {total} users
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -758,6 +669,7 @@ const Users = () => {
             setEditingUser(null);
           }}
           onSave={handleSaveUser}
+          isLoading={updateLoading}
         />
       )}
 
@@ -770,6 +682,7 @@ const Users = () => {
             setDeletingUser(null);
           }}
           onConfirm={handleConfirmDelete}
+          isDeleting={deleteLoading}
         />
       )}
 
@@ -799,10 +712,7 @@ const UsersLoadingState = () => (
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
       {[...Array(4)].map((_, i) => (
-        <div
-          key={i}
-          className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200"
-        >
+        <div key={i} className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
           <div className="h-4 bg-slate-200 rounded w-24 mb-4"></div>
           <div className="h-8 bg-slate-200 rounded w-16"></div>
         </div>
@@ -871,17 +781,17 @@ const UsersEmptyState = ({ hasFilters, onClear }) => (
 );
 
 // Edit User Modal Component
-const EditUserModal = ({ user, onClose, onSave }) => {
+const EditUserModal = ({ user, onClose, onSave, isLoading }) => {
   const [formData, setFormData] = useState({
-    name: user.name,
-    email: user.email,
-    phone: user.phone || "",
-    role: user.role || "",
+    name: user.name || "",
+    email: user.email || "",
+    mobile: user.mobile || "",
+    role: user.role || "jobseeker",
     location: user.location || "",
-    status: user.status || "active",
+    isActive: user.isActive !== undefined ? user.isActive : true,
+    isVerified: user.isVerified !== undefined ? user.isVerified : false,
   });
   const [errors, setErrors] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
 
   const validate = () => {
     const newErrors = {};
@@ -900,10 +810,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
-    setIsSaving(true);
     await onSave({ ...user, ...formData });
-    setIsSaving(false);
   };
 
   return (
@@ -912,116 +819,90 @@ const EditUserModal = ({ user, onClose, onSave }) => {
         <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 sticky top-0 bg-white">
           <div>
             <h3 className="text-lg font-semibold text-slate-900">Edit User</h3>
-            <p className="text-sm text-slate-500 mt-0.5">
-              Update user information
-            </p>
+            <p className="text-sm text-slate-500 mt-0.5">Update user information</p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-          >
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Full Name *
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Full Name *</label>
             <input
               type="text"
               value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className={`w-full px-4 py-2.5 rounded-xl border ${
-                errors.name ? "border-red-300" : "border-slate-200"
-              } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              className={`w-full px-4 py-2.5 rounded-xl border ${errors.name ? "border-red-300" : "border-slate-200"} focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
             />
-            {errors.name && (
-              <p className="text-xs text-red-600 mt-1">{errors.name}</p>
-            )}
+            {errors.name && <p className="text-xs text-red-600 mt-1">{errors.name}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Email Address *
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Email Address *</label>
             <input
               type="email"
               value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className={`w-full px-4 py-2.5 rounded-xl border ${
-                errors.email ? "border-red-300" : "border-slate-200"
-              } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className={`w-full px-4 py-2.5 rounded-xl border ${errors.email ? "border-red-300" : "border-slate-200"} focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
             />
-            {errors.email && (
-              <p className="text-xs text-red-600 mt-1">{errors.email}</p>
-            )}
+            {errors.email && <p className="text-xs text-red-600 mt-1">{errors.email}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Phone Number
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Mobile Number</label>
             <input
               type="tel"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
+              value={formData.mobile}
+              onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
               placeholder="+91 XXXXX XXXXX"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Role / Profession
-            </label>
-            <input
-              type="text"
+            <label className="block text-sm font-medium text-slate-700 mb-1">Role</label>
+            <select
               value={formData.role}
-              onChange={(e) =>
-                setFormData({ ...formData, role: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
-              placeholder="e.g., Software Engineer"
-            />
+            >
+              <option value="jobseeker">Job Seeker</option>
+              <option value="recruiter">Recruiter</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Location
-            </label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
             <input
               type="text"
               value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
               placeholder="e.g., Bangalore, India"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Status
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.isActive}
+                onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              Active
             </label>
-            <select
-              value={formData.status}
-              onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
-              }
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={formData.isVerified}
+                onChange={(e) => setFormData({ ...formData, isVerified: e.target.checked })}
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+              />
+              Verified
+            </label>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
@@ -1034,11 +915,11 @@ const EditUserModal = ({ user, onClose, onSave }) => {
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isLoading}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg transition-shadow disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? "Saving..." : "Save Changes"}
+              {isLoading ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>
@@ -1048,15 +929,7 @@ const EditUserModal = ({ user, onClose, onSave }) => {
 };
 
 // Delete User Modal Component
-const DeleteUserModal = ({ user, onClose, onConfirm }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    await onConfirm();
-    setIsDeleting(false);
-  };
-
+const DeleteUserModal = ({ user, onClose, onConfirm, isDeleting }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
@@ -1066,18 +939,12 @@ const DeleteUserModal = ({ user, onClose, onConfirm }) => {
               <AlertTriangle className="w-6 h-6 text-red-600" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-slate-900">
-                Delete User?
-              </h3>
+              <h3 className="text-lg font-semibold text-slate-900">Delete User?</h3>
               <p className="text-sm text-slate-500 mt-1">
-                Are you sure you want to delete {user.name}? This action cannot
-                be undone.
+                Are you sure you want to delete {user?.name}? This action cannot be undone.
               </p>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 rounded-lg hover:bg-slate-100 transition-colors"
-            >
+            <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-100 transition-colors">
               <X className="w-5 h-5 text-slate-500" />
             </button>
           </div>
@@ -1085,18 +952,11 @@ const DeleteUserModal = ({ user, onClose, onConfirm }) => {
           <div className="mt-4 p-4 bg-slate-50 rounded-xl">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                {user.name
-                  .split(" ")
-                  .map((word) => word[0])
-                  .join("")
-                  .toUpperCase()
-                  .slice(0, 2)}
+                {user?.name ? user.name.split(" ").map((word) => word[0]).join("").toUpperCase().slice(0, 2) : "U"}
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-800">
-                  {user.name}
-                </p>
-                <p className="text-xs text-slate-500">{user.email}</p>
+                <p className="text-sm font-medium text-slate-800">{user?.name}</p>
+                <p className="text-xs text-slate-500">{user?.email}</p>
               </div>
             </div>
           </div>
@@ -1109,7 +969,7 @@ const DeleteUserModal = ({ user, onClose, onConfirm }) => {
               Cancel
             </button>
             <button
-              onClick={handleDelete}
+              onClick={onConfirm}
               disabled={isDeleting}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >

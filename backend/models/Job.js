@@ -163,7 +163,6 @@ JobSchema.pre('save', async function(next) {
       console.error('Error fetching category name:', error);
     }
   }
-  next();
 });
 
 // Virtual for formatted date

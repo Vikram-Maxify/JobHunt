@@ -406,7 +406,7 @@ const Testimonials = () => {
                         </h3>
 
                         <p className="mt-0.5 truncate text-xs font-medium text-slate-500">
-                          {testimonial.country}
+                          {testimonial.country}-Workin in
                         </p>
 
                       </div>

@@ -2,7 +2,7 @@
 // src/redux/slicer/gallerySlice.js
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "../../services/api";
+import api from "../api";
 
 // ============================================================
 // ADMIN THUNKS

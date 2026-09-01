@@ -51,6 +51,7 @@ import AdminLogin from "./admin/pages/AdminLogin";
 import AdminDashboard from "./admin/pages/Dashboard";
 import TestimonialManagement from "./admin/pages/TestimonialManagement";
 import { getProfile } from "./redux/slicer/authSlice";
+import AdminProfile from "./admin/pages/AdminProfile";
 
 function App() {
   const dispatch = useDispatch();
@@ -176,6 +177,8 @@ function App() {
                 {/* GALLERY */}
 
                 <Route path="gallery" element={<AdminGallery />} />
+
+                <Route path="profile" element={<AdminProfile />} />
 
                 {/* SETTINGS */}
 

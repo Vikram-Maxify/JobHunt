@@ -30,15 +30,15 @@ exports.createCategory = async (req, res) => {
 
     // Upload image to ImgBB
     const uploadResult = await uploadToImgBB(
-      req.file.buffer, 
+      req.file.buffer,
       req.file.originalname,
       { name: `category-${name}` }
     );
 
     // 🔥 Extract just the URL string from the upload result
-    const imageUrl = uploadResult.data?.displayUrl || 
-                     uploadResult.data?.url || 
-                     uploadResult.data;
+    const imageUrl = uploadResult.data?.displayUrl ||
+      uploadResult.data?.url ||
+      uploadResult.data;
 
     // Create category with image URL string
     const category = await Category.create({
@@ -119,7 +119,7 @@ exports.getCategoryByIdAdmin = async (req, res) => {
 exports.updateCategory = async (req, res) => {
   try {
     const { name, shortDescription, isActive } = req.body;
-    
+
     // Find category
     const category = await Category.findById(req.params.id);
     if (!category) {
@@ -155,15 +155,15 @@ exports.updateCategory = async (req, res) => {
 
       // Upload new image
       const uploadResult = await uploadToImgBB(
-        req.file.buffer, 
+        req.file.buffer,
         req.file.originalname,
         { name: `category-${name || category.name}` }
       );
 
       // 🔥 Extract just the URL string
-      const imageUrl = uploadResult.data?.displayUrl || 
-                       uploadResult.data?.url || 
-                       uploadResult.data;
+      const imageUrl = uploadResult.data?.displayUrl ||
+        uploadResult.data?.url ||
+        uploadResult.data;
 
       category.image = imageUrl; // 👈 Now it's a string
     }
@@ -190,7 +190,7 @@ exports.updateCategory = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
-    
+
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -224,7 +224,7 @@ exports.deleteCategory = async (req, res) => {
 exports.toggleCategoryStatus = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
-    
+
     if (!category) {
       return res.status(404).json({
         success: false,
@@ -256,30 +256,30 @@ exports.toggleCategoryStatus = async (req, res) => {
 exports.getAllCategoriesUser = async (req, res) => {
   try {
     const categories = await Category.find({ isActive: true })
-      .select('name slug shortDescription image jobCount')
+      .select("name slug shortDescription image jobCount")
       .sort({ jobCount: -1, name: 1 });
 
-    // Format response for user
-    const formattedCategories = categories.map(cat => ({
+    const formattedCategories = categories.map((cat) => ({
       id: cat._id,
       name: cat.name,
       slug: cat.slug,
       shortDescription: cat.shortDescription,
-      image: cat.image?.displayUrl || cat.image?.url || null,
+      image: cat.image || null,
       jobCount: cat.jobCount,
-      createdAt: cat.createdAt
+      createdAt: cat.createdAt,
     }));
 
     res.status(200).json({
       success: true,
       count: categories.length,
-      data: formattedCategories
+      data: formattedCategories,
     });
-
   } catch (error) {
+    console.error("Get categories error:", error);
+
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -290,13 +290,13 @@ exports.getCategoryByIdUser = async (req, res) => {
   try {
     const category = await Category.findOne({
       _id: req.params.id,
-      isActive: true
+      isActive: true,
     });
 
     if (!category) {
       return res.status(404).json({
         success: false,
-        message: 'Category not found'
+        message: "Category not found",
       });
     }
 
@@ -307,16 +307,15 @@ exports.getCategoryByIdUser = async (req, res) => {
         name: category.name,
         slug: category.slug,
         shortDescription: category.shortDescription,
-        image: category.image?.displayUrl || category.image?.url || null,
+        image: category.image || null,
         jobCount: category.jobCount,
-        createdAt: category.createdAt
-      }
+        createdAt: category.createdAt,
+      },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: error.message
+      message: error.message,
     });
   }
 };
@@ -344,7 +343,7 @@ exports.getCategoryBySlug = async (req, res) => {
         name: category.name,
         slug: category.slug,
         shortDescription: category.shortDescription,
-        image: category.image?.displayUrl || category.image?.url || null,
+        image: category.image || null,
         jobCount: category.jobCount,
         createdAt: category.createdAt
       }
@@ -363,7 +362,7 @@ exports.getCategoryBySlug = async (req, res) => {
 exports.searchCategories = async (req, res) => {
   try {
     const { query } = req.query;
-    
+
     if (!query) {
       return res.status(400).json({
         success: false,
@@ -379,15 +378,15 @@ exports.searchCategories = async (req, res) => {
       ]
     });
 
-    const formattedCategories = categories.map(cat => ({
+    const formattedCategories = categories.map((cat) => ({
       id: cat._id,
       name: cat.name,
       slug: cat.slug,
       shortDescription: cat.shortDescription,
-      image: cat.image?.displayUrl || cat.image?.url || null,
-      jobCount: cat.jobCount
+      image: cat.image || null,
+      jobCount: cat.jobCount,
     }));
-
+    
     res.status(200).json({
       success: true,
       count: categories.length,

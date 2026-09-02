@@ -1,6 +1,6 @@
 // src/redux/slicer/adminUserSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../services/api';
+import api from '../api';
 
 // ============ ADMIN USER THUNKS ============
 

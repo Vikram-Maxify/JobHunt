@@ -6,6 +6,8 @@ import galleryReducer from '../redux/slicer/gallerySlice'
 import subscriptionReducer from '../redux/slicer/adminsubscriptionSlice'
 import testimonialReducer from '../redux/slicer/testimonialSlice'
 import adminUserReducer from '../redux/slicer/adminuserSlice'
+import testimonialsReducer from '../redux/slicer/userTestimonialSlice'
+import userSubscriptionReducer from '../redux/slicer/UserSubscription'
 
 
 export const store = configureStore({
@@ -17,5 +19,7 @@ export const store = configureStore({
     subscription: subscriptionReducer,
     testimonials: testimonialReducer,
     adminUser: adminUserReducer,
-  },
+    usertestimonial: testimonialsReducer,
+    userSubscription: userSubscriptionReducer,
+  }
 });

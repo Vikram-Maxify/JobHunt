@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowRight,
-  BriefcaseBusiness,
   CheckCircle2,
   Quote,
   Sparkles,
@@ -20,115 +20,155 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 
-const TESTIMONIALS = [
-  {
-    id: 1,
-    name: "Aarav Sharma",
-    role: "Frontend Developer",
-    company: "TechNova",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=300&auto=format&fit=crop&q=85",
-    rating: 5,
-    review:
-      "CareerSphere helped me discover the right opportunity at the right time. The platform is simple, professional and genuinely useful for job seekers.",
-  },
-  {
-    id: 2,
-    name: "Priya Mehta",
-    role: "UI/UX Designer",
-    company: "CreativeLabs",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=300&auto=format&fit=crop&q=85",
-    rating: 5,
-    review:
-      "I loved how easy it was to explore different opportunities and connect with companies. CareerSphere made my job search much more focused.",
-  },
-  {
-    id: 3,
-    name: "Rahul Verma",
-    role: "Software Engineer",
-    company: "CloudWorks",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=85",
-    rating: 5,
-    review:
-      "The professional experience and quality of opportunities are impressive. I was able to find a role that matched both my skills and career goals.",
-  },
-  {
-    id: 4,
-    name: "Sneha Kapoor",
-    role: "Product Manager",
-    company: "InnovateHub",
-    image:
-      "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=300&auto=format&fit=crop&q=85",
-    rating: 5,
-    review:
-      "CareerSphere gives job seekers everything they need in one place. The interface is clean and finding relevant opportunities feels effortless.",
-  },
-  {
-    id: 5,
-    name: "Vikram Singh",
-    role: "Backend Developer",
-    company: "DataCore",
-    image:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=300&auto=format&fit=crop&q=85",
-    rating: 5,
-    review:
-      "From discovering jobs to building my professional profile, the entire experience has been smooth. It is now one of my favorite career platforms.",
-  },
-  {
-    id: 6,
-    name: "Ananya Gupta",
-    role: "Marketing Specialist",
-    company: "GrowthLabs",
-    image:
-      "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=300&auto=format&fit=crop&q=85",
-    rating: 5,
-    review:
-      "I found opportunities that actually matched my interests and experience. CareerSphere helped me take a confident step toward my next role.",
-  },
-];
+import { getTestimonials } from "../redux/slicer/userTestimonialSlice";
 
 const Testimonials = () => {
-  return (
-    <section className="overflow-hidden bg-slate-50 py-6 sm:py-6 lg:py-6">
+  const dispatch = useDispatch();
 
-      {/* =====================================================
-          CONTAINER
-      ===================================================== */}
+  const {
+    testimonials = [],
+    loading,
+    error,
+  } = useSelector((state) => state.usertestimonial);
+
+  useEffect(() => {
+    dispatch(getTestimonials());
+  }, [dispatch]);
+
+  // =====================================================
+  // RATING STARS
+  // =====================================================
+
+  const renderStars = (rating) => {
+    const safeRating = Math.min(
+      5,
+      Math.max(1, Number(rating) || 5)
+    );
+
+    return Array.from({ length: 5 }).map((_, index) => (
+      <Star
+        key={index}
+        size={14}
+        fill={index < safeRating ? "currentColor" : "none"}
+        className={
+          index < safeRating
+            ? "text-amber-400"
+            : "text-slate-200"
+        }
+      />
+    ));
+  };
+
+  // =====================================================
+  // LOADING
+  // =====================================================
+
+  if (loading) {
+    return (
+      <section className="overflow-hidden bg-slate-50 py-10 sm:py-12">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-[300px] items-center justify-center">
+            <div className="text-center">
+              <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-r-transparent" />
+
+              <p className="mt-4 text-sm font-medium text-slate-600">
+                Loading testimonials...
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // =====================================================
+  // ERROR
+  // =====================================================
+
+  if (error) {
+    return (
+      <section className="overflow-hidden bg-slate-50 py-10 sm:py-12">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+            <p className="text-sm font-medium text-red-600">
+              Error loading testimonials: {error}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => dispatch(getTestimonials())}
+              className="mt-4 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // =====================================================
+  // EMPTY
+  // =====================================================
+
+  if (!testimonials.length) {
+    return (
+      <section className="overflow-hidden bg-slate-50 py-10 sm:py-12">
+        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
+            <p className="text-sm font-medium text-slate-500">
+              No testimonials available yet.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // =====================================================
+  // MAIN UI
+  // =====================================================
+
+  return (
+    <section className="overflow-hidden bg-slate-50 py-8 sm:py-10 lg:py-12">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* =================================================
             HEADER
         ================================================= */}
+
         <div className="mx-auto max-w-3xl text-center">
 
           {/* Badge */}
+
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-xs font-bold text-blue-600 shadow-sm sm:text-sm">
             <Sparkles size={15} />
             Success Stories
           </div>
 
           {/* Heading */}
+
           <h2 className="text-3xl font-black leading-tight tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
-            What Our
-            <span className="text-blue-600"> Community Says</span>
+            What Our{" "}
+            <span className="text-blue-600">
+              Community Says
+            </span>
           </h2>
 
           {/* Description */}
+
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7">
-            Thousands of professionals are using CareerSphere to discover
-            opportunities, build connections and take the next step in their
-            careers.
+            Hear from professionals around the world who are using
+            CareerSphere to discover better opportunities and take
+            the next step in their careers.
           </p>
-
         </div>
-
 
         {/* =================================================
             SWIPER
         ================================================= */}
-        <div className="relative mt-6 sm:mt-6">
+
+        <div className="relative mt-8 sm:mt-10">
 
           <Swiper
             modules={[
@@ -139,8 +179,9 @@ const Testimonials = () => {
             ]}
             spaceBetween={20}
             slidesPerView={1}
-            loop={true}
+            loop={testimonials.length > 3}
             speed={800}
+            grabCursor={true}
             autoplay={{
               delay: 3000,
               disableOnInteraction: false,
@@ -152,210 +193,268 @@ const Testimonials = () => {
             }}
             navigation={true}
             breakpoints={{
+              0: {
+                slidesPerView: 1,
+                spaceBetween: 16,
+              },
+
               640: {
                 slidesPerView: 1,
                 spaceBetween: 20,
               },
+
               768: {
                 slidesPerView: 2,
                 spaceBetween: 20,
               },
+
               1024: {
                 slidesPerView: 3,
                 spaceBetween: 24,
               },
             }}
-            className="testimonials-swiper !pb-4"
+            className="testimonials-swiper !pb-12"
           >
 
-            {TESTIMONIALS.map((testimonial) => (
-              <SwiperSlide key={testimonial.id}>
+            {testimonials.map((testimonial) => {
 
-                {/* =================================================
-                    TESTIMONIAL CARD
-                ================================================= */}
-                <article
-                  className="
-                    group
-                    relative
-                    h-full
-                    overflow-hidden
-                    rounded-2xl
-                    border
-                    border-slate-200/80
-                    bg-white
-                    p-5
-                    shadow-[0_4px_20px_rgba(15,23,42,0.04)]
-                    transition-all
-                    duration-500
-                    hover:border-blue-200
-                    hover:shadow-[0_15px_35px_rgba(37,99,235,0.10)]
-                    sm:p-6
-                  "
+              const rating =
+                Number(testimonial.rating) || 5;
+
+              const image =
+                testimonial.image?.thumb ||
+                testimonial.image?.url ||
+                testimonial.image?.displayUrl;
+
+              return (
+                <SwiperSlide
+                  key={testimonial._id}
+                  className="!h-auto"
                 >
 
-                  {/* Quote Decoration */}
-                  <div
+                  {/* =================================================
+                      CARD
+                  ================================================= */}
+
+                  <article
                     className="
-                      pointer-events-none
-                      absolute
-                      -right-3
-                      -top-3
+                      group
+                      relative
                       flex
-                      h-20
-                      w-20
-                      items-center
-                      justify-center
-                      rounded-full
-                      bg-blue-50
-                      text-blue-100
+                      h-full
+                      min-h-[280px]
+                      flex-col
+                      overflow-hidden
+                      rounded-2xl
+                      border
+                      border-slate-200/80
+                      bg-white
+                      p-5
+                      shadow-[0_4px_20px_rgba(15,23,42,0.04)]
                       transition-all
                       duration-500
-                      group-hover:scale-110
-                      group-hover:bg-blue-100
+                      hover:-translate-y-1
+                      hover:border-blue-200
+                      hover:shadow-[0_15px_35px_rgba(37,99,235,0.10)]
+                      sm:p-6
                     "
                   >
-                    <Quote
-                      size={28}
-                      fill="currentColor"
-                    />
-                  </div>
 
+                    {/* =================================================
+                        QUOTE DECORATION
+                    ================================================= */}
 
-                  {/* Rating */}
-                  <div className="relative flex items-center gap-1">
-
-                    {Array.from({
-                      length: testimonial.rating,
-                    }).map((_, index) => (
-                      <Star
-                        key={index}
-                        size={14}
+                    <div
+                      className="
+                        pointer-events-none
+                        absolute
+                        -right-4
+                        -top-4
+                        flex
+                        h-20
+                        w-20
+                        items-center
+                        justify-center
+                        rounded-full
+                        bg-blue-50
+                        text-blue-100
+                        transition-all
+                        duration-500
+                        group-hover:scale-110
+                        group-hover:bg-blue-100
+                      "
+                    >
+                      <Quote
+                        size={28}
                         fill="currentColor"
-                        className="text-amber-400"
                       />
-                    ))}
+                    </div>
 
-                    <span className="ml-1 text-xs font-semibold text-slate-400">
-                      5.0
-                    </span>
+                    {/* =================================================
+                        RATING
+                    ================================================= */}
 
-                  </div>
+                    <div className="relative flex items-center gap-1">
+                      {renderStars(rating)}
 
+                      <span className="ml-1 text-xs font-semibold text-slate-400">
+                        {rating.toFixed(1)}
+                      </span>
+                    </div>
 
-                  {/* Review */}
-                  <p className="relative mt-5 text-sm leading-6 text-slate-600 sm:text-[15px] sm:leading-7">
-                    "{testimonial.review}"
-                  </p>
+                    {/* =================================================
+                        REVIEW
+                    ================================================= */}
 
+                    <p
+                      className="
+                        relative
+                        mt-5
+                        flex-1
+                        text-sm
+                        leading-6
+                        text-slate-600
+                        sm:text-[15px]
+                        sm:leading-7
+                      "
+                    >
+                      "{testimonial.review}"
+                    </p>
 
-                  {/* User */}
-                  <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-5">
+                    {/* =================================================
+                        USER
+                    ================================================= */}
 
-                    {/* Avatar */}
-                    <div className="relative shrink-0">
+                    <div className="mt-6 flex items-center gap-3 border-t border-slate-100 pt-5">
 
-                      <img
-                        src={testimonial.image}
-                        alt={testimonial.name}
-                        loading="lazy"
-                        className="
-                          h-11
-                          w-11
-                          rounded-full
-                          object-cover
-                          ring-2
-                          ring-blue-50
-                          transition-all
-                          duration-300
-                          group-hover:ring-blue-100
-                        "
-                      />
+                      {/* IMAGE */}
 
-                      {/* Verified */}
-                      <div
-                        className="
-                          absolute
-                          -bottom-0.5
-                          -right-0.5
-                          flex
-                          h-4
-                          w-4
-                          items-center
-                          justify-center
-                          rounded-full
-                          bg-blue-600
-                          text-white
-                          ring-2
-                          ring-white
-                        "
-                      >
-                        <CheckCircle2 size={10} />
+                      <div className="relative shrink-0">
+
+                        {image ? (
+                          <img
+                            src={image}
+                            alt={testimonial.name}
+                            loading="lazy"
+                            className="
+                              h-11
+                              w-11
+                              rounded-full
+                              object-cover
+                              ring-2
+                              ring-blue-50
+                              transition-all
+                              duration-300
+                              group-hover:ring-blue-100
+                            "
+                            onError={(e) => {
+                              e.currentTarget.style.display =
+                                "none";
+
+                              if (
+                                e.currentTarget
+                                  .nextElementSibling
+                              ) {
+                                e.currentTarget.nextElementSibling.style.display =
+                                  "flex";
+                              }
+                            }}
+                          />
+                        ) : null}
+
+                        {/* FALLBACK */}
+
+                        <div
+                          className={`${
+                            image ? "hidden" : "flex"
+                          } h-11 w-11 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white ring-2 ring-blue-50`}
+                        >
+                          {testimonial.name
+                            ?.charAt(0)
+                            ?.toUpperCase() || "U"}
+                        </div>
+
+                        {/* VERIFIED */}
+
+                        <div
+                          className="
+                            absolute
+                            -bottom-0.5
+                            -right-0.5
+                            flex
+                            h-4
+                            w-4
+                            items-center
+                            justify-center
+                            rounded-full
+                            bg-blue-600
+                            text-white
+                            ring-2
+                            ring-white
+                          "
+                        >
+                          <CheckCircle2 size={10} />
+                        </div>
                       </div>
 
+                      {/* USER DETAILS */}
+
+                      <div className="min-w-0 flex-1">
+
+                        <h3 className="truncate text-sm font-bold text-slate-900">
+                          {testimonial.name}
+                        </h3>
+
+                        <p className="mt-0.5 truncate text-xs font-medium text-slate-500">
+                          {testimonial.country}    -Workin in
+                        </p>
+
+                      </div>
+
+                      {/* COUNTRY */}
+
+                      <div className="hidden shrink-0 rounded-full bg-slate-50 px-2.5 py-1.5 text-[10px] font-semibold text-slate-500 sm:block">
+                        {testimonial.country}
+                      </div>
                     </div>
 
+                    {/* =================================================
+                        BOTTOM ACCENT
+                    ================================================= */}
 
-                    {/* User Details */}
-                    <div className="min-w-0 flex-1">
+                    <div
+                      className="
+                        absolute
+                        bottom-0
+                        left-1/2
+                        h-[2px]
+                        w-0
+                        -translate-x-1/2
+                        rounded-full
+                        bg-gradient-to-r
+                        from-blue-500
+                        via-indigo-500
+                        to-purple-500
+                        transition-all
+                        duration-500
+                        group-hover:w-1/3
+                      "
+                    />
 
-                      <h3 className="truncate text-sm font-bold text-slate-900">
-                        {testimonial.name}
-                      </h3>
+                  </article>
 
-                      <p className="mt-0.5 truncate text-xs text-slate-500">
-                        {testimonial.role}
-                      </p>
-
-                    </div>
-
-
-                    {/* Company */}
-                    <div className="hidden shrink-0 items-center gap-1.5 rounded-full bg-slate-50 px-2.5 py-1.5 text-[10px] font-semibold text-slate-500 sm:flex">
-
-                      <BriefcaseBusiness size={11} />
-
-                      {testimonial.company}
-
-                    </div>
-
-                  </div>
-
-
-                  {/* Bottom Accent */}
-                  <div
-                    className="
-                      absolute
-                      bottom-0
-                      left-1/2
-                      h-[2px]
-                      w-0
-                      -translate-x-1/2
-                      rounded-full
-                      bg-gradient-to-r
-                      from-blue-500
-                      via-indigo-500
-                      to-purple-500
-                      transition-all
-                      duration-500
-                      group-hover:w-1/3
-                    "
-                  />
-
-                </article>
-
-              </SwiperSlide>
-            ))}
+                </SwiperSlide>
+              );
+            })}
 
           </Swiper>
-
         </div>
-
 
         {/* =================================================
             CTA
         ================================================= */}
-        <div className="mt-5 flex justify-center">
+
+        <div className="mt-3 flex justify-center">
 
           <button
             type="button"
@@ -398,14 +497,29 @@ const Testimonials = () => {
 
       </div>
 
-
       {/* =====================================================
           SWIPER CUSTOM CSS
       ===================================================== */}
+
       <style>
         {`
+          .testimonials-swiper {
+            padding-left: 2px;
+            padding-right: 2px;
+          }
+
+          .testimonials-swiper .swiper-wrapper {
+            align-items: stretch;
+          }
+
+          .testimonials-swiper .swiper-slide {
+            height: auto;
+          }
+
+          /* Pagination */
+
           .testimonials-swiper .swiper-pagination {
-            bottom: 0;
+            bottom: 0 !important;
           }
 
           .testimonials-swiper .swiper-pagination-bullet {
@@ -422,14 +536,18 @@ const Testimonials = () => {
             background: #2563eb;
           }
 
+          /* Navigation */
+
           .testimonials-swiper .swiper-button-next,
           .testimonials-swiper .swiper-button-prev {
-            width: 38px;
-            height: 38px;
+            width: 40px;
+            height: 40px;
+            margin-top: -25px;
             border-radius: 999px;
             background: white;
             border: 1px solid #e2e8f0;
             box-shadow: 0 5px 15px rgba(15, 23, 42, 0.08);
+            transition: all 0.3s ease;
           }
 
           .testimonials-swiper .swiper-button-next:after,
@@ -442,6 +560,7 @@ const Testimonials = () => {
           .testimonials-swiper .swiper-button-next:hover,
           .testimonials-swiper .swiper-button-prev:hover {
             background: #2563eb;
+            border-color: #2563eb;
           }
 
           .testimonials-swiper .swiper-button-next:hover:after,
@@ -449,15 +568,25 @@ const Testimonials = () => {
             color: white;
           }
 
+          /* Mobile */
+
           @media (max-width: 767px) {
             .testimonials-swiper .swiper-button-next,
             .testimonials-swiper .swiper-button-prev {
               display: none;
             }
           }
+
+          /* Small screens */
+
+          @media (max-width: 639px) {
+            .testimonials-swiper {
+              margin-left: -2px;
+              margin-right: -2px;
+            }
+          }
         `}
       </style>
-
     </section>
   );
 };

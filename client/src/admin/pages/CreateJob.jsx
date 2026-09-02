@@ -1,6 +1,7 @@
 // src/admin/pages/CreateJob.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeft,
   Save,
@@ -8,15 +9,20 @@ import {
   Trash2,
   X,
   Briefcase,
-  Building2,
-  MapPin,
-  IndianRupee,
 } from "lucide-react";
-import { useJobCategories } from "../context/JobCategoryContext";
+import { getAdminCategories } from "../../redux/slicer/categorySlice";
+import { createJob } from "../../redux/slicer/jobSlice"; 
 
 const CreateJob = () => {
   const navigate = useNavigate();
-  const { activeCategories } = useJobCategories();
+  const dispatch = useDispatch();
+
+  const categories = useSelector((state) => state.categories?.categories || []);
+  const categoriesLoading = useSelector((state) => state.categories?.loading || false);
+  const categoriesError = useSelector((state) => state.categories?.error || null);
+  
+  const createLoading = useSelector((state) => state.jobs?.createLoading || false);
+  const createError = useSelector((state) => state.jobs?.createError || null);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -37,6 +43,28 @@ const CreateJob = () => {
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    if (categories.length === 0 && !categoriesLoading) {
+      dispatch(getAdminCategories());
+    }
+  }, [dispatch, categories.length, categoriesLoading]);
+
+  useEffect(() => {
+    console.log("Categories from Redux:", categories);
+  }, [categories]);
+
+  useEffect(() => {
+    if (createError) {
+      showNotification(createError, "error");
+    }
+  }, [createError]);
+
+  useEffect(() => {
+    if (categoriesError) {
+      showNotification("Failed to load categories", "error");
+    }
+  }, [categoriesError]);
 
   const validate = () => {
     const newErrors = {};
@@ -67,13 +95,19 @@ const CreateJob = () => {
   };
 
   const handleCategoryChange = (categoryId) => {
-    const selectedCategory = activeCategories.find(
-      (category) => category.id === categoryId,
+    const selectedCategory = categories.find(
+      (category) => {
+        const id = category._id || category.id;
+        return String(id) === String(categoryId);
+      }
     );
+
+    console.log("Selected category:", selectedCategory);
+    console.log("Category ID being sent:", categoryId);
 
     setFormData((prev) => ({
       ...prev,
-      categoryId,
+      categoryId: categoryId,
       description: selectedCategory?.description || prev.description,
     }));
   };
@@ -85,34 +119,61 @@ const CreateJob = () => {
     setIsSaving(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      const selectedCategory = activeCategories.find(
-        (c) => c.id === formData.categoryId,
+      const selectedCategory = categories.find(
+        (category) => {
+          const id = category._id || category.id;
+          return String(id) === String(formData.categoryId);
+        }
       );
 
+      if (!selectedCategory) {
+        showNotification("Invalid category selected", "error");
+        setIsSaving(false);
+        return;
+      }
+
+      const categoryObjectId = selectedCategory._id || selectedCategory.id;
+
+      console.log("Selected category object:", selectedCategory);
+      console.log("Category ObjectId being sent:", categoryObjectId);
+
+      const responsibilities = formData.responsibilities.filter((r) => r.trim());
+      const requirements = formData.requirements.filter((r) => r.trim());
+
       const jobData = {
-        ...formData,
-        id: `JOB${String(Date.now()).slice(-6)}`,
-        categoryName: selectedCategory?.name || "",
-        responsibilities: formData.responsibilities.filter((r) => r.trim()),
-        requirements: formData.requirements.filter((r) => r.trim()),
-        applicantCount: 0,
-        createdAt: new Date().toISOString().split("T")[0],
-        updatedAt: new Date().toISOString().split("T")[0],
+        title: formData.title.trim(),
+        company: formData.company.trim(),
+        category: categoryObjectId,
+        categoryName: selectedCategory.name || "",
+        location: formData.location.trim(),
+        jobType: formData.jobType,
+        experience: formData.experience,
+        salary: formData.salary.trim(),
+        description: formData.description.trim(),
+        responsibilities,
+        requirements,
+        skills: formData.skills,
+        status: formData.status,
       };
 
-      // In a real app, you would save this to your backend/context
-      console.log("Job created:", jobData);
+      console.log("Sending job data:", jobData);
 
-      showNotification("Job created successfully", "success");
+      // Dispatch the createJob thunk
+      const result = await dispatch(createJob(jobData)).unwrap();
+      
+      // Check if job was created successfully
+      if (result?.success) {
+        showNotification(result?.message || "Job created successfully", "success");
+        
+        // Redirect after showing notification
+        setTimeout(() => {
+          navigate("/admin/jobs");
+        }, 1500);
+      }
 
-      setTimeout(() => {
-        navigate("/admin/jobs");
-      }, 1500);
     } catch (err) {
-      showNotification("Failed to create job", "error");
+      console.error("Create job error:", err);
+      showNotification(typeof err === 'string' ? err : "Failed to create job", "error");
     } finally {
       setIsSaving(false);
     }
@@ -262,13 +323,19 @@ const CreateJob = () => {
                   className={`w-full px-4 py-2.5 rounded-xl border ${
                     errors.categoryId ? "border-red-300" : "border-slate-200"
                   } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
+                  disabled={categoriesLoading}
                 >
-                  <option value="">Select Category</option>
-                  {activeCategories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
+                  <option value="">
+                    {categoriesLoading ? "Loading categories..." : "Select Category"}
+                  </option>
+                  {categories.map((cat) => {
+                    const catId = cat._id || cat.id;
+                    return (
+                      <option key={catId} value={catId}>
+                        {cat.name}
+                      </option>
+                    );
+                  })}
                 </select>
                 {errors.categoryId && (
                   <p className="text-xs text-red-600 mt-1">
@@ -545,11 +612,11 @@ const CreateJob = () => {
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || createLoading || categoriesLoading}
               className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg transition-shadow disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
-              {isSaving ? "Creating..." : "Create Job"}
+              {isSaving || createLoading ? "Creating..." : "Create Job"}
             </button>
           </div>
         </form>

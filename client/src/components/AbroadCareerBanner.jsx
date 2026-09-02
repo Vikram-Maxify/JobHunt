@@ -33,22 +33,22 @@ const AbroadCareerBanner = () => {
               {/* Badge */}
               <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-1.5 text-xs font-semibold text-blue-300">
                 <Globe2 size={14} />
-                Global Career Opportunities
+                Your Next Career Destination
               </div>
 
               {/* Heading */}
               <h2 className="max-w-xl text-3xl font-black leading-tight tracking-tight text-white sm:text-4xl lg:text-5xl">
-                Build Your Career
+                Take Your Skills
                 <span className="block text-blue-400">
-                  Beyond Borders
+                  To The World
                 </span>
               </h2>
 
               {/* Description */}
               <p className="mt-5 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
-                Discover international job opportunities, build your
-                professional career and explore exciting possibilities
-                across the world.
+                Turn your skills into international opportunities. Find
+                exciting roles with global employers and take the next step
+                toward an international career.
               </p>
 
               {/* Benefits */}
@@ -59,7 +59,7 @@ const AbroadCareerBanner = () => {
                     size={17}
                     className="shrink-0 text-blue-400"
                   />
-                  International Jobs
+                  International Exposure
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-slate-200">
@@ -67,7 +67,7 @@ const AbroadCareerBanner = () => {
                     size={17}
                     className="shrink-0 text-blue-400"
                   />
-                  Better Career Growth
+                  Career Advancement
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-slate-200">
@@ -75,7 +75,7 @@ const AbroadCareerBanner = () => {
                     size={17}
                     className="shrink-0 text-blue-400"
                   />
-                  Global Companies
+                  Work With Global Teams
                 </div>
 
                 <div className="flex items-center gap-2 text-sm text-slate-200">
@@ -83,7 +83,7 @@ const AbroadCareerBanner = () => {
                     size={17}
                     className="shrink-0 text-blue-400"
                   />
-                  Competitive Earnings
+                  New Life Experiences
                 </div>
 
               </div>
@@ -96,7 +96,7 @@ const AbroadCareerBanner = () => {
                   onClick={() => navigate("/jobs")}
                   className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:-translate-y-0.5 hover:bg-blue-500"
                 >
-                  Explore Global Jobs
+                  Find Your Opportunity
                   <ArrowRight size={17} />
                 </button>
 
@@ -105,7 +105,7 @@ const AbroadCareerBanner = () => {
                   onClick={() => navigate("/about")}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/15 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
                 >
-                  Learn More
+                  Discover More
                 </button>
 
               </div>
@@ -117,71 +117,18 @@ const AbroadCareerBanner = () => {
             ================================================= */}
             <div className="relative min-h-[360px] overflow-hidden sm:min-h-[430px] lg:min-h-[500px]">
 
-              {/* Main Image */}
+              {/* Tokyo Japan Image */}
               <img
-                src="https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1400&q=85"
-                alt="International career opportunity"
+                src="https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&w=1400&q=85"
+                alt="Tokyo Japan international career destination"
                 className="absolute inset-0 h-full w-full object-cover object-center"
               />
 
               {/* Image Overlay */}
               <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/30 to-transparent lg:from-slate-950/80 lg:via-slate-950/10 lg:to-transparent" />
-
-              {/* =================================================
-                  FLOATING JOB CARD
-              ================================================= */}
-              <div className="absolute bottom-6 left-4 right-4 sm:left-6 sm:right-auto sm:w-[300px]">
-
-                <div className="rounded-2xl border border-white/20 bg-white/95 p-4 shadow-2xl backdrop-blur-md">
-
-                  <div className="flex items-start gap-3">
-
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                      <BriefcaseBusiness size={20} />
-                    </div>
-
-                    <div className="min-w-0">
-
-                      <p className="text-xs font-semibold text-slate-400">
-                        Featured Destination
-                      </p>
-
-                      <h3 className="mt-0.5 text-base font-black text-slate-800">
-                        Build Your Future Abroad
-                      </h3>
-
-                      <div className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                        <MapPin size={13} />
-                        United States & Worldwide
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-green-600">
-                      <TrendingUp size={14} />
-                      Career Growth
-                    </div>
-
-                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold text-blue-600">
-                      Explore
-                    </span>
-
-                  </div>
-
-                </div>
-
-              </div>
-
             </div>
-
           </div>
         </div>
-
-      
 
       </div>
     </section>

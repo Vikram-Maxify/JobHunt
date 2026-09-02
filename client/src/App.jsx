@@ -2,31 +2,27 @@ import AboutUs from "./Pages/AboutUs";
 import ContactUs from "./Pages/ContactUs";
 import Gallery from "./Pages/Gallery";
 import Home from "./Pages/Home";
-import Register from "./Pages/Register";
 import Login from "./Pages/Login";
+import Register from "./Pages/Register";
 import Subscription from "./Pages/Subscription";
 
 import { Route, Routes } from "react-router-dom";
 
-import Jobs from "./Pages/Jobs";
-import JobDetail from "./Pages/JobDetail";
-import Profile from "./Pages/Profile";
-import MyApplication from "./Pages/MyAppication";
-import CarrierResources from "./Pages/CarrierResources";
 import SkillDevelopment from "./components/SkillDevelopment";
+import CarrierResources from "./Pages/CarrierResources";
+import JobDetail from "./Pages/JobDetail";
+import Jobs from "./Pages/Jobs";
+import MyApplication from "./Pages/MyAppication";
+import Profile from "./Pages/Profile";
 import Purchases from "./Pages/Purchases";
 import SavedApplication from "./Pages/SavedApplication";
 
 import PrivateRoute from "./components/PrivateRoute";
 
-// =====================================================
-// USER LAYOUT
-// =====================================================
-
 import UserLayout from "./components/UserLayout";
 
 // =====================================================
-// ADMIN IMPORTS
+// ADMIN
 // =====================================================
 
 import AdminLayout from "./admin/components/AdminLayout";
@@ -46,20 +42,18 @@ import SubscriptionCreate from "./admin/pages/SubscriptionCreate";
 import AdminGallery from "./admin/pages/Gallery";
 import Settings from "./admin/pages/Settings";
 import AdminLogin from "./admin/pages/AdminLogin";
-import AdminPrivateRoute from "./admin/AdminPrivateRoute";
-
 import AdminDashboard from "./admin/pages/Dashboard";
-
-// Future Admin Pages
-// import AdminUsers from "./admin/pages/AdminUsers";
-// import AdminJobs from "./admin/pages/AdminJobs";
-// import AdminApplications from "./admin/pages/AdminApplications";
-// import AdminSubscriptions from "./admin/pages/AdminSubscriptions";
-// import AdminGallery from "./admin/pages/AdminGallery";
-// import AdminContacts from "./admin/pages/AdminContacts";
-// import AdminSettings from "./admin/pages/AdminSettings";
+import TestimonialManagement from "./admin/pages/TestimonialManagement";
+import { getProfile } from "./redux/slicer/authSlice";
+import AdminProfile from "./admin/pages/AdminProfile";
 
 function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    dispatch(getProfile());
+  }, [dispatch]);
+
   return (
     <JobCategoryProvider>
       <ApplicationProvider>

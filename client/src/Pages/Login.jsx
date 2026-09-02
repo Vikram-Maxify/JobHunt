@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -13,8 +15,22 @@ import {
   UserRound,
 } from "lucide-react";
 
+import {
+  loginUser,
+  clearAuthError,
+  clearAuthSuccess,
+} from "../redux/slicer/authSlice";
+
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const {
+    loading,
+    error,
+    success,
+    isAuthenticated,
+  } = useSelector((state) => state.auth);
 
   const [showPassword, setShowPassword] = useState(false);
 
@@ -23,11 +39,8 @@ const Login = () => {
     password: "",
   });
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-
   // =========================================================
-  // HANDLE INPUT CHANGE
+  // INPUT CHANGE
   // =========================================================
 
   const handleChange = (e) => {
@@ -39,11 +52,11 @@ const Login = () => {
     }));
 
     if (error) {
-      setError("");
+      dispatch(clearAuthError());
     }
 
     if (success) {
-      setSuccess("");
+      dispatch(clearAuthSuccess());
     }
   };
 
@@ -51,129 +64,60 @@ const Login = () => {
   // HANDLE LOGIN
   // =========================================================
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    setError("");
-    setSuccess("");
+  dispatch(clearAuthError());
+  dispatch(clearAuthSuccess());
 
-    // =======================================================
-    // GET REGISTERED USERS
-    // =======================================================
+  const email = formData.email.trim().toLowerCase();
+  const password = formData.password;
+ 
 
-    let users = [];
+  if (!email || !password) {
+    return;
+  }
 
-    try {
-      users =
-        JSON.parse(
-          localStorage.getItem("careerSphereUsers")
-        ) || [];
-    } catch (error) {
-      console.error("Users data error:", error);
+  try {
+    const result = await dispatch(
+      loginUser({
+        email,
+        password,
+      })
+    );
 
-      setError(
-        "Something went wrong. Please try again."
+    if (loginUser.fulfilled.match(result)) {
+      // Navbar auth refresh
+      window.dispatchEvent(
+        new Event("careerSphereAuthChanged")
       );
 
-      return;
+      setTimeout(() => {
+        navigate("/");
+      }, 700);
     }
+  } catch (error) {
+    console.error(
+      "Login Error:",
+      error
+    );
+  }
+};
 
-    // =======================================================
-    // CHECK USERS
-    // =======================================================
+  // =========================================================
+  // AUTH SUCCESS FALLBACK
+  // =========================================================
 
-    if (!Array.isArray(users) || users.length === 0) {
-      setError(
-        "No account found. Please create an account first."
+  useEffect(() => {
+    if (isAuthenticated) {
+      window.dispatchEvent(
+        new Event("careerSphereAuthChanged")
       );
-
-      return;
     }
-
-    // =======================================================
-    // GET LOGIN VALUES
-    // =======================================================
-
-    const email = formData.email.trim().toLowerCase();
-    const password = formData.password;
-
-    // =======================================================
-    // FIND USER
-    // =======================================================
-
-    const user = users.find((item) => {
-      const userEmail = item?.email
-        ?.trim()
-        ?.toLowerCase();
-
-      return (
-        userEmail === email &&
-        item?.password === password
-      );
-    });
-
-    // =======================================================
-    // INVALID LOGIN
-    // =======================================================
-
-    if (!user) {
-      setError("Invalid email or password.");
-      return;
-    }
-
-    // =======================================================
-    // SAVE CURRENT LOGGED-IN USER
-    // IMPORTANT:
-    // Navbar also uses this same key
-    // =======================================================
-
-    localStorage.setItem(
-      "careerSphereCurrentUser",
-      JSON.stringify(user)
-    );
-
-    // =======================================================
-    // SAVE LOGIN STATUS
-    // =======================================================
-
-    localStorage.setItem(
-      "careerSphereIsLoggedIn",
-      "true"
-    );
-
-    // =======================================================
-    // NOTIFY NAVBAR
-    // This makes Navbar update immediately
-    // without refreshing the page
-    // =======================================================
-
-    window.dispatchEvent(
-      new Event("careerSphereAuthChange")
-    );
-
-    // =======================================================
-    // SUCCESS MESSAGE
-    // =======================================================
-
-    setSuccess(
-      "Login successful! Redirecting..."
-    );
-
-    // =======================================================
-    // REDIRECT TO HOME
-    // =======================================================
-
-    setTimeout(() => {
-      navigate("/");
-    }, 700);
-  };
+  }, [isAuthenticated]);
 
   return (
     <main className="min-h-[calc(100vh-72px)] overflow-x-hidden bg-slate-50">
-
-      {/* =====================================================
-          PAGE CONTAINER
-      ===================================================== */}
 
       <div className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
 
@@ -185,8 +129,6 @@ const Login = () => {
 
           <section className="relative hidden overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 lg:flex">
 
-            {/* Background Decorations */}
-
             <div className="pointer-events-none absolute inset-0">
 
               <div className="absolute -left-24 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
@@ -197,24 +139,14 @@ const Login = () => {
 
             </div>
 
-            {/* Content */}
-
             <div className="relative flex min-h-full w-full flex-col justify-between p-6 xl:p-9">
 
-              {/* =================================================
-                  TOP CONTENT
-              ================================================= */}
-
               <div>
-
-                {/* Logo */}
 
                 <div className="flex items-center gap-2.5">
 
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-blue-600 shadow-md">
-
                     <BriefcaseBusiness size={20} />
-
                   </div>
 
                   <div>
@@ -231,11 +163,7 @@ const Login = () => {
 
                 </div>
 
-                {/* Hero Content */}
-
                 <div className="mt-12 max-w-md xl:mt-14">
-
-                  {/* Badge */}
 
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md">
 
@@ -244,8 +172,6 @@ const Login = () => {
                     Welcome Back
 
                   </div>
-
-                  {/* Heading */}
 
                   <h1 className="text-3xl font-black leading-[1.1] tracking-tight text-white xl:text-4xl">
 
@@ -266,8 +192,6 @@ const Login = () => {
                   </p>
 
                 </div>
-
-                {/* Features */}
 
                 <div className="mt-7 space-y-2.5">
 
@@ -303,10 +227,6 @@ const Login = () => {
                 </div>
 
               </div>
-
-              {/* =================================================
-                  BOTTOM STATS
-              ================================================= */}
 
               <div className="mt-8 grid grid-cols-3 gap-2.5 xl:mt-10">
 
@@ -360,14 +280,12 @@ const Login = () => {
 
             <div className="w-full max-w-sm">
 
-              {/* Mobile Logo */}
+              {/* MOBILE LOGO */}
 
               <div className="mb-5 flex items-center justify-center gap-2.5 lg:hidden">
 
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white shadow-md">
-
                   <BriefcaseBusiness size={20} />
-
                 </div>
 
                 <div>
@@ -384,9 +302,7 @@ const Login = () => {
 
               </div>
 
-              {/* =================================================
-                  LOGIN HEADING
-              ================================================= */}
+              {/* HEADING */}
 
               <div className="text-center">
 
@@ -406,13 +322,11 @@ const Login = () => {
 
               </div>
 
-              {/* =================================================
-                  LOGIN CARD
-              ================================================= */}
+              {/* LOGIN CARD */}
 
               <div className="mt-5 rounded-2xl border border-gray-100 bg-white p-4 shadow-md shadow-gray-200/40 sm:p-5">
 
-                {/* Error */}
+                {/* ERROR */}
 
                 {error && (
                   <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs font-medium text-red-600">
@@ -420,19 +334,20 @@ const Login = () => {
                   </div>
                 )}
 
-                {/* Success */}
+                {/* SUCCESS */}
 
                 {success && (
                   <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5 text-xs font-medium text-green-600">
-                    {success}
+                    Login successful! Redirecting...
                   </div>
                 )}
 
-                {/* Google Login */}
+                {/* GOOGLE */}
 
                 <button
                   type="button"
-                  className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition-all duration-300 hover:border-blue-200 hover:bg-blue-50/40 sm:text-sm"
+                  disabled={loading}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition-all duration-300 hover:border-blue-200 hover:bg-blue-50/40 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
                 >
 
                   <Globe2
@@ -444,7 +359,7 @@ const Login = () => {
 
                 </button>
 
-                {/* Divider */}
+                {/* DIVIDER */}
 
                 <div className="my-4 flex items-center gap-3">
 
@@ -458,16 +373,14 @@ const Login = () => {
 
                 </div>
 
-                {/* =================================================
-                    FORM
-                ================================================= */}
+                {/* FORM */}
 
                 <form
                   onSubmit={handleSubmit}
                   className="space-y-3.5"
                 >
 
-                  {/* Email */}
+                  {/* EMAIL */}
 
                   <div>
 
@@ -494,14 +407,15 @@ const Login = () => {
                         placeholder="Enter your email"
                         autoComplete="email"
                         required
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-xs text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:text-sm"
+                        disabled={loading}
+                        className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-3 text-xs text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
                       />
 
                     </div>
 
                   </div>
 
-                  {/* Password */}
+                  {/* PASSWORD */}
 
                   <div>
 
@@ -546,7 +460,8 @@ const Login = () => {
                         placeholder="Enter your password"
                         autoComplete="current-password"
                         required
-                        className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-10 text-xs text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:text-sm"
+                        disabled={loading}
+                        className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-10 text-xs text-gray-800 outline-none transition-all placeholder:text-gray-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm"
                       />
 
                       <button
@@ -554,7 +469,8 @@ const Login = () => {
                         onClick={() =>
                           setShowPassword((prev) => !prev)
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-blue-600"
+                        disabled={loading}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition hover:text-blue-600 disabled:opacity-50"
                         aria-label="Toggle password visibility"
                       >
 
@@ -570,13 +486,14 @@ const Login = () => {
 
                   </div>
 
-                  {/* Remember Me */}
+                  {/* REMEMBER */}
 
                   <div className="flex items-center gap-2 pt-0.5">
 
                     <input
                       id="remember"
                       type="checkbox"
+                      disabled={loading}
                       className="h-3.5 w-3.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
 
@@ -589,25 +506,36 @@ const Login = () => {
 
                   </div>
 
-                  {/* Submit */}
+                  {/* SUBMIT */}
 
                   <button
                     type="submit"
-                    className="group flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg sm:text-sm"
+                    disabled={loading}
+                    className="group flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-300 hover:-translate-y-0.5 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0 sm:text-sm"
                   >
 
-                    Sign In
+                    {loading ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
 
-                    <ArrowRight
-                      size={16}
-                      className="transition-transform duration-300 group-hover:translate-x-1"
-                    />
+                        Signing In...
+                      </>
+                    ) : (
+                      <>
+                        Sign In
+
+                        <ArrowRight
+                          size={16}
+                          className="transition-transform duration-300 group-hover:translate-x-1"
+                        />
+                      </>
+                    )}
 
                   </button>
 
                 </form>
 
-                {/* Register */}
+                {/* REGISTER */}
 
                 <div className="mt-4 text-center">
 
@@ -629,7 +557,7 @@ const Login = () => {
 
               </div>
 
-              {/* Security */}
+              {/* SECURITY */}
 
               <div className="mt-3 flex items-center justify-center gap-1.5 text-[10px] text-gray-400 sm:text-[11px]">
 

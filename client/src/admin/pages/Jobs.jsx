@@ -1,6 +1,7 @@
 // src/admin/pages/Jobs.jsx
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Search,
   Plus,
@@ -17,284 +18,34 @@ import {
   MapPin,
   Building2,
   Users,
-  Clock,
   IndianRupee,
-  Eye,
-  Filter,
-  ChevronDown,
   PlusCircle,
-  Trash,
-  Tag,
-  ListChecks,
-  FileText,
 } from "lucide-react";
 import StateCard from "../components/StateCard";
 import { useJobCategories } from "../context/JobCategoryContext";
-
-// Mock Jobs data - Replace with API integration
-const mockJobsData = [
-  {
-    id: "JOB001",
-    title: "Frontend Developer",
-    company: "Infosys",
-    categoryId: "CAT001",
-    categoryName: "Information Technology",
-    location: "Bangalore, India",
-    jobType: "Full Time",
-    experience: "0-3 Yrs",
-    salary: "₹5-9 LPA",
-    description:
-      "Build responsive web applications using modern frontend technologies and reusable components.",
-    responsibilities: [
-      "Manage daily activities and coordinate with different teams.",
-      "Maintain smooth communication with internal stakeholders.",
-      "Monitor operational performance and achieve targets.",
-      "Prepare reports and maintain required documentation.",
-      "Work collaboratively with team members and management.",
-    ],
-    requirements: [
-      "Good communication and interpersonal skills.",
-      "Ability to work independently and as part of a team.",
-      "Strong problem-solving and analytical skills.",
-      "Relevant experience in the required field.",
-      "Good understanding of the job responsibilities.",
-    ],
-    skills: ["React", "JavaScript", "HTML", "CSS", "Tailwind"],
-    applicantCount: 156,
-    status: "active",
-    createdAt: "2024-01-15",
-    updatedAt: "2024-01-15",
-  },
-  {
-    id: "JOB002",
-    title: "Backend Developer",
-    company: "TCS",
-    categoryId: "CAT001",
-    categoryName: "Information Technology",
-    location: "Mumbai, India",
-    jobType: "Full Time",
-    experience: "3-5 Yrs",
-    salary: "₹8-15 LPA",
-    description:
-      "Design and develop scalable backend services and APIs for enterprise applications.",
-    responsibilities: [
-      "Design and implement RESTful APIs.",
-      "Optimize database queries and performance.",
-      "Collaborate with frontend developers.",
-      "Write clean, maintainable code.",
-      "Participate in code reviews.",
-    ],
-    requirements: [
-      "Strong knowledge of Node.js or Java.",
-      "Experience with databases like PostgreSQL or MongoDB.",
-      "Understanding of microservices architecture.",
-      "Good problem-solving skills.",
-      "Team player with good communication.",
-    ],
-    skills: ["Node.js", "Express", "MongoDB", "SQL", "Docker"],
-    applicantCount: 89,
-    status: "active",
-    createdAt: "2024-01-20",
-    updatedAt: "2024-01-20",
-  },
-  {
-    id: "JOB003",
-    title: "UI/UX Designer",
-    company: "Wipro",
-    categoryId: "CAT006",
-    categoryName: "Design",
-    location: "Remote",
-    jobType: "Full Time",
-    experience: "1-3 Yrs",
-    salary: "₹4-8 LPA",
-    description:
-      "Create user-centered designs for web and mobile applications.",
-    responsibilities: [
-      "Create wireframes and prototypes.",
-      "Conduct user research and testing.",
-      "Design user interfaces and interactions.",
-      "Collaborate with developers.",
-      "Maintain design systems.",
-    ],
-    requirements: [
-      "Proficiency in Figma or Adobe XD.",
-      "Understanding of user-centered design principles.",
-      "Portfolio demonstrating design work.",
-      "Good visual design skills.",
-      "Ability to accept and implement feedback.",
-    ],
-    skills: ["Figma", "Adobe XD", "Prototyping", "UI Design", "UX Research"],
-    applicantCount: 67,
-    status: "active",
-    createdAt: "2024-02-01",
-    updatedAt: "2024-02-01",
-  },
-  {
-    id: "JOB004",
-    title: "Digital Marketing Manager",
-    company: "Accenture",
-    categoryId: "CAT002",
-    categoryName: "Marketing",
-    location: "Delhi, India",
-    jobType: "Full Time",
-    experience: "5+ Yrs",
-    salary: "₹12-20 LPA",
-    description: "Lead digital marketing campaigns and drive brand growth.",
-    responsibilities: [
-      "Develop marketing strategies.",
-      "Manage social media campaigns.",
-      "Analyze marketing metrics.",
-      "Lead a team of marketers.",
-      "Coordinate with external agencies.",
-    ],
-    requirements: [
-      "Proven experience in digital marketing.",
-      "Strong analytical skills.",
-      "Experience with marketing tools.",
-      "Leadership abilities.",
-      "Excellent communication skills.",
-    ],
-    skills: ["SEO", "SEM", "Social Media", "Analytics", "Content Strategy"],
-    applicantCount: 45,
-    status: "active",
-    createdAt: "2024-02-10",
-    updatedAt: "2024-02-10",
-  },
-  {
-    id: "JOB005",
-    title: "Data Analyst",
-    company: "Cognizant",
-    categoryId: "CAT001",
-    categoryName: "Information Technology",
-    location: "Chennai, India",
-    jobType: "Full Time",
-    experience: "1-3 Yrs",
-    salary: "₹4-7 LPA",
-    description:
-      "Analyze data to provide actionable insights for business decisions.",
-    responsibilities: [
-      "Collect and analyze data.",
-      "Create reports and dashboards.",
-      "Identify trends and patterns.",
-      "Present findings to stakeholders.",
-      "Collaborate with teams.",
-    ],
-    requirements: [
-      "Proficiency in SQL and Excel.",
-      "Experience with data visualization tools.",
-      "Strong analytical mindset.",
-      "Attention to detail.",
-      "Good communication skills.",
-    ],
-    skills: ["SQL", "Python", "Excel", "Power BI", "Statistics"],
-    applicantCount: 78,
-    status: "draft",
-    createdAt: "2024-03-01",
-    updatedAt: "2024-03-01",
-  },
-  {
-    id: "JOB006",
-    title: "Sales Executive",
-    company: "HDFC Bank",
-    categoryId: "CAT005",
-    categoryName: "Sales",
-    location: "Pune, India",
-    jobType: "Full Time",
-    experience: "0-3 Yrs",
-    salary: "₹3-6 LPA",
-    description: "Generate leads and close sales for banking products.",
-    responsibilities: [
-      "Identify potential customers.",
-      "Present products to clients.",
-      "Negotiate and close deals.",
-      "Maintain customer relationships.",
-      "Achieve sales targets.",
-    ],
-    requirements: [
-      "Good communication skills.",
-      "Sales-oriented mindset.",
-      "Ability to work under pressure.",
-      "Customer service experience.",
-      "Goal-driven attitude.",
-    ],
-    skills: ["Communication", "Negotiation", "CRM", "Lead Generation"],
-    applicantCount: 34,
-    status: "active",
-    createdAt: "2024-03-10",
-    updatedAt: "2024-03-10",
-  },
-  {
-    id: "JOB007",
-    title: "Content Writer",
-    company: "Zoho",
-    categoryId: "CAT002",
-    categoryName: "Marketing",
-    location: "Remote",
-    jobType: "Part Time",
-    experience: "0-3 Yrs",
-    salary: "₹2-4 LPA",
-    description:
-      "Create engaging content for blogs, websites, and social media.",
-    responsibilities: [
-      "Write blog posts and articles.",
-      "Create social media content.",
-      "Edit and proofread content.",
-      "Research industry topics.",
-      "Optimize content for SEO.",
-    ],
-    requirements: [
-      "Excellent writing skills.",
-      "Understanding of SEO.",
-      "Ability to meet deadlines.",
-      "Creative thinking.",
-      "Basic knowledge of content tools.",
-    ],
-    skills: ["Writing", "SEO", "Editing", "Research", "WordPress"],
-    applicantCount: 23,
-    status: "active",
-    createdAt: "2024-03-15",
-    updatedAt: "2024-03-15",
-  },
-  {
-    id: "JOB008",
-    title: "HR Recruiter",
-    company: "Amazon",
-    categoryId: "CAT007",
-    categoryName: "Human Resources",
-    location: "Hyderabad, India",
-    jobType: "Full Time",
-    experience: "3-5 Yrs",
-    salary: "₹6-10 LPA",
-    description: "Manage recruitment process and talent acquisition.",
-    responsibilities: [
-      "Source and screen candidates.",
-      "Conduct interviews.",
-      "Coordinate with hiring managers.",
-      "Maintain candidate database.",
-      "Ensure smooth onboarding.",
-    ],
-    requirements: [
-      "Experience in recruitment.",
-      "Good communication skills.",
-      "Understanding of HR processes.",
-      "Ability to multitask.",
-      "Professional attitude.",
-    ],
-    skills: ["Recruitment", "Interviewing", "HR Software", "Communication"],
-    applicantCount: 12,
-    status: "closed",
-    createdAt: "2024-04-01",
-    updatedAt: "2024-04-01",
-  },
-];
+import {
+  getAllJobsAdmin,
+  deleteJob,
+  updateJob,
+  toggleJobStatus,
+  toggleFeatured,
+  toggleUrgent,
+} from "../../redux/slicer/jobSlice";
 
 const Jobs = () => {
   const navigate = useNavigate();
-  // State Management
-  const [jobs, setJobs] = useState([]);
+  const dispatch = useDispatch();
+
+  // Redux state
+  const jobs = useSelector((state) => state.jobs?.adminJobs || []);
+  const loading = useSelector((state) => state.jobs?.loading || false);
+  const error = useSelector((state) => state.jobs?.error || null);
+  const deleteLoading = useSelector((state) => state.jobs?.deleteLoading || false);
+  const updateLoading = useSelector((state) => state.jobs?.updateLoading || false);
+  const successMessage = useSelector((state) => state.jobs?.successMessage || null);
+
   const { categories, activeCategories } = useJobCategories();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
@@ -304,24 +55,25 @@ const Jobs = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Fetch jobs - Replace with actual API call
+  // Fetch jobs
   const fetchJobs = useCallback(async () => {
-    setLoading(true);
-    setError(null);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setJobs(mockJobsData);
+      await dispatch(getAllJobsAdmin()).unwrap();
     } catch (err) {
-      setError("Failed to load jobs. Please try again.");
-    } finally {
-      setLoading(false);
+      console.error("Failed to fetch jobs:", err);
     }
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     fetchJobs();
   }, [fetchJobs]);
+
+  // Show success notification
+  useEffect(() => {
+    if (successMessage) {
+      showNotification(successMessage, "success");
+    }
+  }, [successMessage]);
 
   // Calculate statistics dynamically
   const statistics = useMemo(() => {
@@ -354,10 +106,14 @@ const Jobs = () => {
   }, [categories]);
 
   const getJobCategoryName = useCallback(
-    (job) =>
-      categoryNameById[job.categoryId] ||
-      job.categoryName ||
-      "Deleted Category",
+    (job) => {
+      // Try to get category name from categories list
+      const catName = categoryNameById[job.categoryId];
+      if (catName) return catName;
+      
+      // If not found, try to get from job's categoryName or category field
+      return job.categoryName || job.category?.name || "Deleted Category";
+    },
     [categoryNameById],
   );
 
@@ -370,9 +126,9 @@ const Jobs = () => {
       const searchLower = searchTerm.toLowerCase().trim();
       result = result.filter(
         (job) =>
-          job.title.toLowerCase().includes(searchLower) ||
-          job.company.toLowerCase().includes(searchLower) ||
-          job.location.toLowerCase().includes(searchLower) ||
+          job.title?.toLowerCase().includes(searchLower) ||
+          job.company?.toLowerCase().includes(searchLower) ||
+          job.location?.toLowerCase().includes(searchLower) ||
           getJobCategoryName(job).toLowerCase().includes(searchLower),
       );
     }
@@ -391,13 +147,13 @@ const Jobs = () => {
         result.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         break;
       case "title":
-        result.sort((a, b) => a.title.localeCompare(b.title));
+        result.sort((a, b) => (a.title || "").localeCompare(b.title || ""));
         break;
       case "company":
-        result.sort((a, b) => a.company.localeCompare(b.company));
+        result.sort((a, b) => (a.company || "").localeCompare(b.company || ""));
         break;
       case "applicants":
-        result.sort((a, b) => b.applicantCount - a.applicantCount);
+        result.sort((a, b) => (b.applicantCount || 0) - (a.applicantCount || 0));
         break;
       default:
         break;
@@ -415,16 +171,39 @@ const Jobs = () => {
   // Handle save edited job
   const handleSaveJob = async (updatedJob) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setJobs((prevJobs) =>
-        prevJobs.map((job) => (job.id === updatedJob.id ? updatedJob : job)),
-      );
-      setIsEditModalOpen(false);
-      setEditingJob(null);
-      showNotification("Job updated successfully", "success");
+      // Get the job ID
+      const jobId = updatedJob.id || updatedJob._id;
+      
+      if (!jobId) {
+        showNotification("Job ID is missing", "error");
+        return;
+      }
+
+      // Create a copy without the id field since it's sent in the URL
+      const { id, _id, ...jobData } = updatedJob;
+
+      // Make sure category is sent as categoryId
+      const submitData = {
+        ...jobData,
+        categoryId: jobData.category || jobData.categoryId,
+      };
+      
+      // Remove the category field if it exists (use categoryId instead)
+      delete submitData.category;
+
+      const result = await dispatch(updateJob({
+        id: jobId,
+        jobData: submitData
+      })).unwrap();
+
+      if (result?.success) {
+        showNotification(result?.message || "Job updated successfully", "success");
+        setIsEditModalOpen(false);
+        setEditingJob(null);
+        await fetchJobs(); // Refresh the list
+      }
     } catch (err) {
-      showNotification("Failed to update job", "error");
+      showNotification(typeof err === 'string' ? err : "Failed to update job", "error");
     }
   };
 
@@ -439,16 +218,33 @@ const Jobs = () => {
     if (!deletingJob) return;
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      setJobs((prevJobs) =>
-        prevJobs.filter((job) => job.id !== deletingJob.id),
-      );
-      setIsDeleteModalOpen(false);
-      setDeletingJob(null);
-      showNotification("Job deleted successfully", "success");
+      const result = await dispatch(deleteJob(deletingJob.id || deletingJob._id)).unwrap();
+
+      if (result?.success) {
+        showNotification(result?.message || "Job deleted successfully", "success");
+        setIsDeleteModalOpen(false);
+        setDeletingJob(null);
+        await fetchJobs(); // Refresh the list
+      }
     } catch (err) {
-      showNotification("Failed to delete job", "error");
+      showNotification(typeof err === 'string' ? err : "Failed to delete job", "error");
+    }
+  };
+
+  // Toggle job status
+  const handleToggleStatus = async (job, newStatus) => {
+    try {
+      const result = await dispatch(toggleJobStatus({
+        id: job.id || job._id,
+        status: newStatus
+      })).unwrap();
+
+      if (result?.success) {
+        showNotification(result?.message || "Job status updated", "success");
+        await fetchJobs();
+      }
+    } catch (err) {
+      showNotification(typeof err === 'string' ? err : "Failed to update status", "error");
     }
   };
 
@@ -469,6 +265,7 @@ const Jobs = () => {
 
   // Format date
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
       month: "short",
@@ -478,17 +275,18 @@ const Jobs = () => {
 
   // Format applicants count
   const formatApplicants = (count) => {
+    if (!count) return "0";
     if (count >= 200) return "200+";
     return count.toString();
   };
 
   // Loading state
-  if (loading) {
+  if (loading && jobs.length === 0) {
     return <JobsLoadingState />;
   }
 
   // Error state
-  if (error) {
+  if (error && jobs.length === 0) {
     return <JobsErrorState error={error} onRetry={fetchJobs} />;
   }
 
@@ -664,7 +462,7 @@ const Jobs = () => {
                 <tbody className="divide-y divide-slate-50">
                   {filteredJobs.map((job) => (
                     <tr
-                      key={job.id}
+                      key={job.id || job._id}
                       className="hover:bg-slate-50/50 transition-colors group"
                     >
                       {/* Job */}
@@ -753,7 +551,7 @@ const Jobs = () => {
             {/* Mobile/Tablet Card View */}
             <div className="lg:hidden divide-y divide-slate-100">
               {filteredJobs.map((job) => (
-                <div key={job.id} className="p-4 space-y-3">
+                <div key={job.id || job._id} className="p-4 space-y-3">
                   {/* Job Info */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
@@ -849,6 +647,7 @@ const Jobs = () => {
             setDeletingJob(null);
           }}
           onConfirm={handleConfirmDelete}
+          isDeleting={deleteLoading}
         />
       )}
 
@@ -873,7 +672,7 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
   const [formData, setFormData] = useState({
     title: job?.title || "",
     company: job?.company || "",
-    categoryId: job?.categoryId || "",
+    categoryId: job?.categoryId || job?.category || "",
     location: job?.location || "",
     jobType: job?.jobType || "Full Time",
     experience: job?.experience || "0-3 Yrs",
@@ -887,8 +686,9 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
   const [newSkill, setNewSkill] = useState("");
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  
   const hasSelectedCategory = categories.some(
-    (category) => category.id === formData.categoryId,
+    (category) => category.id === formData.categoryId || category._id === formData.categoryId,
   );
 
   const validate = () => {
@@ -925,23 +725,42 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
 
     setIsSaving(true);
 
-    const selectedCategory = categories.find(
-      (c) => c.id === formData.categoryId,
-    );
-    const jobData = {
-      ...formData,
-      id: job?.id || `JOB${String(Date.now()).slice(-6)}`,
-      categoryName:
-        selectedCategory?.name || job?.categoryName || "Deleted Category",
-      responsibilities: formData.responsibilities.filter((r) => r.trim()),
-      requirements: formData.requirements.filter((r) => r.trim()),
-      applicantCount: job?.applicantCount || 0,
-      createdAt: job?.createdAt || new Date().toISOString().split("T")[0],
-      updatedAt: new Date().toISOString().split("T")[0],
-    };
+    try {
+      // Find selected category
+      const selectedCategory = categories.find(
+        (c) => c.id === formData.categoryId || c._id === formData.categoryId,
+      );
 
-    await onSave(jobData);
-    setIsSaving(false);
+      // Get the actual category ID
+      const categoryObjectId = selectedCategory?._id || selectedCategory?.id || formData.categoryId;
+
+      const jobData = {
+        title: formData.title.trim(),
+        company: formData.company.trim(),
+        categoryId: categoryObjectId, // Use categoryId (not category)
+        categoryName: selectedCategory?.name || job?.categoryName || "Deleted Category",
+        location: formData.location.trim(),
+        jobType: formData.jobType,
+        experience: formData.experience,
+        salary: formData.salary.trim(),
+        description: formData.description.trim(),
+        responsibilities: formData.responsibilities.filter((r) => r.trim()),
+        requirements: formData.requirements.filter((r) => r.trim()),
+        skills: formData.skills,
+        status: formData.status,
+      };
+
+      // If it's an edit, include the job ID
+      if (job?.id || job?._id) {
+        jobData.id = job.id || job._id;
+      }
+
+      await onSave(jobData);
+    } catch (error) {
+      console.error("Error saving job:", error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleResponsibilityChange = (index, value) => {
@@ -1380,15 +1199,7 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
 };
 
 // Delete Job Modal Component
-const DeleteJobModal = ({ job, onClose, onConfirm }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    await onConfirm();
-    setIsDeleting(false);
-  };
-
+const DeleteJobModal = ({ job, onClose, onConfirm, isDeleting }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
@@ -1402,7 +1213,7 @@ const DeleteJobModal = ({ job, onClose, onConfirm }) => {
                 Delete Job?
               </h3>
               <p className="text-sm text-slate-500 mt-1">
-                Are you sure you want to delete "{job.title}"? This action
+                Are you sure you want to delete "{job?.title}"? This action
                 cannot be undone.
               </p>
             </div>
@@ -1415,8 +1226,8 @@ const DeleteJobModal = ({ job, onClose, onConfirm }) => {
           </div>
 
           <div className="mt-4 p-4 bg-slate-50 rounded-xl">
-            <p className="text-sm text-slate-700">{job.title}</p>
-            <p className="text-xs text-slate-500">{job.company}</p>
+            <p className="text-sm text-slate-700">{job?.title}</p>
+            <p className="text-xs text-slate-500">{job?.company}</p>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
@@ -1427,7 +1238,7 @@ const DeleteJobModal = ({ job, onClose, onConfirm }) => {
               Cancel
             </button>
             <button
-              onClick={handleDelete}
+              onClick={onConfirm}
               disabled={isDeleting}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >

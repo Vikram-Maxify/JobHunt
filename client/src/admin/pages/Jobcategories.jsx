@@ -33,11 +33,22 @@ import {
   Grid,
   List,
   SlidersHorizontal,
+  Upload,
+  Image as ImageIcon,
 } from "lucide-react";
 import StateCard from "../components/StateCard";
-import { useJobCategories } from "../context/JobCategoryContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getAdminCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  clearCategoryError,
+  clearCategoryMessage,
+  clearCategoryState,
+} from "../../redux/slicer/categorySlice";
 
-// Icon mapping for categories
+// Fallback icon mapping (used when no image is available)
 const iconMap = {
   Code2: Code2,
   Megaphone: Megaphone,
@@ -58,14 +69,42 @@ const iconMap = {
 };
 
 const JobCategories = () => {
-  // State Management
-  const { categories, setCategories } = useJobCategories();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+
+  // Redux state
+  const {
+    categories: rawCategories,
+    loading,
+    error,
+    createLoading,
+    updateLoading,
+    deleteLoading,
+    success,
+    message,
+  } = useSelector((state) => state.categories);
+
+  // Map backend fields to UI-friendly format
+  const categories = useMemo(
+    () =>
+      rawCategories.map((cat) => ({
+        ...cat,
+        id: cat._id,
+        // Map schema fields
+        imageUrl: cat.image || null,
+        status: cat.isActive ? "active" : "inactive",
+        totalJobs: cat.jobCount || 0,
+        description: cat.shortDescription || "",
+        // Keep original for editing
+        original: cat,
+      })),
+    [rawCategories]
+  );
+
+  // Local UI state
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
-  const [viewMode, setViewMode] = useState("table"); // table or grid
+  const [viewMode, setViewMode] = useState("table");
   const [editingCategory, setEditingCategory] = useState(null);
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -73,58 +112,55 @@ const JobCategories = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Categories currently come from shared Context + localStorage.
-  // This can be replaced with an API-backed provider later without changing this page.
-  const fetchCategories = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    } catch (err) {
-      setError("Failed to load categories. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+  // Fetch categories on mount
   useEffect(() => {
-    fetchCategories();
-  }, [fetchCategories]);
+    dispatch(getAdminCategories());
+  }, [dispatch]);
 
-  // Calculate statistics dynamically
+  // Clear Redux messages on unmount
+  useEffect(() => {
+    return () => {
+      dispatch(clearCategoryState());
+    };
+  }, [dispatch]);
+
+  // Show notifications from Redux
+  useEffect(() => {
+    if (success && message) {
+      showNotification(message, "success");
+      dispatch(clearCategoryMessage());
+    }
+    if (error) {
+      showNotification(error, "error");
+      dispatch(clearCategoryError());
+    }
+  }, [success, error, message, dispatch]);
+
+  // Statistics
   const statistics = useMemo(() => {
     const totalCategories = categories.length;
     const activeCategories = categories.filter(
-      (cat) => cat.status === "active",
+      (cat) => cat.status === "active"
     ).length;
     const totalJobs = categories.reduce(
       (sum, cat) => sum + (cat.totalJobs || 0),
-      0,
+      0
     );
-
-    return {
-      totalCategories,
-      activeCategories,
-      totalJobs,
-    };
+    return { totalCategories, activeCategories, totalJobs };
   }, [categories]);
 
-  // Filter and search categories
+  // Filter and search
   const filteredCategories = useMemo(() => {
     let result = [...categories];
-
-    // Apply search
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase().trim();
       result = result.filter(
         (cat) =>
           cat.name.toLowerCase().includes(searchLower) ||
           (cat.description &&
-            cat.description.toLowerCase().includes(searchLower)),
+            cat.description.toLowerCase().includes(searchLower))
       );
     }
-
-    // Apply status filter
     switch (filterType) {
       case "active":
         result = result.filter((cat) => cat.status === "active");
@@ -135,8 +171,6 @@ const JobCategories = () => {
       default:
         break;
     }
-
-    // Apply sort
     switch (sortOrder) {
       case "newest":
         result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -156,90 +190,85 @@ const JobCategories = () => {
       default:
         break;
     }
-
     return result;
   }, [categories, searchTerm, filterType, sortOrder]);
 
-  // Handle add category
-  const handleAddCategory = async (newCategory) => {
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+  // Handlers with Redux dispatch
 
-      setCategories((prevCategories) => [...prevCategories, newCategory]);
-      setIsAddModalOpen(false);
-      showNotification("Category added successfully", "success");
-    } catch (err) {
-      showNotification("Failed to add category", "error");
-    }
-  };
+const handleAddCategory = async (newCategory, file) => {
+  const formData = new FormData();
 
-  // Handle edit category
+  formData.append("name", newCategory.name);
+  formData.append(
+    "shortDescription",
+    newCategory.shortDescription || ""
+  );
+  formData.append(
+    "isActive",
+    newCategory.isActive ? "true" : "false"
+  );
+
+  if (file) {
+    formData.append("image", file);
+  }
+
+  console.log("Category file:", file);
+  console.log("Category file name:", file?.name);
+
+  await dispatch(createCategory(formData));
+};
+
   const handleEditCategory = (category) => {
     setEditingCategory(category);
     setIsEditModalOpen(true);
   };
 
-  // Handle save edited category
-  const handleSaveCategory = async (updatedCategory) => {
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
+ const handleSaveCategory = async (updatedCategory, file) => {
+  // Make sure we have the ID
+  console.log("Saving category with ID:", updatedCategory.id);
+  
+  const formData = new FormData();
+  formData.append("name", updatedCategory.name);
+  formData.append("shortDescription", updatedCategory.shortDescription || "");
+  formData.append("isActive", updatedCategory.isActive ? "true" : "false");
+  if (file) {
+    formData.append("image", file);
+  }
+  
+  // Pass the ID correctly
+  await dispatch(updateCategory({ 
+    id: updatedCategory.id,  // Make sure this exists
+    formData 
+  }));
+  
+  setIsEditModalOpen(false);
+  setEditingCategory(null);
+};
 
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) =>
-          cat.id === updatedCategory.id ? updatedCategory : cat,
-        ),
-      );
-      setIsEditModalOpen(false);
-      setEditingCategory(null);
-      showNotification("Category updated successfully", "success");
-    } catch (err) {
-      showNotification("Failed to update category", "error");
-    }
-  };
-
-  // Handle delete category
   const handleDeleteCategory = (category) => {
     setDeletingCategory(category);
     setIsDeleteModalOpen(true);
   };
 
-  // Confirm delete category
   const handleConfirmDelete = async () => {
     if (!deletingCategory) return;
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
-      setCategories((prevCategories) =>
-        prevCategories.filter((cat) => cat.id !== deletingCategory.id),
-      );
-      setIsDeleteModalOpen(false);
-      setDeletingCategory(null);
-      showNotification("Category deleted successfully", "success");
-    } catch (err) {
-      showNotification("Failed to delete category", "error");
-    }
+    await dispatch(deleteCategory(deletingCategory.id));
+    setIsDeleteModalOpen(false);
+    setDeletingCategory(null);
   };
 
-  // Show notification
+  // Helper functions
   const showNotification = (message, type) => {
     setNotification({ message, type });
-    setTimeout(() => {
-      setNotification(null);
-    }, 3000);
+    setTimeout(() => setNotification(null), 3000);
   };
 
-  // Clear filters
   const clearFilters = () => {
     setSearchTerm("");
     setFilterType("all");
     setSortOrder("newest");
   };
 
-  // Format date
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-IN", {
       year: "numeric",
@@ -248,9 +277,18 @@ const JobCategories = () => {
     });
   };
 
-  // Get category icon component
-  const getCategoryIcon = (iconName) => {
-    const IconComponent = iconMap[iconName] || FolderOpen;
+  // Display category icon: image if available, else fallback to icon component
+  const getCategoryIcon = (category) => {
+    if (category.imageUrl) {
+      return (
+        <img
+          src={category.imageUrl}
+          alt={category.name}
+          className="w-5 h-5 object-contain"
+        />
+      );
+    }
+    const IconComponent = iconMap[category.icon] || FolderOpen;
     return <IconComponent className="w-5 h-5" />;
   };
 
@@ -261,7 +299,9 @@ const JobCategories = () => {
 
   // Error state
   if (error) {
-    return <CategoriesErrorState error={error} onRetry={fetchCategories} />;
+    return (
+      <CategoriesErrorState error={error} onRetry={() => dispatch(getAdminCategories())} />
+    );
   }
 
   return (
@@ -329,8 +369,6 @@ const JobCategories = () => {
                   {filteredCategories.length !== 1 ? "ies" : "y"}
                 </p>
               </div>
-
-              {/* View Toggle */}
               <div className="hidden sm:flex items-center gap-1 bg-slate-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode("table")}
@@ -359,19 +397,16 @@ const JobCategories = () => {
 
             {/* Search and Filters */}
             <div className="flex flex-col gap-3">
-              {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search by name or description..."
+                  placeholder="Search by name or short description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition-colors"
                 />
               </div>
-
-              {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <div className="relative flex-1">
                   <SlidersHorizontal className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -385,7 +420,6 @@ const JobCategories = () => {
                     <option value="inactive">Inactive</option>
                   </select>
                 </div>
-
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value)}
@@ -397,19 +431,14 @@ const JobCategories = () => {
                   <option value="most-jobs">Most Jobs</option>
                   <option value="least-jobs">Least Jobs</option>
                 </select>
-
-                {(searchTerm ||
-                  filterType !== "all" ||
-                  sortOrder !== "newest") && (
+                {(searchTerm || filterType !== "all" || sortOrder !== "newest") && (
                   <button
                     onClick={clearFilters}
                     className="w-full sm:w-auto p-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 transition-colors flex items-center justify-center gap-2"
                     title="Clear filters"
                   >
                     <X className="w-4 h-4 text-slate-500" />
-                    <span className="sm:hidden text-sm text-slate-600">
-                      Clear
-                    </span>
+                    <span className="sm:hidden text-sm text-slate-600">Clear</span>
                   </button>
                 )}
               </div>
@@ -456,12 +485,11 @@ const JobCategories = () => {
                           key={category.id}
                           className="hover:bg-slate-50/50 transition-colors group"
                         >
-                          {/* Category */}
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
                               <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
                                 <div className="text-blue-600">
-                                  {getCategoryIcon(category.icon)}
+                                  {getCategoryIcon(category)}
                                 </div>
                               </div>
                               <div className="min-w-0">
@@ -474,16 +502,12 @@ const JobCategories = () => {
                               </div>
                             </div>
                           </td>
-
-                          {/* Total Jobs */}
                           <td className="px-6 py-4">
                             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
                               <Briefcase className="w-3.5 h-3.5" />
-                              {category.totalJobs || 0} jobs
+                              {category.totalJobs} jobs
                             </span>
                           </td>
-
-                          {/* Status */}
                           <td className="px-6 py-4">
                             <span
                               className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
@@ -499,21 +523,15 @@ const JobCategories = () => {
                                     : "bg-slate-400"
                                 }`}
                               ></span>
-                              {category.status === "active"
-                                ? "Active"
-                                : "Inactive"}
+                              {category.status === "active" ? "Active" : "Inactive"}
                             </span>
                           </td>
-
-                          {/* Created Date */}
                           <td className="px-6 py-4">
                             <p className="text-sm text-slate-700 flex items-center gap-1.5">
                               <Calendar className="w-3.5 h-3.5 text-slate-400" />
                               {formatDate(category.createdAt)}
                             </p>
                           </td>
-
-                          {/* Actions */}
                           <td className="px-6 py-4">
                             <div className="flex items-center justify-end gap-2">
                               <button
@@ -542,12 +560,11 @@ const JobCategories = () => {
                 <div className="md:hidden divide-y divide-slate-100">
                   {filteredCategories.map((category) => (
                     <div key={category.id} className="p-4 space-y-3">
-                      {/* Category Info */}
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-slate-200 flex items-center justify-center flex-shrink-0">
                             <div className="text-blue-600">
-                              {getCategoryIcon(category.icon)}
+                              {getCategoryIcon(category)}
                             </div>
                           </div>
                           <div className="min-w-0">
@@ -559,8 +576,6 @@ const JobCategories = () => {
                             </p>
                           </div>
                         </div>
-
-                        {/* Actions */}
                         <div className="flex gap-1 flex-shrink-0">
                           <button
                             onClick={() => handleEditCategory(category)}
@@ -578,14 +593,11 @@ const JobCategories = () => {
                           </button>
                         </div>
                       </div>
-
-                      {/* Stats and Status */}
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700">
                           <Briefcase className="w-3.5 h-3.5" />
-                          {category.totalJobs || 0} jobs
+                          {category.totalJobs} jobs
                         </span>
-
                         <span
                           className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${
                             category.status === "active"
@@ -602,7 +614,6 @@ const JobCategories = () => {
                           ></span>
                           {category.status === "active" ? "Active" : "Inactive"}
                         </span>
-
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-50 text-slate-600">
                           <Calendar className="w-3 h-3" />
                           {formatDate(category.createdAt)}
@@ -624,7 +635,7 @@ const JobCategories = () => {
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-slate-200 flex items-center justify-center">
                           <div className="text-blue-600">
-                            {getCategoryIcon(category.icon)}
+                            {getCategoryIcon(category)}
                           </div>
                         </div>
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -644,18 +655,16 @@ const JobCategories = () => {
                           </button>
                         </div>
                       </div>
-
                       <h3 className="text-sm font-semibold text-slate-800 mb-1">
                         {category.name}
                       </h3>
                       <p className="text-xs text-slate-500 mb-3 line-clamp-2">
                         {category.description || "No description"}
                       </p>
-
                       <div className="flex items-center justify-between">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
                           <Briefcase className="w-3 h-3" />
-                          {category.totalJobs || 0} jobs
+                          {category.totalJobs} jobs
                         </span>
                         <span
                           className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -674,7 +683,6 @@ const JobCategories = () => {
                           {category.status === "active" ? "Active" : "Inactive"}
                         </span>
                       </div>
-
                       <div className="mt-3 pt-3 border-t border-slate-100">
                         <p className="text-xs text-slate-400 flex items-center gap-1">
                           <Calendar className="w-3 h-3" />
@@ -690,17 +698,17 @@ const JobCategories = () => {
         )}
       </div>
 
-      {/* Add Category Modal */}
+      {/* Modals */}
       {isAddModalOpen && (
         <CategoryModal
           mode="add"
           onClose={() => setIsAddModalOpen(false)}
           onSave={handleAddCategory}
+          isSaving={createLoading}
           existingCategories={categories}
         />
       )}
 
-      {/* Edit Category Modal */}
       {isEditModalOpen && editingCategory && (
         <CategoryModal
           mode="edit"
@@ -710,11 +718,11 @@ const JobCategories = () => {
             setEditingCategory(null);
           }}
           onSave={handleSaveCategory}
+          isSaving={updateLoading}
           existingCategories={categories}
         />
       )}
 
-      {/* Delete Category Modal */}
       {isDeleteModalOpen && deletingCategory && (
         <DeleteCategoryModal
           category={deletingCategory}
@@ -723,6 +731,7 @@ const JobCategories = () => {
             setDeletingCategory(null);
           }}
           onConfirm={handleConfirmDelete}
+          isDeleting={deleteLoading}
         />
       )}
 
@@ -742,7 +751,7 @@ const JobCategories = () => {
   );
 };
 
-// Loading State Component
+// Loading, Error, Empty State components (unchanged)
 const CategoriesLoadingState = () => (
   <div className="p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
     <div className="animate-pulse space-y-4">
@@ -770,7 +779,6 @@ const CategoriesLoadingState = () => (
   </div>
 );
 
-// Error State Component
 const CategoriesErrorState = ({ error, onRetry }) => (
   <div className="p-4 sm:p-6 lg:p-8">
     <div className="flex flex-col items-center justify-center py-16">
@@ -794,7 +802,6 @@ const CategoriesErrorState = ({ error, onRetry }) => (
   </div>
 );
 
-// Empty State Component
 const CategoriesEmptyState = ({ hasFilters, onClear, onAdd }) => (
   <div className="flex flex-col items-center justify-center py-16 px-4">
     <div className="bg-slate-100 rounded-full p-4 mb-4">
@@ -831,59 +838,88 @@ const CategoriesEmptyState = ({ hasFilters, onClear, onAdd }) => (
   </div>
 );
 
-// Category Modal Component (Add/Edit)
+// Category Modal with Image Upload
 const CategoryModal = ({
   mode,
   category,
   onClose,
   onSave,
+  isSaving,
   existingCategories,
 }) => {
-  const [formData, setFormData] = useState({
+  // Convert backend fields to form state
+  const initialFormData = {
     name: category?.name || "",
-    description: category?.description || "",
-    status: category?.status || "active",
-    icon: category?.icon || "FolderOpen",
-    totalJobs: category?.totalJobs || 0,
-  });
+    shortDescription: category?.description || category?.shortDescription || "",
+    isActive: category?.status === "active" ? true : (category?.isActive ?? true),
+  };
+
+  const [formData, setFormData] = useState(initialFormData);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(category?.imageUrl || null);
   const [errors, setErrors] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setSelectedFile(null);
+      setPreviewUrl(category?.imageUrl || null);
+    }
+  };
+
+  const clearFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(category?.imageUrl || null);
+    const fileInput = document.getElementById("category-image-input");
+    if (fileInput) fileInput.value = "";
+  };
 
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) {
       newErrors.name = "Category name is required";
     }
-
-    // Check for duplicate names
+    if (!formData.shortDescription.trim()) {
+      newErrors.shortDescription = "Short description is required";
+    } else if (formData.shortDescription.length > 200) {
+      newErrors.shortDescription = "Short description cannot exceed 200 characters";
+    }
     const duplicate = existingCategories.find(
       (cat) =>
         cat.name.toLowerCase() === formData.name.toLowerCase() &&
-        cat.id !== category?.id,
+        cat.id !== category?.id
     );
     if (duplicate) {
       newErrors.name = "A category with this name already exists";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validate()) return;
+  e.preventDefault();
 
-    setIsSaving(true);
+  if (!validate()) return;
 
-    const categoryData = {
-      ...formData,
-      id: category?.id || `CAT${String(Date.now()).slice(-6)}`,
-      createdAt: category?.createdAt || new Date().toISOString().split("T")[0],
-    };
-
-    await onSave(categoryData);
-    setIsSaving(false);
-  };
+  if (mode === "edit") {
+    await onSave(
+      {
+        ...formData,
+        id: category?.id || category?._id,
+      },
+      selectedFile
+    );
+  } else {
+    await onSave(formData, selectedFile);
+  }
+};
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -908,6 +944,7 @@ const CategoryModal = ({
         </div>
 
         <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+          {/* Category Name */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Category Name *
@@ -928,35 +965,99 @@ const CategoryModal = ({
             )}
           </div>
 
+          {/* Short Description */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Description
+              Short Description *
             </label>
             <textarea
-              value={formData.description}
+              value={formData.shortDescription}
               onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
+                setFormData({ ...formData, shortDescription: e.target.value })
               }
-              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+              className={`w-full px-4 py-2.5 rounded-xl border ${
+                errors.shortDescription ? "border-red-300" : "border-slate-200"
+              } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
               rows="3"
-              placeholder="Brief description of this category"
+              placeholder="Brief description (max 200 characters)"
+              maxLength={200}
             />
+            <div className="flex justify-between mt-1">
+              {errors.shortDescription && (
+                <p className="text-xs text-red-600">{errors.shortDescription}</p>
+              )}
+              <p className="text-xs text-slate-400 text-right">
+                {formData.shortDescription.length}/200
+              </p>
+            </div>
           </div>
 
+          {/* Active Status */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
-              Status
+              Active
             </label>
             <select
-              value={formData.status}
+              value={formData.isActive ? "active" : "inactive"}
               onChange={(e) =>
-                setFormData({ ...formData, status: e.target.value })
+                setFormData({ ...formData, isActive: e.target.value === "active" })
               }
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+          </div>
+
+          {/* Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              Category Image *
+            </label>
+            <div className="flex items-start gap-4">
+              <div className="w-20 h-20 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center overflow-hidden flex-shrink-0">
+                {previewUrl ? (
+                  <img
+                    src={previewUrl}
+                    alt="Category icon preview"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <ImageIcon className="w-8 h-8 text-slate-400" />
+                )}
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-wrap gap-2">
+                  <label
+                    htmlFor="category-image-input"
+                    className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors text-sm font-medium text-slate-700"
+                  >
+                    <Upload className="w-4 h-4" />
+                    Choose Image
+                  </label>
+                  {previewUrl && (
+                    <button
+                      type="button"
+                      onClick={clearFile}
+                      className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-red-200 text-red-600 hover:bg-red-50 transition-colors text-sm"
+                    >
+                      <X className="w-4 h-4" />
+                      Remove
+                    </button>
+                  )}
+                </div>
+                <input
+                  id="category-image-input"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <p className="text-xs text-slate-400 mt-1">
+                  Recommended: 64x64px or square, PNG/JPG/WebP (max 2MB)
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 pt-4">
@@ -976,8 +1077,8 @@ const CategoryModal = ({
               {isSaving
                 ? "Saving..."
                 : mode === "add"
-                  ? "Add Category"
-                  : "Save Changes"}
+                ? "Add Category"
+                : "Save Changes"}
             </button>
           </div>
         </form>
@@ -986,16 +1087,8 @@ const CategoryModal = ({
   );
 };
 
-// Delete Category Modal Component
-const DeleteCategoryModal = ({ category, onClose, onConfirm }) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    await onConfirm();
-    setIsDeleting(false);
-  };
-
+// Delete Modal (unchanged)
+const DeleteCategoryModal = ({ category, onClose, onConfirm, isDeleting }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
@@ -1031,7 +1124,7 @@ const DeleteCategoryModal = ({ category, onClose, onConfirm }) => {
                   {category.name}
                 </p>
                 <p className="text-xs text-slate-500">
-                  {category.totalJobs || 0} jobs in this category
+                  {category.totalJobs} jobs in this category
                 </p>
               </div>
             </div>
@@ -1045,7 +1138,7 @@ const DeleteCategoryModal = ({ category, onClose, onConfirm }) => {
               Cancel
             </button>
             <button
-              onClick={handleDelete}
+              onClick={onConfirm}
               disabled={isDeleting}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium text-white bg-red-600 hover:bg-red-700 transition-colors disabled:opacity-50 w-full sm:w-auto"
             >

@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ShieldCheck,
   Mail,
@@ -7,56 +8,55 @@ import {
   Eye,
   EyeOff,
   LogIn,
+  Loader2,
 } from "lucide-react";
+import { loginUser } from "../../redux/slicer/authSlice";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useDispatch();
+
+  const { loading, error, success, user } = useSelector(
+    (state) => state.auth
+  );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+const handleLogin = async (e) => {
+  e.preventDefault();
 
-    setError("");
+  if (!email.trim() || !password) {
+    return;
+  }
 
-    // Temporary admin credentials
-    // Backend connect hone ke baad isko API se replace karenge.
-    const ADMIN_EMAIL = "admin@careersphere.com";
-    const ADMIN_PASSWORD = "admin123";
+  const result = await dispatch(
+    loginUser({
+      email: email.trim(),
+      password,
+    })
+  );
 
-    if (
-      email.trim().toLowerCase() !== ADMIN_EMAIL ||
-      password !== ADMIN_PASSWORD
-    ) {
-      setError("Invalid admin email or password.");
+  console.log("LOGIN RESULT:", result);
+
+  if (loginUser.fulfilled.match(result)) {
+    const loggedInUser = result.payload?.data;
+
+  
+
+    // Admin check
+    if (loggedInUser?.role !== "admin") {
+      console.log("Not an admin");
       return;
     }
 
-    const adminUser = {
-      id: "admin-001",
-      name: "CareerSphere Admin",
-      email: ADMIN_EMAIL,
-      role: "admin",
-      isAdmin: true,
-    };
-
-    localStorage.setItem(
-      "careerSphereAdmin",
-      JSON.stringify(adminUser)
-    );
-
-    // Agar kisi protected admin page se login page par aaye hain
-    const from = location.state?.from?.pathname;
-
-    navigate(from || "/admin/dashboard", {
+    navigate("/admin", {
       replace: true,
     });
-  };
-
+  }
+};
   return (
     <main className="flex min-h-[calc(100vh-68px)] items-center justify-center bg-slate-50 px-4 py-10">
       <div className="w-full max-w-md">
@@ -96,7 +96,8 @@ const AdminLogin = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@careersphere.com"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  disabled={loading}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                 />
               </div>
             </div>
@@ -119,15 +120,17 @@ const AdminLogin = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter admin password"
                   required
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-11 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                  disabled={loading}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-11 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"
                 />
 
                 <button
                   type="button"
+                  disabled={loading}
                   onClick={() =>
                     setShowPassword((prev) => !prev)
                   }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700 disabled:cursor-not-allowed"
                 >
                   {showPassword ? (
                     <EyeOff size={18} />
@@ -145,30 +148,38 @@ const AdminLogin = () => {
               </div>
             )}
 
+            {/* Non-admin */}
+            {success &&
+              user &&
+              user.role !== "admin" &&
+              user.isAdmin !== true && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+                  You are not authorized to access the admin panel.
+                </div>
+              )}
+
             {/* Login */}
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
+              disabled={loading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:translate-y-0"
             >
-              <LogIn size={18} />
-              Login as Admin
+              {loading ? (
+                <>
+                  <Loader2
+                    size={18}
+                    className="animate-spin"
+                  />
+                  Logging in...
+                </>
+              ) : (
+                <>
+                  <LogIn size={18} />
+                  Login as Admin
+                </>
+              )}
             </button>
           </form>
-
-          {/* Demo credentials */}
-          <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <p className="text-xs font-bold text-blue-700">
-              Demo Admin Credentials
-            </p>
-
-            <p className="mt-2 text-xs text-blue-600">
-              Email: admin@careersphere.com
-            </p>
-
-            <p className="mt-1 text-xs text-blue-600">
-              Password: admin123
-            </p>
-          </div>
         </div>
       </div>
     </main>

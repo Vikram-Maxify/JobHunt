@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
 import {
   BriefcaseBusiness,
   Search,
@@ -16,18 +18,47 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
+
 import { FaBookmark } from "react-icons/fa";
 
+import {
+  getProfile,
+  logoutUser,
+} from "../redux/slicer/authSlice";
+
 const Navbar = () => {
+  // =========================================================
+  // STATE
+  // =========================================================
+
   const [mobileMenu, setMobileMenu] = useState(false);
   const [userMenu, setUserMenu] = useState(false);
   const [mobileUserMenu, setMobileUserMenu] = useState(false);
+  const [logoutLoading, setLogoutLoading] = useState(false);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
+  // =========================================================
+  // REDUX
+  // =========================================================
+
+  const dispatch = useDispatch();
+
+  const {
+    user,
+    isAuthenticated,
+    loading: authLoading,
+    token,
+  } = useSelector((state) => state.auth);
+
+  // =========================================================
+  // ROUTER
+  // =========================================================
 
   const location = useLocation();
   const navigate = useNavigate();
+
+  // =========================================================
+  // REFS
+  // =========================================================
 
   const userMenuRef = useRef(null);
 
@@ -64,57 +95,21 @@ const Navbar = () => {
   ];
 
   // =========================================================
-  // CHECK AUTH
+  // GET PROFILE FROM BACKEND
+  // =========================================================
+  // No /auth/me here.
+  //
+  // Your backend has:
+  // GET /api/auth/profile
+  //
+  // So we use the Redux thunk getProfile().
   // =========================================================
 
-  const checkAuth = () => {
-    try {
-      const loggedInStatus = localStorage.getItem("careerSphereIsLoggedIn");
-      const loggedInUser = localStorage.getItem("careerSphereCurrentUser");
-
-      if (loggedInStatus === "true" && loggedInUser) {
-        const parsedUser = JSON.parse(loggedInUser);
-        setUser(parsedUser);
-        setIsLoggedIn(true);
-      } else {
-        setUser(null);
-        setIsLoggedIn(false);
-      }
-    } catch (error) {
-      console.error("Auth check error:", error);
-      setUser(null);
-      setIsLoggedIn(false);
+  useEffect(() => {
+    if (isAuthenticated && token) {
+      dispatch(getProfile());
     }
-  };
-
-  // =========================================================
-  // CHECK AUTH ON LOAD / ROUTE CHANGE
-  // =========================================================
-
-  useEffect(() => {
-    checkAuth();
-  }, [location.pathname]);
-
-  // =========================================================
-  // LISTEN FOR AUTH CHANGE
-  // =========================================================
-
-  useEffect(() => {
-    const handleAuthChange = () => {
-      checkAuth();
-    };
-
-    window.addEventListener("careerSphereAuthChanged", handleAuthChange);
-    window.addEventListener("storage", handleAuthChange);
-
-    return () => {
-      window.removeEventListener(
-        "careerSphereAuthChanged",
-        handleAuthChange
-      );
-      window.removeEventListener("storage", handleAuthChange);
-    };
-  }, []);
+  }, [dispatch, isAuthenticated, token]);
 
   // =========================================================
   // ACTIVE ROUTE
@@ -152,10 +147,16 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
 
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
     };
   }, []);
 
@@ -172,10 +173,16 @@ const Navbar = () => {
       }
     };
 
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener(
+      "keydown",
+      handleEscape
+    );
 
     return () => {
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener(
+        "keydown",
+        handleEscape
+      );
     };
   }, []);
 
@@ -185,6 +192,8 @@ const Navbar = () => {
 
   const toggleMobileMenu = () => {
     setMobileMenu((prev) => !prev);
+
+    setUserMenu(false);
     setMobileUserMenu(false);
   };
 
@@ -192,40 +201,70 @@ const Navbar = () => {
   // LOGOUT
   // =========================================================
 
-  const handleLogout = () => {
-    localStorage.removeItem("careerSphereCurrentUser");
-    localStorage.removeItem("careerSphereIsLoggedIn");
+  const handleLogout = async () => {
+    if (logoutLoading) return;
 
-    setUser(null);
-    setIsLoggedIn(false);
+    try {
+      setLogoutLoading(true);
 
-    setUserMenu(false);
-    setMobileUserMenu(false);
-    setMobileMenu(false);
+      // Redux thunk handles:
+      // POST /api/auth/logout
+      //
+      // It also clears token and user
+      // from the Redux/auth storage logic.
+      await dispatch(logoutUser()).unwrap();
 
-    window.dispatchEvent(new Event("careerSphereAuthChanged"));
+      // Close menus
+      setUserMenu(false);
+      setMobileUserMenu(false);
+      setMobileMenu(false);
 
-    navigate("/login");
+      // Redirect
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+
+      // logoutUser thunk already clears auth
+      // even when backend logout fails.
+
+      setUserMenu(false);
+      setMobileUserMenu(false);
+      setMobileMenu(false);
+
+      navigate("/login");
+    } finally {
+      setLogoutLoading(false);
+    }
   };
 
   // =========================================================
-  // USER NAME & INITIAL
+  // USER NAME
   // =========================================================
 
   const getUserName = () => {
-    if (!user) return "User";
+    if (!user) {
+      return "User";
+    }
 
     return (
       user.name ||
       user.fullName ||
       user.username ||
+      user.firstName ||
+      user.first_name ||
       user.email?.split("@")[0] ||
       "User"
     );
   };
 
+  // =========================================================
+  // USER INITIAL
+  // =========================================================
+
   const getUserInitial = () => {
-    return getUserName().charAt(0).toUpperCase();
+    return getUserName()
+      .charAt(0)
+      .toUpperCase();
   };
 
   // =========================================================
@@ -242,7 +281,9 @@ const Navbar = () => {
         <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-5 md:px-6 lg:px-8 xl:px-10">
           <div className="flex min-h-[64px] items-center justify-between gap-3 sm:min-h-[68px]">
 
-            {/* LOGO */}
+            {/* =================================================
+                LOGO
+            ================================================= */}
 
             <Link
               to="/"
@@ -258,12 +299,19 @@ const Navbar = () => {
               </div>
 
               <div className="truncate text-lg font-bold tracking-tight sm:text-xl md:text-2xl">
-                <span className="text-slate-800">Career</span>
-                <span className="text-blue-600">Sphere</span>
+                <span className="text-slate-800">
+                  Career
+                </span>
+
+                <span className="text-blue-600">
+                  Sphere
+                </span>
               </div>
             </Link>
 
-            {/* DESKTOP NAV */}
+            {/* =================================================
+                DESKTOP NAV
+            ================================================= */}
 
             <div className="hidden min-w-0 flex-1 justify-center lg:flex">
               <div className="flex items-center gap-0.5 xl:gap-1">
@@ -287,7 +335,9 @@ const Navbar = () => {
                         className="shrink-0"
                       />
 
-                      <span>{item.name}</span>
+                      <span>
+                        {item.name}
+                      </span>
 
                       {active && (
                         <span className="absolute bottom-0.5 left-1/2 h-0.5 w-5 -translate-x-1/2 rounded-full bg-blue-600" />
@@ -298,14 +348,33 @@ const Navbar = () => {
               </div>
             </div>
 
-            {/* DESKTOP RIGHT SIDE */}
+            {/* =================================================
+                DESKTOP AUTH
+            ================================================= */}
 
             <div
               ref={userMenuRef}
               className="relative hidden shrink-0 items-center gap-1.5 lg:flex xl:gap-2"
             >
-              {!isLoggedIn ? (
+              {/* =================================================
+                  AUTH LOADING
+              ================================================= */}
+
+              {authLoading || logoutLoading ? (
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <div className="h-9 w-9 animate-pulse rounded-lg bg-slate-200" />
+
+                  <div className="hidden h-3 w-20 animate-pulse rounded bg-slate-200 xl:block" />
+                </div>
+              ) : !isAuthenticated ? (
+
+                /* =================================================
+                   NOT LOGGED IN
+                ================================================= */
+
                 <>
+                  {/* LOGIN */}
+
                   <Link
                     to="/login"
                     className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 xl:gap-2 xl:px-4 xl:text-sm ${
@@ -314,30 +383,56 @@ const Navbar = () => {
                         : "text-slate-600 hover:bg-blue-50/70 hover:text-blue-600"
                     }`}
                   >
-                    <LogIn size={16} strokeWidth={2} />
-                    <span>Login</span>
+                    <LogIn
+                      size={16}
+                      strokeWidth={2}
+                    />
+
+                    <span>
+                      Login
+                    </span>
                   </Link>
+
+                  {/* SIGN UP */}
 
                   <Link
                     to="/register"
                     className="flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-[13px] font-semibold text-white shadow-md transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg xl:gap-2 xl:px-5 xl:text-sm"
                   >
-                    <UserPlus size={16} strokeWidth={2} />
-                    <span>Sign Up</span>
+                    <UserPlus
+                      size={16}
+                      strokeWidth={2}
+                    />
+
+                    <span>
+                      Sign Up
+                    </span>
                   </Link>
                 </>
+
               ) : (
+
+                /* =================================================
+                   LOGGED IN USER
+                ================================================= */
+
                 <div className="relative">
                   <button
                     type="button"
-                    onClick={() => setUserMenu((prev) => !prev)}
+                    onClick={() =>
+                      setUserMenu((prev) => !prev)
+                    }
                     className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2 py-1.5 transition-all duration-200 hover:border-blue-200 hover:bg-blue-50/50 focus:outline-none focus:ring-4 focus:ring-blue-500/10"
                     aria-label="Open user menu"
                     aria-expanded={userMenu}
                   >
+                    {/* USER AVATAR */}
+
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-sm">
                       {getUserInitial()}
                     </div>
+
+                    {/* USER NAME */}
 
                     <div className="hidden max-w-[120px] text-left xl:block">
                       <p className="truncate text-xs font-bold text-slate-800">
@@ -352,13 +447,21 @@ const Navbar = () => {
                     <ChevronDown
                       size={15}
                       className={`text-slate-400 transition-transform duration-200 ${
-                        userMenu ? "rotate-180" : ""
+                        userMenu
+                          ? "rotate-180"
+                          : ""
                       }`}
                     />
                   </button>
 
+                  {/* =================================================
+                      DESKTOP USER DROPDOWN
+                  ================================================= */}
+
                   {userMenu && (
                     <div className="absolute right-0 top-[calc(100%+10px)] w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-300/40">
+
+                      {/* USER INFO */}
 
                       <div className="mb-1 rounded-xl bg-slate-50 p-3">
                         <div className="flex items-center gap-3">
@@ -378,9 +481,13 @@ const Navbar = () => {
                         </div>
                       </div>
 
+                      {/* PROFILE */}
+
                       <Link
                         to="/profile"
-                        onClick={() => setUserMenu(false)}
+                        onClick={() =>
+                          setUserMenu(false)
+                        }
                         className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600"
                       >
                         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -388,16 +495,23 @@ const Navbar = () => {
                         </span>
 
                         <div>
-                          <p className="font-semibold">Profile</p>
+                          <p className="font-semibold">
+                            Profile
+                          </p>
+
                           <p className="text-[10px] text-slate-400">
                             View your profile
                           </p>
                         </div>
                       </Link>
 
+                      {/* APPLICATIONS */}
+
                       <Link
                         to="/applications"
-                        onClick={() => setUserMenu(false)}
+                        onClick={() =>
+                          setUserMenu(false)
+                        }
                         className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600"
                       >
                         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
@@ -405,16 +519,23 @@ const Navbar = () => {
                         </span>
 
                         <div>
-                          <p className="font-semibold">My Applications</p>
+                          <p className="font-semibold">
+                            My Applications
+                          </p>
+
                           <p className="text-[10px] text-slate-400">
                             Track your applications
                           </p>
                         </div>
                       </Link>
 
+                      {/* SAVED APPLICATION */}
+
                       <Link
                         to="/savedapplication"
-                        onClick={() => setUserMenu(false)}
+                        onClick={() =>
+                          setUserMenu(false)
+                        }
                         className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-600 transition-all hover:bg-blue-50 hover:text-blue-600"
                       >
                         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
@@ -427,24 +548,31 @@ const Navbar = () => {
                           </p>
 
                           <p className="text-[10px] text-slate-400">
-                            View your save application
+                            View your saved application
                           </p>
                         </div>
                       </Link>
 
                       <div className="my-1 h-px bg-slate-100" />
 
+                      {/* LOGOUT */}
+
                       <button
                         type="button"
                         onClick={handleLogout}
-                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-red-500 transition-all hover:bg-red-50"
+                        disabled={logoutLoading}
+                        className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-red-500 transition-all hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-red-50 text-red-500">
                           <LogOut size={17} />
                         </span>
 
                         <div>
-                          <p className="font-semibold">Logout</p>
+                          <p className="font-semibold">
+                            {logoutLoading
+                              ? "Logging out..."
+                              : "Logout"}
+                          </p>
 
                           <p className="text-[10px] text-red-400">
                             Sign out from account
@@ -457,19 +585,31 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* MOBILE MENU BUTTON */}
+            {/* =================================================
+                MOBILE MENU BUTTON
+            ================================================= */}
 
             <button
               type="button"
               onClick={toggleMobileMenu}
-              aria-label={mobileMenu ? "Close menu" : "Open menu"}
+              aria-label={
+                mobileMenu
+                  ? "Close menu"
+                  : "Open menu"
+              }
               aria-expanded={mobileMenu}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95 lg:hidden"
             >
               {mobileMenu ? (
-                <X size={25} strokeWidth={2} />
+                <X
+                  size={25}
+                  strokeWidth={2}
+                />
               ) : (
-                <Menu size={25} strokeWidth={2} />
+                <Menu
+                  size={25}
+                  strokeWidth={2}
+                />
               )}
             </button>
           </div>
@@ -477,11 +617,8 @@ const Navbar = () => {
       </nav>
 
       {/* =====================================================
-          MOBILE SIDEBAR
-          RIGHT TO LEFT DRAWER
+          MOBILE OVERLAY
       ====================================================== */}
-
-      {/* Overlay */}
 
       <div
         className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300 lg:hidden ${
@@ -492,7 +629,9 @@ const Navbar = () => {
         onClick={() => setMobileMenu(false)}
       />
 
-      {/* Sliding Drawer */}
+      {/* =====================================================
+          MOBILE DRAWER
+      ====================================================== */}
 
       <div
         className={`fixed right-0 top-0 z-[60] flex h-full w-[300px] max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
@@ -501,7 +640,7 @@ const Navbar = () => {
             : "translate-x-full"
         }`}
       >
-        {/* Drawer Header */}
+        {/* HEADER */}
 
         <div className="flex items-center justify-between border-b border-slate-200 p-4">
           <span className="text-lg font-bold text-slate-800">
@@ -514,13 +653,19 @@ const Navbar = () => {
             aria-label="Close menu"
             className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
           >
-            <X size={25} strokeWidth={2} />
+            <X
+              size={25}
+              strokeWidth={2}
+            />
           </button>
         </div>
 
-        {/* Drawer Content */}
+        {/* CONTENT */}
 
         <div className="flex-1 overflow-y-auto p-4">
+
+          {/* NAV ITEMS */}
+
           <div className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -530,7 +675,9 @@ const Navbar = () => {
                 <Link
                   key={item.name}
                   to={item.path}
-                  onClick={() => setMobileMenu(false)}
+                  onClick={() =>
+                    setMobileMenu(false)
+                  }
                   className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 sm:py-4 ${
                     active
                       ? "bg-blue-50 text-blue-600"
@@ -544,10 +691,15 @@ const Navbar = () => {
                         : "bg-slate-100 text-slate-500"
                     }`}
                   >
-                    <Icon size={18} strokeWidth={2} />
+                    <Icon
+                      size={18}
+                      strokeWidth={2}
+                    />
                   </span>
 
-                  <span>{item.name}</span>
+                  <span>
+                    {item.name}
+                  </span>
                 </Link>
               );
             })}
@@ -555,14 +707,33 @@ const Navbar = () => {
 
           <div className="my-3 h-px bg-slate-100 sm:my-4" />
 
-          {!isLoggedIn ? (
+          {/* =================================================
+              MOBILE AUTH
+          ================================================= */}
+
+          {authLoading || logoutLoading ? (
+
+            <div className="space-y-2">
+              <div className="h-12 animate-pulse rounded-xl bg-slate-100" />
+
+              <div className="h-12 animate-pulse rounded-xl bg-slate-100" />
+            </div>
+
+          ) : !isAuthenticated ? (
+
+            /* =================================================
+               MOBILE NOT LOGGED IN
+            ================================================= */
+
             <div className="space-y-2">
 
-              {/* Login */}
+              {/* LOGIN */}
 
               <Link
                 to="/login"
-                onClick={() => setMobileMenu(false)}
+                onClick={() =>
+                  setMobileMenu(false)
+                }
                 className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 sm:py-4 ${
                   isActive("/login")
                     ? "bg-blue-50 text-blue-600"
@@ -570,43 +741,64 @@ const Navbar = () => {
                 }`}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
-                  <LogIn size={18} strokeWidth={2} />
+                  <LogIn
+                    size={18}
+                    strokeWidth={2}
+                  />
                 </span>
 
-                <span>Login</span>
+                <span>
+                  Login
+                </span>
               </Link>
 
-              {/* Sign Up */}
+              {/* SIGN UP */}
 
               <Link
                 to="/register"
-                onClick={() => setMobileMenu(false)}
+                onClick={() =>
+                  setMobileMenu(false)
+                }
                 className="flex w-full items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-3.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg active:scale-[0.99] sm:py-4"
               >
-                <UserPlus size={19} strokeWidth={2} />
+                <UserPlus
+                  size={19}
+                  strokeWidth={2}
+                />
 
-                <span>Sign Up</span>
+                <span>
+                  Sign Up
+                </span>
               </Link>
             </div>
+
           ) : (
+
+            /* =================================================
+               MOBILE LOGGED IN
+            ================================================= */
+
             <div className="space-y-2">
 
-              {/* Mobile User Header */}
+              {/* USER HEADER */}
 
               <button
                 type="button"
                 onClick={() =>
-                  setMobileUserMenu((prev) => !prev)
+                  setMobileUserMenu(
+                    (prev) => !prev
+                  )
                 }
                 className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3"
               >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white">
+                <div className="flex min-w-0 items-center gap-3">
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white">
                     {getUserInitial()}
                   </div>
 
-                  <div className="text-left">
-                    <p className="text-sm font-bold text-slate-800">
+                  <div className="min-w-0 text-left">
+                    <p className="truncate text-sm font-bold text-slate-800">
                       {getUserName()}
                     </p>
 
@@ -618,18 +810,20 @@ const Navbar = () => {
 
                 <ChevronDown
                   size={18}
-                  className={`text-slate-400 transition-transform ${
-                    mobileUserMenu ? "rotate-180" : ""
+                  className={`shrink-0 text-slate-400 transition-transform ${
+                    mobileUserMenu
+                      ? "rotate-180"
+                      : ""
                   }`}
                 />
               </button>
 
-              {/* Mobile User Menu */}
+              {/* MOBILE USER MENU */}
 
               {mobileUserMenu && (
                 <div className="space-y-1 rounded-xl bg-slate-50 p-2">
 
-                  {/* Profile */}
+                  {/* PROFILE */}
 
                   <Link
                     to="/profile"
@@ -644,10 +838,12 @@ const Navbar = () => {
                       className="text-blue-600"
                     />
 
-                    <span>Profile</span>
+                    <span>
+                      Profile
+                    </span>
                   </Link>
 
-                  {/* Applications */}
+                  {/* APPLICATIONS */}
 
                   <Link
                     to="/applications"
@@ -662,10 +858,12 @@ const Navbar = () => {
                       className="text-indigo-600"
                     />
 
-                    <span>My Applications</span>
+                    <span>
+                      My Applications
+                    </span>
                   </Link>
 
-                  {/* Saved Application */}
+                  {/* SAVED APPLICATION */}
 
                   <Link
                     to="/savedapplication"
@@ -680,19 +878,26 @@ const Navbar = () => {
                       className="text-indigo-600"
                     />
 
-                    <span>Saved Application</span>
+                    <span>
+                      Saved Application
+                    </span>
                   </Link>
 
-                  {/* Logout */}
+                  {/* LOGOUT */}
 
                   <button
                     type="button"
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-500 hover:bg-white"
+                    disabled={logoutLoading}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-500 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <LogOut size={18} />
 
-                    <span>Logout</span>
+                    <span>
+                      {logoutLoading
+                        ? "Logging out..."
+                        : "Logout"}
+                    </span>
                   </button>
                 </div>
               )}

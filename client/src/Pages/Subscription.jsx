@@ -114,6 +114,9 @@ const Subscription = () => {
   const [billing, setBilling] = useState("monthly");
   const [openFaq, setOpenFaq] = useState(null);
 
+  // Added only for selecting the card
+  const [selectedPlan, setSelectedPlan] = useState(null);
+
   const navigate = useNavigate();
 
   const getPrice = (plan) => {
@@ -124,6 +127,12 @@ const Subscription = () => {
       : Math.round(plan.yearly / 12);
   };
 
+  // Card click will ONLY select the plan
+  const handlePlanSelect = (plan) => {
+    setSelectedPlan(plan.name);
+  };
+
+  // Button click will navigate
   const handlePlanClick = (plan) => {
     navigate("/purchases", {
       state: {
@@ -201,13 +210,16 @@ const Subscription = () => {
           {plans.map((plan) => {
             const Icon = plan.icon;
             const price = getPrice(plan);
+            const isSelected = selectedPlan === plan.name;
 
             return (
               <div
                 key={plan.name}
-                onClick={() => handlePlanClick(plan)}
+                onClick={() => handlePlanSelect(plan)}
                 className={`relative flex cursor-pointer flex-col rounded-3xl border bg-white p-5 transition duration-300 hover:-translate-y-1 sm:p-6 md:p-7 lg:p-8 ${
-                  plan.popular
+                  isSelected
+                    ? "border-indigo-600 shadow-2xl shadow-indigo-100 ring-2 ring-indigo-100"
+                    : plan.popular
                     ? "border-indigo-500 shadow-2xl shadow-indigo-100"
                     : "border-slate-200 shadow-sm"
                 }`}
@@ -218,6 +230,13 @@ const Subscription = () => {
                     <span className="whitespace-nowrap rounded-full bg-indigo-600 px-4 py-1.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-lg shadow-indigo-200 sm:px-5 sm:py-2 sm:text-xs">
                       Most Popular
                     </span>
+                  </div>
+                )}
+
+                {/* Selected Badge */}
+                {isSelected && (
+                  <div className="absolute right-5 top-5 rounded-full bg-indigo-600 px-3 py-1 text-[10px] font-bold text-white">
+                    Selected
                   </div>
                 )}
 
@@ -475,35 +494,6 @@ const Subscription = () => {
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      </section>
-
-      {/* =====================================================
-          YEARLY OFFER
-      ====================================================== */}
-      <section className="px-5 py-8 sm:px-8 sm:py-8 lg:px-10 lg:py-8">
-        <div className="mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 to-purple-700 px-6 py-6 text-center text-white sm:rounded-[2rem] sm:px-10 sm:py-6 lg:py-6">
-          <div className="mx-auto max-w-2xl">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 sm:h-14 sm:w-14">
-              <Sparkles size={22} className="sm:size-[24px]" />
-            </div>
-
-            <h2 className="mt-4 text-2xl font-bold sm:text-3xl lg:text-4xl">
-              Save more with yearly plans
-            </h2>
-
-            <p className="mt-3 text-sm text-indigo-100 sm:text-base">
-              Commit to your career growth and get better value with an
-              annual subscription.
-            </p>
-
-            <button
-              onClick={() => setBilling("yearly")}
-              className="mt-6 rounded-xl bg-white px-6 py-2.5 font-bold text-indigo-600 transition hover:bg-indigo-50 sm:mt-7 sm:px-7 sm:py-3"
-            >
-              Switch to Yearly
-            </button>
           </div>
         </div>
       </section>

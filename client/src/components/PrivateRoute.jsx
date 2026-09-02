@@ -1,14 +1,52 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 
-const PrivateRoute = () => {
+const PrivateRoute = ({ allowedRoles }) => {
   const location = useLocation();
 
-  // Get logged-in user/token from localStorage
-  const token = localStorage.getItem("token");
+  const {
+    isAuthenticated,
+    user,
+    authInitialized,
+  } = useSelector((state) => state.auth);
 
-  // If user is not logged in
-  if (!token) {
+  const isAdminRoute =
+    location.pathname.startsWith("/admin");
+
+  // =====================================================
+  // AUTH CHECK IN PROGRESS
+  // =====================================================
+
+  if (!authInitialized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+
+          <p className="text-sm font-medium text-gray-500">
+            Checking authentication...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // =====================================================
+  // NOT AUTHENTICATED
+  // =====================================================
+
+  if (!isAuthenticated) {
+    if (isAdminRoute) {
+      return (
+        <Navigate
+          to="/admin/login"
+          replace
+          state={{ from: location }}
+        />
+      );
+    }
+
     return (
       <Navigate
         to="/login"
@@ -18,7 +56,43 @@ const PrivateRoute = () => {
     );
   }
 
-  // User is logged in
+  // =====================================================
+  // AUTHENTICATED USER
+  // =====================================================
+
+  const userRole = user?.role;
+
+  // =====================================================
+  // ADMIN ROUTE
+  // =====================================================
+
+  if (isAdminRoute) {
+    // Logged-in normal user cannot access admin
+    if (userRole !== "admin") {
+      return (
+        <Navigate
+          to="/admin/login"
+          replace
+          state={{ from: location }}
+        />
+      );
+    }
+
+    // Logged-in admin can access admin routes
+    return <Outlet />;
+  }
+
+  // =====================================================
+  // NORMAL PRIVATE ROUTES
+  // =====================================================
+
+  if (
+    allowedRoles &&
+    !allowedRoles.includes(userRole)
+  ) {
+    return <Navigate to="/" replace />;
+  }
+
   return <Outlet />;
 };
 

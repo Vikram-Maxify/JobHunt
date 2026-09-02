@@ -1,20 +1,18 @@
-import React from "react";
-import { NavLink, useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Users,
   BriefcaseBusiness,
-  FileText,
-  CreditCard,
-  Images,
-  ShieldCheck,
-  MessageSquare,
-  UserRound,
-  Settings,
-  LogOut,
-  X,
   ChevronRight,
+  CreditCard,
+  FileText,
+  Images,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  ShieldCheck,
+  UserRound,
+  Users,
+  X,
 } from "lucide-react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
   const navigate = useNavigate();
@@ -44,6 +42,11 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
     {
       name: "Applications",
       path: "/admin/applications",
+      icon: FileText,
+    },
+    {
+      name: "Testimonial",
+      path: "/admin/reviews",
       icon: FileText,
     },
     {

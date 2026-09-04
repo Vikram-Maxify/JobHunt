@@ -1,18 +1,14 @@
-import React from "react";
-import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 const PrivateRoute = ({ allowedRoles }) => {
   const location = useLocation();
 
-  const {
-    isAuthenticated,
-    user,
-    authInitialized,
-  } = useSelector((state) => state.auth);
+  const { isAuthenticated, user, authInitialized } = useSelector(
+    (state) => state.auth,
+  );
 
-  const isAdminRoute =
-    location.pathname.startsWith("/admin");
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   // =====================================================
   // AUTH CHECK IN PROGRESS
@@ -38,29 +34,17 @@ const PrivateRoute = ({ allowedRoles }) => {
 
   if (!isAuthenticated) {
     if (isAdminRoute) {
-      return (
-        <Navigate
-          to="/admin/login"
-          replace
-          state={{ from: location }}
-        />
-      );
+      return <Navigate to="/admin/login" replace state={{ from: location }} />;
     }
 
-    return (
-      <Navigate
-        to="/login"
-        replace
-        state={{ from: location }}
-      />
-    );
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   // =====================================================
   // AUTHENTICATED USER
   // =====================================================
 
-  const userRole = user?.role;
+  const userRole = user?.role || "user";
 
   // =====================================================
   // ADMIN ROUTE
@@ -69,13 +53,7 @@ const PrivateRoute = ({ allowedRoles }) => {
   if (isAdminRoute) {
     // Logged-in normal user cannot access admin
     if (userRole !== "admin") {
-      return (
-        <Navigate
-          to="/admin/login"
-          replace
-          state={{ from: location }}
-        />
-      );
+      return <Navigate to="/admin/login" replace state={{ from: location }} />;
     }
 
     // Logged-in admin can access admin routes
@@ -86,10 +64,7 @@ const PrivateRoute = ({ allowedRoles }) => {
   // NORMAL PRIVATE ROUTES
   // =====================================================
 
-  if (
-    allowedRoles &&
-    !allowedRoles.includes(userRole)
-  ) {
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
     return <Navigate to="/" replace />;
   }
 

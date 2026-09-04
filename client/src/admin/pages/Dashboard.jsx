@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -599,6 +598,51 @@ const AdminDashboard = () => {
         ];
 
   /* =========================================================
+     APPLICATION CHART DATA - BASED ON ACTUAL DATA
+  ========================================================= */
+
+  const applicationChartData = useMemo(() => {
+    // Get the last 7 days
+    const days = [];
+    const now = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      days.push({
+        date: date,
+        label: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()],
+        count: 0,
+        // Generate realistic heights based on application data
+        // Using the actual distribution from the data
+        height: 0,
+      });
+    }
+
+    // Count applications per day from actual data
+    normalizedApplications.forEach((app) => {
+      const appDate = new Date(app.appliedAt || app.createdAt);
+      days.forEach((day) => {
+        if (
+          appDate.getFullYear() === day.date.getFullYear() &&
+          appDate.getMonth() === day.date.getMonth() &&
+          appDate.getDate() === day.date.getDate()
+        ) {
+          day.count += 1;
+        }
+      });
+    });
+
+    // Calculate heights based on actual counts (max height 85% for max count)
+    const maxCount = Math.max(...days.map(d => d.count), 1);
+    
+    return days.map((day) => ({
+      ...day,
+      height: Math.max(5, (day.count / maxCount) * 85),
+    }));
+  }, [normalizedApplications]);
+
+  /* =========================================================
      STATS
   ========================================================= */
 
@@ -774,12 +818,12 @@ const AdminDashboard = () => {
               </select>
             </div>
 
-            {/* CHART */}
+            {/* CHART - Updated with actual data */}
 
             <div className="p-5 sm:p-6">
               <div className="flex h-64 items-end gap-2 sm:gap-4">
-                {[45, 62, 52, 78, 64, 88, 72].map(
-                  (height, index) => (
+                {applicationChartData.map(
+                  (day, index) => (
                     <div
                       key={index}
                       className="group flex h-full flex-1 flex-col items-center justify-end gap-2"
@@ -788,23 +832,18 @@ const AdminDashboard = () => {
                         <div
                           className="w-full max-w-10 rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-400 transition-all duration-300 group-hover:from-blue-700 group-hover:to-indigo-500"
                           style={{
-                            height: `${height}%`,
+                            height: `${day.height}%`,
                           }}
-                        />
+                        >
+                          {/* Tooltip on hover */}
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-xs text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100">
+                            {day.count} applications
+                          </div>
+                        </div>
                       </div>
 
                       <span className="text-[10px] font-medium text-slate-400">
-                        {
-                          [
-                            "Mon",
-                            "Tue",
-                            "Wed",
-                            "Thu",
-                            "Fri",
-                            "Sat",
-                            "Sun",
-                          ][index]
-                        }
+                        {day.label}
                       </span>
                     </div>
                   )
@@ -1274,61 +1313,9 @@ const AdminDashboard = () => {
 
         </div>
 
-        {/* =====================================================
-            OPTIONAL DEBUG / DATA SUMMARY
-            Remove this section if not needed
-        ====================================================== */}
-
-        {/* 
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5">
-          <h3 className="font-bold text-slate-800">
-            Dashboard Data
-          </h3>
-
-          <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div>
-              <p className="text-xs text-slate-400">
-                New Users Today
-              </p>
-              <p className="font-bold">
-                {newUsersToday}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400">
-                Jobs Today
-              </p>
-              <p className="font-bold">
-                {jobsPostedToday}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400">
-                Applications Today
-              </p>
-              <p className="font-bold">
-                {applicationsToday}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-xs text-slate-400">
-                Recent Subscriptions
-              </p>
-              <p className="font-bold">
-                {recentSubscriptions.length}
-              </p>
-            </div>
-          </div>
-        </div>
-        */}
-
       </div>
     </div>
   );
 };
 
 export default AdminDashboard;
-

@@ -1,4 +1,3 @@
-
 // src/admin/pages/Applications.jsx
 
 import React, {
@@ -27,7 +26,7 @@ import {
   Building2,
 } from "lucide-react";
 
-import StateCard from "../components/StateCard";
+import StatCard from "../components/StateCard";
 
 import {
   getAllApplicationsAdmin,
@@ -525,8 +524,8 @@ const Applications = () => {
   // ============================================================
 
   return (
-    <div className="w-full max-w-full overflow-x-auto">
-      <div className="min-w-[1200px] p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
+    <div className="w-full overflow-x-auto">
+      <div className="min-w-[320px] p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8">
 
         {/* ======================================================
             PAGE HEADER
@@ -540,7 +539,7 @@ const Applications = () => {
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
 
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">
                 Manage Applications
               </h1>
 
@@ -555,7 +554,7 @@ const Applications = () => {
             <button
               onClick={fetchApplications}
               disabled={loading}
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50 whitespace-nowrap"
             >
               <RefreshCw
                 className={`w-4 h-4 ${
@@ -576,43 +575,43 @@ const Applications = () => {
             STATISTICS
         ======================================================= */}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
 
-          <StateCard
+          <StatCard
             title="Total Applications"
             value={statistics.totalApplications}
             icon={
-              <Users className="w-6 h-6 text-blue-600" />
+              <Users className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
             }
             description="All applications"
             iconBg="bg-blue-50"
           />
 
-          <StateCard
+          <StatCard
             title="Pending"
             value={statistics.pending}
             icon={
-              <Clock3 className="w-6 h-6 text-amber-600" />
+              <Clock3 className="w-5 h-5 sm:w-6 sm:h-6 text-amber-600" />
             }
             description="Pending review"
             iconBg="bg-amber-50"
           />
 
-          <StateCard
+          <StatCard
             title="Shortlisted"
             value={statistics.shortlisted}
             icon={
-              <CheckCircle2 className="w-6 h-6 text-green-600" />
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
             }
             description="Shortlisted candidates"
             iconBg="bg-green-50"
           />
 
-          <StateCard
+          <StatCard
             title="Rejected"
             value={statistics.rejected}
             icon={
-              <XCircle className="w-6 h-6 text-red-600" />
+              <XCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
             }
             description="Rejected applications"
             iconBg="bg-red-50"
@@ -630,16 +629,16 @@ const Applications = () => {
               HEADER / SEARCH / FILTER
           ===================================================== */}
 
-          <div className="p-4 sm:p-6 border-b border-slate-100">
+          <div className="p-3 sm:p-4 md:p-6 border-b border-slate-100">
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
 
               {/* Title */}
 
               <div>
                 <div className="flex flex-wrap items-center gap-2">
 
-                  <h2 className="text-lg font-semibold text-slate-800">
+                  <h2 className="text-base sm:text-lg font-semibold text-slate-800">
                     All Applications
                   </h2>
 
@@ -745,7 +744,7 @@ const Applications = () => {
 
           {error &&
             normalizedApplications.length > 0 && (
-              <div className="mx-4 mt-4 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">
+              <div className="mx-3 sm:mx-4 mt-3 sm:mt-4 p-3 rounded-xl bg-red-50 border border-red-100 text-sm text-red-600">
                 {error}
               </div>
             )}
@@ -770,322 +769,322 @@ const Applications = () => {
               =================================================== */}
 
               <div className="hidden lg:block overflow-x-auto">
+                <div className="min-w-[1200px]">
+                  <table className="w-full border-collapse">
 
-                <table className="w-full min-w-[1200px] border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-100 bg-slate-50/70">
 
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/70">
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Applicant
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Applicant
-                      </th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Mobile
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Mobile
-                      </th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Job
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Job
-                      </th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Company
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Company
-                      </th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Location
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Location
-                      </th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Status
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Status
-                      </th>
+                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Applied
+                        </th>
 
-                      <th className="text-left px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Applied
-                      </th>
+                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                          Actions
+                        </th>
 
-                      <th className="text-right px-5 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Actions
-                      </th>
+                      </tr>
+                    </thead>
 
-                    </tr>
-                  </thead>
+                    <tbody className="divide-y divide-slate-50">
 
-                  <tbody className="divide-y divide-slate-50">
+                      {filteredApplications.map(
+                        (application) => {
 
-                    {filteredApplications.map(
-                      (application) => {
+                          const applicationId =
+                            application._id;
 
-                        const applicationId =
-                          application._id;
+                          const applicantName =
+                            application.applicant?.name ||
+                            "Unknown Applicant";
 
-                        const applicantName =
-                          application.applicant?.name ||
-                          "Unknown Applicant";
+                          const applicantEmail =
+                            application.applicant?.email ||
+                            "No email";
 
-                        const applicantEmail =
-                          application.applicant?.email ||
-                          "No email";
+                          const applicantMobile =
+                            application.applicant?.mobile ||
+                            "N/A";
 
-                        const applicantMobile =
-                          application.applicant?.mobile ||
-                          "N/A";
+                          const jobTitle =
+                            application.job?.title ||
+                            "Unknown Job";
 
-                        const jobTitle =
-                          application.job?.title ||
-                          "Unknown Job";
+                          const company =
+                            application.job?.company ||
+                            "Unknown Company";
 
-                        const company =
-                          application.job?.company ||
-                          "Unknown Company";
+                          const location =
+                            application.job?.location ||
+                            "N/A";
 
-                        const location =
-                          application.job?.location ||
-                          "N/A";
+                          const status =
+                            application.status ||
+                            "pending";
 
-                        const status =
-                          application.status ||
-                          "pending";
+                          const isUpdating =
+                            updatingApplicationId ===
+                            applicationId;
 
-                        const isUpdating =
-                          updatingApplicationId ===
-                          applicationId;
+                          return (
+                            <tr
+                              key={applicationId}
+                              className="hover:bg-slate-50/60 transition-colors"
+                            >
 
-                        return (
-                          <tr
-                            key={applicationId}
-                            className="hover:bg-slate-50/60 transition-colors"
-                          >
+                              {/* Applicant */}
 
-                            {/* Applicant */}
+                              <td className="px-4 py-3">
 
-                            <td className="px-5 py-4">
+                                <div className="flex items-center gap-3">
 
-                              <div className="flex items-center gap-3">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                                    {getInitials(
+                                      applicantName
+                                    )}
+                                  </div>
 
-                                <div className="w-11 h-11 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                                  {getInitials(
-                                    applicantName
-                                  )}
+                                  <div className="min-w-0">
+
+                                    <p className="text-sm font-semibold text-slate-800 truncate max-w-[180px]">
+                                      {applicantName}
+                                    </p>
+
+                                    <p className="text-xs text-slate-500 truncate max-w-[180px]">
+                                      {applicantEmail}
+                                    </p>
+
+                                  </div>
+
                                 </div>
 
-                                <div className="min-w-0">
+                              </td>
 
-                                  <p className="text-sm font-semibold text-slate-800 truncate max-w-[210px]">
-                                    {applicantName}
-                                  </p>
+                              {/* Mobile */}
 
-                                  <p className="text-xs text-slate-500 truncate max-w-[210px]">
-                                    {applicantEmail}
-                                  </p>
-
-                                </div>
-
-                              </div>
-
-                            </td>
-
-                            {/* Mobile */}
-
-                            <td className="px-5 py-4">
-
-                              <p className="text-sm text-slate-700 whitespace-nowrap">
-                                {applicantMobile}
-                              </p>
-
-                            </td>
-
-                            {/* Job */}
-
-                            <td className="px-5 py-4">
-
-                              <div className="flex items-start gap-2">
-
-                                <BriefcaseBusiness className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
-
-                                <p className="text-sm font-medium text-slate-700 max-w-[180px]">
-                                  {jobTitle}
-                                </p>
-
-                              </div>
-
-                            </td>
-
-                            {/* Company */}
-
-                            <td className="px-5 py-4">
-
-                              <div className="flex items-center gap-2">
-
-                                <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
-
-                                <p className="text-sm text-slate-700 max-w-[170px] truncate">
-                                  {company}
-                                </p>
-
-                              </div>
-
-                            </td>
-
-                            {/* Location */}
-
-                            <td className="px-5 py-4">
-
-                              <div className="flex items-center gap-1.5">
-
-                                <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                              <td className="px-4 py-3">
 
                                 <p className="text-sm text-slate-700 whitespace-nowrap">
-                                  {location}
+                                  {applicantMobile}
                                 </p>
 
-                              </div>
+                              </td>
 
-                            </td>
+                              {/* Job */}
 
-                            {/* Status + Update */}
+                              <td className="px-4 py-3">
 
-                            <td className="px-5 py-4">
+                                <div className="flex items-start gap-2">
 
-                              <div className="flex flex-col gap-2">
+                                  <BriefcaseBusiness className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
 
-                                {/* Current status badge */}
+                                  <p className="text-sm font-medium text-slate-700 max-w-[160px] truncate">
+                                    {jobTitle}
+                                  </p>
 
-                                <span
-                                  className={`inline-flex w-fit items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${getStatusBadge(
-                                    status
-                                  )}`}
-                                >
+                                </div>
+
+                              </td>
+
+                              {/* Company */}
+
+                              <td className="px-4 py-3">
+
+                                <div className="flex items-center gap-2">
+
+                                  <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+
+                                  <p className="text-sm text-slate-700 max-w-[150px] truncate">
+                                    {company}
+                                  </p>
+
+                                </div>
+
+                              </td>
+
+                              {/* Location */}
+
+                              <td className="px-4 py-3">
+
+                                <div className="flex items-center gap-1.5">
+
+                                  <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+
+                                  <p className="text-sm text-slate-700 whitespace-nowrap">
+                                    {location}
+                                  </p>
+
+                                </div>
+
+                              </td>
+
+                              {/* Status + Update */}
+
+                              <td className="px-4 py-3">
+
+                                <div className="flex flex-col gap-2">
+
+                                  {/* Current status badge */}
 
                                   <span
-                                    className={`w-1.5 h-1.5 rounded-full ${getStatusDot(
+                                    className={`inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
                                       status
                                     )}`}
-                                  />
-
-                                  {getStatusLabel(
-                                    status
-                                  )}
-
-                                </span>
-
-                                {/* Status update dropdown */}
-
-                                <div className="relative">
-
-                                  <select
-                                    value={String(
-                                      status
-                                    ).toLowerCase()}
-                                    disabled={
-                                      isUpdating
-                                    }
-                                    onChange={(e) =>
-                                      handleStatusChange(
-                                        applicationId,
-                                        e.target.value
-                                      )
-                                    }
-                                    className="w-full min-w-[135px] px-2.5 py-2 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
 
-                                    <option value="pending">
-                                      Pending
-                                    </option>
+                                    <span
+                                      className={`w-1.5 h-1.5 rounded-full ${getStatusDot(
+                                        status
+                                      )}`}
+                                    />
 
-                                    <option value="shortlisted">
-                                      Shortlisted
-                                    </option>
+                                    {getStatusLabel(
+                                      status
+                                    )}
 
-                                    <option value="rejected">
-                                      Rejected
-                                    </option>
+                                  </span>
 
-                                  </select>
+                                  {/* Status update dropdown */}
 
-                                  {isUpdating && (
-                                    <RefreshCw className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-blue-500 animate-spin pointer-events-none" />
-                                  )}
+                                  <div className="relative">
+
+                                    <select
+                                      value={String(
+                                        status
+                                      ).toLowerCase()}
+                                      disabled={
+                                        isUpdating
+                                      }
+                                      onChange={(e) =>
+                                        handleStatusChange(
+                                          applicationId,
+                                          e.target.value
+                                        )
+                                      }
+                                      className="w-full min-w-[120px] px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+
+                                      <option value="pending">
+                                        Pending
+                                      </option>
+
+                                      <option value="shortlisted">
+                                        Shortlisted
+                                      </option>
+
+                                      <option value="rejected">
+                                        Rejected
+                                      </option>
+
+                                    </select>
+
+                                    {isUpdating && (
+                                      <RefreshCw className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-blue-500 animate-spin pointer-events-none" />
+                                    )}
+
+                                  </div>
 
                                 </div>
 
-                              </div>
+                              </td>
 
-                            </td>
+                              {/* Applied */}
 
-                            {/* Applied */}
+                              <td className="px-4 py-3">
 
-                            <td className="px-5 py-4">
+                                <div>
 
-                              <div>
+                                  <p className="text-sm text-slate-700 whitespace-nowrap">
+                                    {formatDate(
+                                      application.appliedAt
+                                    )}
+                                  </p>
 
-                                <p className="text-sm text-slate-700 whitespace-nowrap">
-                                  {formatDate(
-                                    application.appliedAt
-                                  )}
-                                </p>
+                                  <p className="text-xs text-slate-400 whitespace-nowrap">
+                                    {formatTime(
+                                      application.appliedAt
+                                    )}
+                                  </p>
 
-                                <p className="text-xs text-slate-400 whitespace-nowrap">
-                                  {formatTime(
-                                    application.appliedAt
-                                  )}
-                                </p>
+                                </div>
 
-                              </div>
+                              </td>
 
-                            </td>
+                              {/* Actions */}
 
-                            {/* Actions */}
+                              <td className="px-4 py-3">
 
-                            <td className="px-5 py-4">
+                                <div className="flex items-center justify-end gap-1">
 
-                              <div className="flex items-center justify-end gap-2">
+                                  {/* View */}
 
-                                {/* View */}
+                                  <button
+                                    onClick={() =>
+                                      handleViewApplication(
+                                        applicationId
+                                      )
+                                    }
+                                    className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                    title="View application"
+                                  >
 
-                                <button
-                                  onClick={() =>
-                                    handleViewApplication(
-                                      applicationId
-                                    )
-                                  }
-                                  className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                  title="View application"
-                                >
+                                    <Eye className="w-4 h-4" />
 
-                                  <Eye className="w-4 h-4" />
+                                  </button>
 
-                                </button>
+                                  {/* Delete */}
 
-                                {/* Delete */}
+                                  <button
+                                    onClick={() =>
+                                      handleDeleteApplication(
+                                        application
+                                      )
+                                    }
+                                    className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                                    title="Delete application"
+                                  >
 
-                                <button
-                                  onClick={() =>
-                                    handleDeleteApplication(
-                                      application
-                                    )
-                                  }
-                                  className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                  title="Delete application"
-                                >
+                                    <Trash2 className="w-4 h-4" />
 
-                                  <Trash2 className="w-4 h-4" />
+                                  </button>
 
-                                </button>
+                                </div>
 
-                              </div>
+                              </td>
 
-                            </td>
+                            </tr>
+                          );
+                        }
+                      )}
 
-                          </tr>
-                        );
-                      }
-                    )}
+                    </tbody>
 
-                  </tbody>
-
-                </table>
-
+                  </table>
+                </div>
               </div>
 
               {/* ==================================================
@@ -1135,7 +1134,7 @@ const Applications = () => {
                     return (
                       <div
                         key={applicationId}
-                        className="p-4 sm:p-5 space-y-4"
+                        className="p-3 sm:p-4 space-y-3 sm:space-y-4"
                       >
 
                         {/* Applicant + Actions */}
@@ -1144,7 +1143,7 @@ const Applications = () => {
 
                           <div className="flex items-center gap-3 min-w-0">
 
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
                               {getInitials(
                                 applicantName
                               )}
@@ -1208,7 +1207,7 @@ const Applications = () => {
 
                         {/* Job Information */}
 
-                        <div className="bg-slate-50 rounded-xl p-3 space-y-3">
+                        <div className="bg-slate-50 rounded-xl p-3 space-y-2 sm:space-y-3">
 
                           {/* Job */}
 
@@ -1222,7 +1221,7 @@ const Applications = () => {
                                 Job
                               </p>
 
-                              <p className="text-sm font-medium text-slate-700">
+                              <p className="text-sm font-medium text-slate-700 truncate">
                                 {jobTitle}
                               </p>
 
@@ -1242,7 +1241,7 @@ const Applications = () => {
                                 Company
                               </p>
 
-                              <p className="text-sm text-slate-700">
+                              <p className="text-sm text-slate-700 truncate">
                                 {company}
                               </p>
 
@@ -1454,21 +1453,21 @@ const DeleteApplicationModal = ({
 
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
 
-        <div className="p-5 sm:p-6">
+        <div className="p-4 sm:p-5 md:p-6">
 
           {/* Header */}
 
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
 
-            <div className="bg-red-50 rounded-full p-3 flex-shrink-0">
+            <div className="bg-red-50 rounded-full p-2.5 sm:p-3 flex-shrink-0">
 
-              <AlertTriangle className="w-6 h-6 text-red-600" />
+              <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
 
             </div>
 
             <div className="flex-1 min-w-0">
 
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-900">
                 Delete Application?
               </h3>
 
@@ -1504,13 +1503,13 @@ const DeleteApplicationModal = ({
 
           {/* Application Info */}
 
-          <div className="mt-5 bg-slate-50 rounded-xl p-4">
+          <div className="mt-4 sm:mt-5 bg-slate-50 rounded-xl p-3 sm:p-4">
 
             <p className="text-xs text-slate-400 mb-1">
               Job
             </p>
 
-            <p className="text-sm font-medium text-slate-700">
+            <p className="text-sm font-medium text-slate-700 break-words">
               {application.job?.title ||
                 "Unknown Job"}
             </p>
@@ -1532,7 +1531,7 @@ const DeleteApplicationModal = ({
 
           {/* Buttons */}
 
-          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 mt-4 sm:mt-6">
 
             <button
               onClick={onClose}
@@ -1575,8 +1574,8 @@ const DeleteApplicationModal = ({
 // ============================================================
 
 const ApplicationsLoadingState = () => (
-  <div className="w-full max-w-full overflow-x-auto">
-    <div className="min-w-[1200px] p-4 sm:p-6 lg:p-8 space-y-6 lg:space-y-8">
+  <div className="w-full overflow-x-auto">
+    <div className="min-w-[320px] p-3 sm:p-4 md:p-6 lg:p-8 space-y-4 sm:space-y-6 lg:space-y-8">
 
       {/* Header */}
 
@@ -1584,33 +1583,33 @@ const ApplicationsLoadingState = () => (
 
         <div className="h-3 bg-slate-200 rounded w-36" />
 
-        <div className="h-8 bg-slate-200 rounded w-64" />
+        <div className="h-7 sm:h-8 bg-slate-200 rounded w-48 sm:w-64" />
 
-        <div className="h-4 bg-slate-200 rounded w-96 max-w-full" />
+        <div className="h-4 bg-slate-200 rounded w-72 sm:w-96 max-w-full" />
 
       </div>
 
       {/* Stats */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
         {[...Array(4)].map((_, index) => (
           <div
             key={index}
-            className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 animate-pulse"
+            className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 animate-pulse"
           >
 
             <div className="flex justify-between">
 
               <div className="space-y-3">
 
-                <div className="h-4 bg-slate-200 rounded w-28" />
+                <div className="h-4 bg-slate-200 rounded w-20 sm:w-28" />
 
-                <div className="h-8 bg-slate-200 rounded w-16" />
+                <div className="h-7 sm:h-8 bg-slate-200 rounded w-12 sm:w-16" />
 
               </div>
 
-              <div className="w-12 h-12 bg-slate-200 rounded-xl" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-200 rounded-xl" />
 
             </div>
 
@@ -1621,14 +1620,14 @@ const ApplicationsLoadingState = () => (
 
       {/* Table */}
 
-      <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-sm border border-slate-100 animate-pulse">
+      <div className="bg-white rounded-2xl p-3 sm:p-4 md:p-6 shadow-sm border border-slate-100 animate-pulse">
 
-        <div className="h-10 bg-slate-200 rounded-xl w-full mb-6" />
+        <div className="h-10 bg-slate-200 rounded-xl w-full mb-4 sm:mb-6" />
 
         {[...Array(5)].map((_, index) => (
           <div
             key={index}
-            className="h-16 bg-slate-100 rounded-xl mb-3"
+            className="h-14 sm:h-16 bg-slate-100 rounded-xl mb-2 sm:mb-3"
           />
         ))}
 
@@ -1646,22 +1645,22 @@ const ApplicationsErrorState = ({
   error,
   onRetry,
 }) => (
-  <div className="w-full max-w-full overflow-x-auto">
-    <div className="min-w-[1200px] p-4 sm:p-6 lg:p-8">
+  <div className="w-full overflow-x-auto">
+    <div className="min-w-[320px] p-3 sm:p-4 md:p-6 lg:p-8">
 
-      <div className="flex flex-col items-center justify-center py-20 px-4">
+      <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
 
-        <div className="bg-red-50 rounded-full p-4 mb-5">
+        <div className="bg-red-50 rounded-full p-3 sm:p-4 mb-4 sm:mb-5">
 
-          <AlertCircle className="w-12 h-12 text-red-500" />
+          <AlertCircle className="w-10 h-10 sm:w-12 sm:h-12 text-red-500" />
 
         </div>
 
-        <h3 className="text-lg font-semibold text-slate-800 mb-2 text-center">
+        <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-2 text-center">
           Failed to Load Applications
         </h3>
 
-        <p className="text-sm text-slate-500 mb-5 text-center max-w-md">
+        <p className="text-sm text-slate-500 mb-4 sm:mb-5 text-center max-w-md">
           {error ||
             "Something went wrong while loading applications."}
         </p>
@@ -1691,25 +1690,25 @@ const ApplicationsEmptyState = ({
   hasFilters,
   onClear,
 }) => (
-  <div className="flex flex-col items-center justify-center py-20 px-4">
+  <div className="flex flex-col items-center justify-center py-12 sm:py-16 md:py-20 px-4">
 
-    <div className="bg-slate-100 rounded-full p-4 mb-5">
+    <div className="bg-slate-100 rounded-full p-3 sm:p-4 mb-4 sm:mb-5">
 
       {hasFilters ? (
-        <Search className="w-12 h-12 text-slate-400" />
+        <Search className="w-10 h-10 sm:w-12 sm:h-12 text-slate-400" />
       ) : (
-        <Users className="w-12 h-12 text-slate-400" />
+        <Users className="w-10 h-10 sm:w-12 sm:h-12 text-slate-400" />
       )}
 
     </div>
 
-    <h3 className="text-lg font-semibold text-slate-800 mb-1 text-center">
+    <h3 className="text-base sm:text-lg font-semibold text-slate-800 mb-1 text-center">
       {hasFilters
         ? "No matching applications"
         : "No applications yet"}
     </h3>
 
-    <p className="text-sm text-slate-500 text-center mb-5 max-w-sm">
+    <p className="text-sm text-slate-500 text-center mb-4 sm:mb-5 max-w-sm">
       {hasFilters
         ? "Try adjusting your search or filter criteria."
         : "When users apply for jobs, their applications will appear here."}
@@ -1728,4 +1727,3 @@ const ApplicationsEmptyState = ({
 );
 
 export default Applications;
-

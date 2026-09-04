@@ -466,7 +466,7 @@ const CarrierWork = () => {
 
           <div className="mt-6 text-center sm:mt-7">
             <a
-              href="#"
+              href="/subscription"
               className="group inline-flex w-full max-w-[250px] items-center justify-center gap-2 rounded-full bg-slate-900 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-slate-900/15 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-xl sm:w-auto sm:max-w-none sm:px-6 sm:py-3.5 sm:text-sm"
             >
               <Zap

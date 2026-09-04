@@ -1,6 +1,8 @@
+
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Award,
-  BookOpen,
   BriefcaseBusiness,
   Building2,
   CalendarDays,
@@ -23,21 +25,12 @@ import {
   UserRound,
   VenusAndMars,
   X,
+  ExternalLink,
 } from "lucide-react";
 
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { getProfile, updateProfile } from "../redux/slicer/authSlice";
 
-// =============================================================
-// PROFILE
-// =============================================================
-
 const Profile = () => {
-  // =========================================================
-  // REDUX
-  // =========================================================
-
   const dispatch = useDispatch();
 
   const {
@@ -47,21 +40,27 @@ const Profile = () => {
     error,
   } = useSelector((state) => state.auth);
 
-  // =========================================================
-  // USER STATE
-  // =========================================================
-
   const [user, setUser] = useState(null);
 
   const [showEditModal, setShowEditModal] = useState(false);
 
   const [saveMessage, setSaveMessage] = useState("");
-  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
-  const [governmentDocumentFile, setGovernmentDocumentFile] = useState(null);
+  const [messageType, setMessageType] = useState("");
 
-  // =========================================================
-  // FORM STATE
-  // =========================================================
+  /* =====================================================
+     FILE STATES
+  ===================================================== */
+
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
+
+  const [governmentDocumentFile, setGovernmentDocumentFile] =
+    useState(null);
+
+  const [resumeFile, setResumeFile] = useState(null);
+
+  /* =====================================================
+     FORM DATA
+  ===================================================== */
 
   const [formData, setFormData] = useState({
     name: "",
@@ -85,20 +84,19 @@ const Profile = () => {
     preferredLocation: "",
     employmentType: "",
     salaryExpectation: "",
+
     resume: "",
 
-    // PROFILE PHOTO
     profilePhoto: "",
 
-    // GOVERNMENT DOCUMENT
     governmentDocumentType: "",
     governmentDocument: "",
     governmentDocumentName: "",
   });
 
-  // =========================================================
-  // GET PROFILE FROM BACKEND
-  // =========================================================
+  /* =====================================================
+     GET PROFILE
+  ===================================================== */
 
   useEffect(() => {
     if (!reduxUser) {
@@ -106,112 +104,180 @@ const Profile = () => {
     }
   }, [dispatch, reduxUser]);
 
-  // =========================================================
-  // SET USER FROM REDUX
-  // =========================================================
+  /* =====================================================
+     SET PROFILE DATA
+  ===================================================== */
 
   useEffect(() => {
-    if (reduxUser) {
-      setUser(reduxUser);
+    if (!reduxUser) return;
 
-      setFormData({
-        name:
-          reduxUser?.name || reduxUser?.fullName || reduxUser?.username || "",
+    setUser(reduxUser);
 
-        email: reduxUser?.email || "",
+    setFormData({
+      name: reduxUser.name || "",
+      email: reduxUser.email || "",
+      mobile: reduxUser.mobile || reduxUser.phone || "",
+      location: reduxUser.location || "",
 
-        mobile: reduxUser?.mobile || reduxUser?.phone || "",
+      dateOfBirth: reduxUser.dateOfBirth
+        ? String(reduxUser.dateOfBirth).substring(0, 10)
+        : "",
 
-        location: reduxUser?.location || "",
+      gender: reduxUser.gender || "",
 
-        dateOfBirth: reduxUser?.dateOfBirth || reduxUser?.dob || "",
+      qualification: reduxUser.qualification || "",
+      university: reduxUser.university || "",
+      graduationYear: reduxUser.graduationYear || "",
 
-        gender: reduxUser?.gender || "",
+      experience: reduxUser.experience || "",
+      currentCompany: reduxUser.currentCompany || "",
+      jobTitle: reduxUser.jobTitle || "",
 
-        qualification: reduxUser?.qualification || reduxUser?.education || "",
+      skills: Array.isArray(reduxUser.skills)
+        ? reduxUser.skills.join(", ")
+        : reduxUser.skills || "",
 
-        university: reduxUser?.university || reduxUser?.college || "",
+      bio: reduxUser.bio || "",
 
-        graduationYear: reduxUser?.graduationYear || "",
+      linkedin: reduxUser.linkedin || "",
+      github: reduxUser.github || "",
+      portfolio: reduxUser.portfolio || "",
 
-        experience: reduxUser?.experience || "",
+      preferredJobRole: reduxUser.preferredJobRole || "",
+      preferredLocation: reduxUser.preferredLocation || "",
+      employmentType: reduxUser.employmentType || "",
+      salaryExpectation: reduxUser.salaryExpectation || "",
 
-        currentCompany: reduxUser?.currentCompany || reduxUser?.company || "",
+      resume: reduxUser.resume || "",
 
-        jobTitle: reduxUser?.jobTitle || reduxUser?.designation || "",
+      profilePhoto: reduxUser.profilePhoto || "",
 
-        skills: Array.isArray(reduxUser?.skills)
-          ? reduxUser.skills.join(", ")
-          : reduxUser?.skills || "",
+      governmentDocumentType:
+        reduxUser.governmentDocumentType || "",
 
-        bio: reduxUser?.bio || reduxUser?.about || "",
+      governmentDocument:
+        reduxUser.governmentDocument || "",
 
-        linkedin: reduxUser?.linkedin || reduxUser?.linkedinUrl || "",
-
-        github: reduxUser?.github || reduxUser?.githubUrl || "",
-
-        portfolio: reduxUser?.portfolio || reduxUser?.portfolioUrl || "",
-
-        preferredJobRole: reduxUser?.preferredJobRole || "",
-
-        preferredLocation: reduxUser?.preferredLocation || "",
-
-        employmentType: reduxUser?.employmentType || "",
-
-        salaryExpectation: reduxUser?.salaryExpectation || "",
-
-        resume:
-          typeof reduxUser?.resume === "string"
-            ? reduxUser.resume
-            : reduxUser?.resume?.displayUrl ||
-              reduxUser?.resume?.url ||
-              reduxUser?.resumeUrl ||
-              "",
-
-        // PROFILE PHOTO
-        profilePhoto:
-          typeof reduxUser?.profilePhoto === "string"
-            ? reduxUser.profilePhoto
-            : reduxUser?.profilePhoto?.displayUrl ||
-              reduxUser?.profilePhoto?.url ||
-              reduxUser?.profileImage ||
-              reduxUser?.avatar ||
-              "",
-
-        // GOVERNMENT DOCUMENT
-        governmentDocumentType: reduxUser?.governmentDocumentType || "",
-
-        governmentDocument:
-          typeof reduxUser?.governmentDocument === "string"
-            ? reduxUser.governmentDocument
-            : reduxUser?.governmentDocument?.displayUrl ||
-              reduxUser?.governmentDocument?.url ||
-              "",
-
-        governmentDocumentName: reduxUser?.governmentDocumentName || "",
-      });
-    }
+      governmentDocumentName:
+        reduxUser.governmentDocumentName || "",
+    });
   }, [reduxUser]);
 
-  // =========================================================
-  // LOCK BACKGROUND SCROLL WHEN MODAL IS OPEN
-  // =========================================================
+  /* =====================================================
+     HELPERS
+  ===================================================== */
 
-  useEffect(() => {
-    if (showEditModal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+  const getInitials = (name = "") => {
+    const words = name
+      .trim()
+      .split(" ")
+      .filter(Boolean);
+
+    if (!words.length) return "U";
+
+    return words
+      .slice(0, 2)
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase();
+  };
+
+  const formatDate = (date) => {
+    if (!date) return "Not provided";
+
+    try {
+      return new Date(date).toLocaleDateString("en-IN", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "Not provided";
+    }
+  };
+
+  const normalizeUrl = (url) => {
+    if (!url) return "#";
+
+    if (
+      url.startsWith("http://") ||
+      url.startsWith("https://")
+    ) {
+      return url;
     }
 
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [showEditModal]);
+    return `https://${url}`;
+  };
 
-  // =========================================================
-  // HANDLE INPUT
-  // =========================================================
+  const getProfilePhotoUrl = () => {
+    if (!user?.profilePhoto) return "";
+
+    if (typeof user.profilePhoto === "string") {
+      return user.profilePhoto;
+    }
+
+    return (
+      user.profilePhoto?.displayUrl ||
+      user.profilePhoto?.url ||
+      ""
+    );
+  };
+
+  const skillsArray = useMemo(() => {
+    if (!user?.skills) return [];
+
+    if (Array.isArray(user.skills)) {
+      return user.skills.filter(Boolean);
+    }
+
+    return String(user.skills)
+      .split(",")
+      .map((skill) => skill.trim())
+      .filter(Boolean);
+  }, [user]);
+
+  /* =====================================================
+     PROFILE COMPLETION
+  ===================================================== */
+
+  const profileCompletion = useMemo(() => {
+    if (!user) return 0;
+
+    const fields = [
+      user.name,
+      user.email,
+      user.mobile || user.phone,
+      user.location,
+      user.dateOfBirth,
+      user.gender,
+      user.qualification,
+      user.university,
+      user.graduationYear,
+      user.experience,
+      user.jobTitle,
+      user.skills,
+      user.bio,
+      user.preferredJobRole,
+      user.preferredLocation,
+      user.employmentType,
+      user.salaryExpectation,
+      user.resume,
+      user.profilePhoto,
+    ];
+
+    const completed = fields.filter(
+      (field) =>
+        field !== undefined &&
+        field !== null &&
+        String(field).trim() !== ""
+    ).length;
+
+    return Math.round((completed / fields.length) * 100);
+  }, [user]);
+
+  /* =====================================================
+     CHANGE INPUT
+  ===================================================== */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -222,11 +288,11 @@ const Profile = () => {
     }));
   };
 
-  // =========================================================
-  // PROFILE PHOTO UPLOAD
-  // =========================================================
+  /* =====================================================
+     PROFILE PHOTO
+  ===================================================== */
 
-  const handleProfilePhotoUpload = (e) => {
+  const handleProfilePhotoChange = (e) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
@@ -241,49 +307,82 @@ const Profile = () => {
 
     if (!allowedTypes.includes(file.type)) {
       setSaveMessage(
-        "Please select a valid image file (JPG, PNG, WEBP or GIF).",
+        "Please upload a valid JPG, PNG, WEBP or GIF image."
       );
-      e.target.value = "";
+      setMessageType("error");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveMessage("Profile photo size should be less than 5MB.");
-      e.target.value = "";
+      setSaveMessage(
+        "Profile photo must be less than 5MB."
+      );
+      setMessageType("error");
       return;
     }
 
+    /* Store actual file */
     setProfilePhotoFile(file);
 
-    const reader = new FileReader();
+    /*
+      Create local preview.
+      This preview is only for UI.
+      Actual file will be sent through FormData.
+    */
+    const previewUrl = URL.createObjectURL(file);
 
-    reader.onload = () => {
-      setFormData((prev) => ({
-        ...prev,
-        profilePhoto: reader.result,
-      }));
-      setSaveMessage("");
-    };
+    setFormData((prev) => ({
+      ...prev,
+      profilePhoto: previewUrl,
+    }));
 
-    reader.onerror = () => {
-      setSaveMessage("Unable to preview profile photo.");
-    };
-
-    reader.readAsDataURL(file);
+    setSaveMessage("");
+    setMessageType("");
   };
 
-  // =========================================================
-  // GOVERNMENT DOCUMENT UPLOAD
-  // =========================================================
+  /* =====================================================
+     RESUME PDF UPLOAD
+  ===================================================== */
 
-  const handleGovernmentDocumentUpload = (e) => {
+  const handleResumeChange = (e) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      setSaveMessage("Only PDF resume is allowed.");
+      setMessageType("error");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveMessage(
+        "Resume PDF must be less than 5MB."
+      );
+      setMessageType("error");
+      return;
+    }
+
+    setResumeFile(file);
+
+    setSaveMessage("");
+    setMessageType("");
+  };
+
+  /* =====================================================
+     GOVERNMENT DOCUMENT
+  ===================================================== */
+
+  const handleGovernmentDocumentChange = (e) => {
     const file = e.target.files?.[0];
 
     if (!file) return;
 
     if (!formData.governmentDocumentType) {
-      setSaveMessage("Please select a government document type first.");
-      e.target.value = "";
+      setSaveMessage(
+        "Please select government document type first."
+      );
+      setMessageType("error");
       return;
     }
 
@@ -297,14 +396,18 @@ const Profile = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setSaveMessage("Please upload JPG, PNG, WEBP, GIF or PDF document.");
-      e.target.value = "";
+      setSaveMessage(
+        "Government document must be JPG, PNG, WEBP, GIF or PDF."
+      );
+      setMessageType("error");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveMessage("Government document size should be less than 5MB.");
-      e.target.value = "";
+      setSaveMessage(
+        "Government document must be less than 5MB."
+      );
+      setMessageType("error");
       return;
     }
 
@@ -312,873 +415,958 @@ const Profile = () => {
 
     const reader = new FileReader();
 
-    reader.onload = () => {
+    reader.onloadend = () => {
       setFormData((prev) => ({
         ...prev,
         governmentDocument: reader.result,
         governmentDocumentName: file.name,
       }));
-      setSaveMessage("");
-    };
-
-    reader.onerror = () => {
-      setSaveMessage("Unable to preview government document.");
     };
 
     reader.readAsDataURL(file);
   };
 
-  // =========================================================
-  // GET USER NAME
-  // =========================================================
+  /* =====================================================
+     OPEN EDIT MODAL
+  ===================================================== */
 
-  const getUserName = () => {
-    return (
-      user?.name ||
-      user?.fullName ||
-      user?.username ||
-      user?.email?.split("@")[0] ||
-      "User"
-    );
-  };
-
-  // =========================================================
-  // USER INITIAL
-  // =========================================================
-
-  const getInitial = () => {
-    return getUserName().charAt(0).toUpperCase();
-  };
-
-  // =========================================================
-  // SKILLS
-  // =========================================================
-
-  const skills = useMemo(() => {
-    if (!formData.skills) return [];
-
-    if (Array.isArray(formData.skills)) {
-      return formData.skills;
-    }
-
-    return formData.skills
-      .split(",")
-      .map((skill) => skill.trim())
-      .filter(Boolean);
-  }, [formData.skills]);
-
-  // =========================================================
-  // OPEN EDIT MODAL
-  // =========================================================
-
-  const handleEditProfile = () => {
+  const openEditModal = () => {
     setSaveMessage("");
+    setMessageType("");
+
+    /*
+      Reset newly selected files whenever modal opens.
+      Existing backend data remains untouched.
+    */
+    setProfilePhotoFile(null);
+    setResumeFile(null);
+    setGovernmentDocumentFile(null);
+
     setShowEditModal(true);
   };
 
-  // =========================================================
-  // CLOSE MODAL
-  // =========================================================
+  /* =====================================================
+     CLOSE EDIT MODAL
+  ===================================================== */
 
-  const handleCloseModal = () => {
-    setShowEditModal(false);
+  const closeEditModal = () => {
+    if (updating) return;
+
+    setProfilePhotoFile(null);
+    setResumeFile(null);
+    setGovernmentDocumentFile(null);
+
     setSaveMessage("");
+    setMessageType("");
+
+    setShowEditModal(false);
   };
 
-  // =========================================================
-  // SAVE PROFILE
-  // =========================================================
+  /* =====================================================
+     SAVE PROFILE
+  ===================================================== */
 
-  const handleSaveProfile = async (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
 
     setSaveMessage("");
-
-    const data = new FormData();
-
-    const append = (key, value) => {
-      data.append(key, value ?? "");
-    };
-
-    // Personal
-    append("name", formData.name);
-    append("email", formData.email);
-    append("mobile", formData.mobile);
-    append("location", formData.location);
-    append("dateOfBirth", formData.dateOfBirth);
-    append("gender", formData.gender);
-
-    // Education
-    append("qualification", formData.qualification);
-    append("university", formData.university);
-    append("graduationYear", formData.graduationYear);
-
-    // Experience
-    append("jobTitle", formData.jobTitle);
-    append("currentCompany", formData.currentCompany);
-    append("experience", formData.experience);
-
-    // Skills
-    append(
-      "skills",
-      Array.isArray(formData.skills)
-        ? formData.skills.join(",")
-        : formData.skills,
-    );
-
-    // About
-    append("bio", formData.bio);
-
-    // Job preferences
-    append("preferredJobRole", formData.preferredJobRole);
-    append("preferredLocation", formData.preferredLocation);
-    append("employmentType", formData.employmentType);
-    append("salaryExpectation", formData.salaryExpectation);
-
-    // Professional links
-    append("linkedin", formData.linkedin);
-    append("github", formData.github);
-    append("portfolio", formData.portfolio);
-
-    // Resume is currently a URL field in this page
-    append("resume", formData.resume);
-
-    // Government document metadata
-    append("governmentDocumentType", formData.governmentDocumentType);
-    append("governmentDocumentName", formData.governmentDocumentName);
-
-    // Actual files
-    if (profilePhotoFile) {
-      data.append("profilePhoto", profilePhotoFile);
-    }
-
-    if (governmentDocumentFile) {
-      data.append("governmentDocument", governmentDocumentFile);
-    }
+    setMessageType("");
 
     try {
-      const result = await dispatch(updateProfile(data)).unwrap();
+      const data = new FormData();
 
-      setSaveMessage(result?.message || "Profile updated successfully.");
+      /*
+        Normal text fields
+      */
+      Object.entries(formData).forEach(([key, value]) => {
+        if (
+          key !== "profilePhoto" &&
+          key !== "governmentDocument" &&
+          key !== "resume" &&
+          key !== "skills"
+        ) {
+          data.append(key, value ?? "");
+        }
+      });
 
-      setProfilePhotoFile(null);
-      setGovernmentDocumentFile(null);
+      /* =================================================
+         SKILLS
+      ================================================= */
 
-      setShowEditModal(false);
+      data.append(
+        "skills",
+        Array.isArray(formData.skills)
+          ? formData.skills.join(",")
+          : formData.skills || ""
+      );
+
+      /* =================================================
+         PROFILE PHOTO
+      ================================================= */
+
+      if (profilePhotoFile) {
+        data.append(
+          "profilePhoto",
+          profilePhotoFile
+        );
+      }
+
+      /* =================================================
+         GOVERNMENT DOCUMENT
+      ================================================= */
+
+      if (governmentDocumentFile) {
+        data.append(
+          "governmentDocument",
+          governmentDocumentFile
+        );
+      }
+
+      /* =================================================
+         RESUME
+      ================================================= */
+
+      if (resumeFile) {
+        data.append("resume", resumeFile);
+      }
+
+      /*
+        Redux updateProfile
+      */
+      const response = await dispatch(
+        updateProfile(data)
+      ).unwrap();
+
+      setSaveMessage(
+        response?.message ||
+          "Profile updated successfully."
+      );
+
+      setMessageType("success");
+
+      /*
+        Update local user immediately if backend
+        returned updated data.
+      */
+      if (response?.data) {
+        setUser(response.data);
+      }
+
+      /*
+        IMPORTANT:
+        Fetch latest profile again so the updated
+        profile photo URL comes from backend.
+      */
+      await dispatch(getProfile());
+
+      /*
+        Close modal after short delay.
+      */
+      setTimeout(() => {
+        setProfilePhotoFile(null);
+        setResumeFile(null);
+        setGovernmentDocumentFile(null);
+
+        setShowEditModal(false);
+        setSaveMessage("");
+        setMessageType("");
+      }, 800);
     } catch (err) {
       setSaveMessage(
         typeof err === "string"
           ? err
-          : err?.message || "Failed to update profile.",
+          : err?.message ||
+              "Failed to update profile."
       );
+
+      setMessageType("error");
     }
   };
 
-  // =========================================================
-  // LOADING
-  // =========================================================
+  /* =====================================================
+     LOADING
+  ===================================================== */
 
   if (loading && !user) {
     return (
-      <main className="min-h-[calc(100vh-68px)] bg-slate-50 px-4 py-10">
-        <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center">
-          <div className="w-full rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-              <UserRound size={30} className="animate-pulse" />
-            </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-12 h-12 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin mx-auto" />
 
-            <h1 className="mt-5 text-xl font-bold text-slate-800">
-              Loading Profile...
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-500">
-              Please wait while we fetch your profile.
-            </p>
-          </div>
+          <p className="mt-4 text-sm font-medium text-slate-500">
+            Loading your profile...
+          </p>
         </div>
-      </main>
+      </div>
     );
   }
 
-  // =========================================================
-  // PROFILE ERROR
-  // =========================================================
-
-  if (error && !user) {
-    return (
-      <main className="min-h-[calc(100vh-68px)] bg-slate-50 px-4 py-10">
-        <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center">
-          <div className="w-full rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-500">
-              <UserRound size={30} />
-            </div>
-
-            <h1 className="mt-5 text-xl font-bold text-slate-800">
-              Unable to Load Profile
-            </h1>
-
-            <p className="mt-2 text-sm text-slate-500">{error}</p>
-
-            <button
-              type="button"
-              onClick={() => dispatch(getProfile())}
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <UserRound size={17} />
-              Try Again
-            </button>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  // =========================================================
-  // NOT LOGGED IN
-  // =========================================================
+  /* =====================================================
+     NO USER
+  ===================================================== */
 
   if (!user) {
     return (
-      <main className="min-h-[calc(100vh-68px)] bg-slate-50 px-4 py-10">
-        <div className="mx-auto flex min-h-[60vh] max-w-xl items-center justify-center">
-          <div className="w-full rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-              <UserRound size={30} />
-            </div>
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center max-w-md w-full">
+          <UserRound className="w-12 h-12 text-slate-300 mx-auto" />
 
-            <h1 className="mt-5 text-xl font-bold text-slate-800">
-              Login Required
-            </h1>
+          <h2 className="text-xl font-bold text-slate-800 mt-4">
+            Profile not found
+          </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
-              Please login to view your profile.
-            </p>
-
-            <a
-              href="/login"
-              className="mt-6 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <UserRound size={17} />
-              Login
-            </a>
-          </div>
+          <p className="text-sm text-slate-500 mt-2">
+            Unable to load your profile information.
+          </p>
         </div>
-      </main>
+      </div>
     );
   }
 
-  // =========================================================
-  // MAIN PROFILE
-  // =========================================================
+  /* =====================================================
+     PROFILE PHOTO URL
+  ===================================================== */
+
+  const profilePhotoUrl = getProfilePhotoUrl();
 
   return (
-    <>
-      <main className="min-h-[calc(100vh-68px)] overflow-x-hidden bg-slate-50">
+    <div className="min-h-screen bg-slate-50 pb-10">
+
+      {/* =====================================================
+          MESSAGE
+      ===================================================== */}
+
+      {saveMessage && (
+        <div
+          className={`fixed top-5 right-5 z-[100] max-w-sm rounded-xl px-5 py-3 shadow-xl border flex items-center gap-3 ${
+            messageType === "success"
+              ? "bg-white border-emerald-200 text-emerald-700"
+              : "bg-white border-red-200 text-red-700"
+          }`}
+        >
+          {messageType === "success" ? (
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+          ) : (
+            <X className="w-5 h-5 shrink-0" />
+          )}
+
+          <span className="text-sm font-medium">
+            {saveMessage}
+          </span>
+        </div>
+      )}
+
+      {/* =====================================================
+          PAGE CONTAINER
+      ===================================================== */}
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-7">
+
         {/* =====================================================
-            PAGE CONTAINER
+            PROFILE HEADER
         ===================================================== */}
 
-        <div className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-9">
-          {/* ===================================================
-              PROFILE HEADER
-          =================================================== */}
+        <section className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {/* COVER */}
+          {/* COVER */}
 
-            <div className="relative h-32 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 sm:h-40 lg:h-48">
-              <div className="absolute -left-10 -top-16 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+          <div className="h-36 sm:h-48 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 relative overflow-hidden">
+            <div className="absolute -right-16 -top-24 w-80 h-80 rounded-full border-[60px] border-white/10" />
 
-              <div className="absolute -bottom-20 right-0 h-52 w-52 rounded-full bg-white/10 blur-3xl" />
+            <div className="absolute -left-20 -bottom-40 w-96 h-96 rounded-full border-[70px] border-white/10" />
 
-              <div className="absolute left-1/2 top-1/2 h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-300/10 blur-3xl" />
+            <div className="absolute right-5 top-5">
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 backdrop-blur-md text-white text-xs font-semibold">
+                Career Profile
+              </span>
             </div>
+          </div>
 
-            {/* PROFILE HEADER CONTENT */}
+          {/* PROFILE AREA */}
 
-            <div className="relative px-4 pb-5 sm:px-6 sm:pb-6 lg:px-8">
-              <div className="-mt-12 flex flex-col gap-4 sm:-mt-14 sm:flex-row sm:items-end sm:justify-between">
-                {/* AVATAR + USER INFO */}
+          <div className="px-5 sm:px-8 pb-7">
 
-                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end">
-                  {/* AVATAR */}
+            <div className="-mt-14 sm:-mt-20 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
 
-                  <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-gradient-to-br from-blue-600 to-indigo-600 text-3xl font-black text-white shadow-lg sm:h-28 sm:w-28 sm:text-4xl">
-                    {formData.profilePhoto ? (
-                      <img
-                        src={formData.profilePhoto}
-                        alt={getUserName()}
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      getInitial()
-                    )}
+              {/* USER */}
 
-                    <button
-                      type="button"
-                      onClick={handleEditProfile}
-                      className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-white shadow-md transition hover:bg-blue-700"
-                      title="Edit Profile"
-                    >
-                      <Camera size={14} />
-                    </button>
+              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+
+                {/* AVATAR */}
+
+                <div className="relative shrink-0">
+
+                  <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white p-1.5 shadow-xl">
+
+                    <div className="w-full h-full rounded-[20px] overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+
+                      {profilePhotoUrl ? (
+                        <img
+                          src={profilePhotoUrl}
+                          alt={user.name || "Profile"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-4xl sm:text-5xl font-bold text-white">
+                          {getInitials(user.name)}
+                        </span>
+                      )}
+
+                    </div>
                   </div>
 
-                  {/* USER DETAILS */}
+                  {/* VERIFIED */}
 
-                  <div className="min-w-0 pb-1">
-                    <h1 className="truncate text-xl font-black tracking-tight text-slate-900 sm:text-2xl">
-                      {getUserName()}
+                  {(user.isVerified || user.verified) && (
+                    <div className="absolute -right-2 bottom-2 bg-white rounded-full p-1 shadow">
+                      <CheckCircle2 className="w-7 h-7 text-blue-600 fill-blue-50" />
+                    </div>
+                  )}
+
+                  {/* =================================================
+                      QUICK PHOTO UPDATE BUTTON
+                  ================================================= */}
+
+                  <label
+                    title="Change profile photo"
+                    className="absolute -right-2 -top-2 w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center cursor-pointer shadow-lg transition border-2 border-white"
+                  >
+                    <Camera className="w-4 h-4" />
+
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
+                      onChange={(e) => {
+                        handleProfilePhotoChange(e);
+                        setShowEditModal(true);
+                      }}
+                      className="hidden"
+                    />
+                  </label>
+                </div>
+
+                {/* NAME */}
+
+                <div className="pb-1">
+                  <div className="flex flex-wrap items-center gap-2">
+
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                      {user.name || "Your Name"}
                     </h1>
 
-                    <p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500">
-                      <Mail size={14} />
-
-                      <span className="truncate">
-                        {user?.email || "No email added"}
+                    {(user.isVerified || user.verified) && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-xs font-semibold">
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Verified
                       </span>
-                    </p>
-
-                    {formData.jobTitle && (
-                      <p className="mt-1 flex items-center gap-1.5 text-xs font-medium text-blue-600">
-                        <BriefcaseBusiness size={14} />
-                        {formData.jobTitle}
-                      </p>
                     )}
-                  </div>
-                </div>
 
-                {/* EDIT BUTTON */}
-
-                <button
-                  type="button"
-                  onClick={handleEditProfile}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-sm font-semibold text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg sm:w-auto"
-                >
-                  <Pencil size={16} />
-                  Edit Profile
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* ===================================================
-              PROFILE CONTENT
-          =================================================== */}
-
-          <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-3">
-            {/* =================================================
-                LEFT COLUMN
-            ================================================= */}
-
-            <div className="space-y-5 lg:col-span-2">
-              {/* ABOUT */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <UserRound size={19} />
                   </div>
 
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      About Me
-                    </h2>
-
-                    <p className="text-xs text-slate-400">
-                      Professional summary
-                    </p>
-                  </div>
-                </div>
-
-                <p className="mt-5 whitespace-pre-line text-sm leading-7 text-slate-600">
-                  {formData.bio ||
-                    "Add a professional summary to tell employers about yourself, your experience and your career goals."}
-                </p>
-              </section>
-
-              {/* PERSONAL INFORMATION */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                    <User size={19} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Personal Information
-                    </h2>
-
-                    <p className="text-xs text-slate-400">
-                      Basic personal details
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InfoItem
-                    icon={Mail}
-                    label="Email Address"
-                    value={formData.email}
-                  />
-
-                  <InfoItem
-                    icon={Phone}
-                    label="Phone Number"
-                    value={formData.mobile}
-                  />
-
-                  <InfoItem
-                    icon={MapPin}
-                    label="Location"
-                    value={formData.location}
-                  />
-
-                  <InfoItem
-                    icon={CalendarDays}
-                    label="Date of Birth"
-                    value={formData.dateOfBirth}
-                  />
-
-                  <InfoItem
-                    icon={VenusAndMars}
-                    label="Gender"
-                    value={formData.gender}
-                  />
-                </div>
-              </section>
-
-              {/* EDUCATION */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-                    <GraduationCap size={20} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Education
-                    </h2>
-
-                    <p className="text-xs text-slate-400">
-                      Academic background
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InfoItem
-                    icon={GraduationCap}
-                    label="Qualification"
-                    value={formData.qualification}
-                  />
-
-                  <InfoItem
-                    icon={Building2}
-                    label="University / College"
-                    value={formData.university}
-                  />
-
-                  <InfoItem
-                    icon={CalendarDays}
-                    label="Graduation Year"
-                    value={formData.graduationYear}
-                  />
-                </div>
-              </section>
-
-              {/* EXPERIENCE */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
-                    <BriefcaseBusiness size={19} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Experience
-                    </h2>
-
-                    <p className="text-xs text-slate-400">
-                      Professional experience
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InfoItem
-                    icon={BriefcaseBusiness}
-                    label="Job Title"
-                    value={formData.jobTitle}
-                  />
-
-                  <InfoItem
-                    icon={Building2}
-                    label="Current Company"
-                    value={formData.currentCompany}
-                  />
-
-                  <InfoItem
-                    icon={Clock3}
-                    label="Experience"
-                    value={formData.experience}
-                  />
-                </div>
-              </section>
-
-              {/* SKILLS */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
-                    <Code2 size={19} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Skills
-                    </h2>
-
-                    <p className="text-xs text-slate-400">
-                      Technical and professional skills
-                    </p>
-                  </div>
-                </div>
-
-                {skills.length > 0 ? (
-                  <div className="mt-5 flex flex-wrap gap-2">
-                    {skills.map((skill, index) => (
-                      <span
-                        key={`${skill}-${index}`}
-                        className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="mt-5 text-sm text-slate-400">
-                    No skills added yet.
+                  <p className="mt-1 text-base font-medium text-slate-600">
+                    {user.jobTitle || "Job Seeker"}
                   </p>
-                )}
-              </section>
+
+                  <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-sm text-slate-500">
+
+                    {user.location && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <MapPin className="w-4 h-4 text-blue-500" />
+                        {user.location}
+                      </span>
+                    )}
+
+                    {user.email && (
+                      <span className="inline-flex items-center gap-1.5">
+                        <Mail className="w-4 h-4 text-blue-500" />
+                        {user.email}
+                      </span>
+                    )}
+
+                  </div>
+                </div>
+              </div>
+
+              {/* EDIT */}
+
+              <button
+                onClick={openEditModal}
+                className="w-full lg:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-blue-600/20 transition"
+              >
+                <Pencil className="w-4 h-4" />
+                Edit Profile
+              </button>
+
             </div>
 
-            {/* =================================================
-                RIGHT COLUMN
-            ================================================= */}
+            {/* QUICK INFO */}
 
-            <div className="space-y-5">
-              {/* CAREER PREFERENCES */}
+            <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-3">
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <Target size={19} />
-                  </div>
+              <QuickStat
+                icon={BriefcaseBusiness}
+                label="Experience"
+                value={user.experience || "Fresher"}
+              />
 
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Career Preferences
-                    </h2>
+              <QuickStat
+                icon={GraduationCap}
+                label="Qualification"
+                value={user.qualification || "Not added"}
+              />
 
-                    <p className="text-xs text-slate-400">
-                      Your job preferences
-                    </p>
-                  </div>
+              <QuickStat
+                icon={Target}
+                label="Preferred Role"
+                value={user.preferredJobRole || "Not added"}
+              />
+
+              <QuickStat
+                icon={MapPin}
+                label="Preferred Location"
+                value={user.preferredLocation || "Not added"}
+              />
+
+            </div>
+          </div>
+        </section>
+
+        {/* =====================================================
+            MAIN CONTENT
+        ===================================================== */}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+
+          {/* =================================================
+              LEFT
+          ================================================= */}
+
+          <div className="lg:col-span-2 space-y-6">
+
+            {/* ABOUT */}
+
+            <ProfileCard
+              icon={UserRound}
+              title="About Me"
+              subtitle="Professional introduction"
+            >
+              <p className="text-sm sm:text-base text-slate-600 leading-7">
+                {user.bio ||
+                  "Add a professional summary to tell employers about your experience, skills and career goals."}
+              </p>
+            </ProfileCard>
+
+            {/* PERSONAL INFORMATION */}
+
+            <ProfileCard
+              icon={User}
+              title="Personal Information"
+              subtitle="Your basic profile details"
+            >
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+                <InfoItem
+                  icon={Mail}
+                  label="Email Address"
+                  value={user.email}
+                />
+
+                <InfoItem
+                  icon={Phone}
+                  label="Mobile Number"
+                  value={user.mobile || user.phone}
+                />
+
+                <InfoItem
+                  icon={MapPin}
+                  label="Location"
+                  value={user.location}
+                />
+
+                <InfoItem
+                  icon={CalendarDays}
+                  label="Date of Birth"
+                  value={formatDate(user.dateOfBirth)}
+                />
+
+                <InfoItem
+                  icon={VenusAndMars}
+                  label="Gender"
+                  value={user.gender}
+                />
+
+                <InfoItem
+                  icon={Globe}
+                  label="Profile Type"
+                  value="Job Seeker"
+                />
+
+              </div>
+            </ProfileCard>
+
+            {/* EDUCATION */}
+
+            <ProfileCard
+              icon={GraduationCap}
+              title="Education"
+              subtitle="Academic background"
+            >
+              <TimelineItem
+                icon={GraduationCap}
+                title={
+                  user.qualification ||
+                  "Qualification not added"
+                }
+                subtitle={
+                  user.university ||
+                  "University not added"
+                }
+                badge={user.graduationYear}
+              />
+            </ProfileCard>
+
+            {/* EXPERIENCE */}
+
+            <ProfileCard
+              icon={BriefcaseBusiness}
+              title="Experience"
+              subtitle="Professional experience"
+            >
+              <TimelineItem
+                icon={BriefcaseBusiness}
+                title={
+                  user.jobTitle ||
+                  "Job title not added"
+                }
+                subtitle={
+                  user.currentCompany ||
+                  "Company not added"
+                }
+                badge={user.experience || "Fresher"}
+              />
+            </ProfileCard>
+
+            {/* SKILLS */}
+
+            <ProfileCard
+              icon={Code2}
+              title="Skills & Expertise"
+              subtitle="Professional skills"
+            >
+              {skillsArray.length > 0 ? (
+                <div className="flex flex-wrap gap-2.5">
+
+                  {skillsArray.map((skill, index) => (
+                    <span
+                      key={`${skill}-${index}`}
+                      className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-blue-50 text-blue-700 border border-blue-100 text-sm font-semibold"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      {skill}
+                    </span>
+                  ))}
+
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Code2}
+                  text="No skills added yet."
+                />
+              )}
+            </ProfileCard>
+
+          </div>
+
+          {/* =================================================
+              RIGHT
+          ================================================= */}
+
+          <div className="space-y-6">
+
+            {/* PROFILE STRENGTH */}
+
+            <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-lg shadow-blue-600/15">
+
+              <div className="flex items-start justify-between">
+
+                <div>
+                  <p className="text-blue-100 text-sm font-medium">
+                    Profile Strength
+                  </p>
+
+                  <h2 className="text-3xl font-bold mt-1">
+                    {profileCompletion}%
+                  </h2>
                 </div>
 
-                <div className="mt-5 space-y-4">
-                  <InfoItem
-                    icon={Target}
-                    label="Preferred Job Role"
-                    value={formData.preferredJobRole}
-                  />
-
-                  <InfoItem
-                    icon={MapPin}
-                    label="Preferred Location"
-                    value={formData.preferredLocation}
-                  />
-
-                  <InfoItem
-                    icon={BriefcaseBusiness}
-                    label="Employment Type"
-                    value={formData.employmentType}
-                  />
-
-                  <InfoItem
-                    icon={Award}
-                    label="Salary Expectation"
-                    value={formData.salaryExpectation}
-                  />
-                </div>
-              </section>
-
-              {/* RESUME */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500">
-                    <FileText size={19} />
-                  </div>
-
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Resume
-                    </h2>
-
-                    <p className="text-xs text-slate-400">Your latest resume</p>
-                  </div>
+                <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center">
+                  <Award className="w-5 h-5" />
                 </div>
 
-                <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-4">
+              </div>
+
+              <div className="mt-5 h-2 rounded-full bg-white/20 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-white transition-all duration-500"
+                  style={{
+                    width: `${profileCompletion}%`,
+                  }}
+                />
+              </div>
+
+              <p className="text-xs text-blue-100 mt-3 leading-5">
+                Complete your profile to increase your visibility
+                to employers.
+              </p>
+
+              <button
+                onClick={openEditModal}
+                className="mt-4 w-full bg-white text-blue-700 hover:bg-blue-50 py-2.5 rounded-xl text-sm font-bold transition"
+              >
+                Improve Profile
+              </button>
+
+            </div>
+
+            {/* CAREER PREFERENCES */}
+
+            <ProfileCard
+              icon={Target}
+              title="Career Preferences"
+              subtitle="What you're looking for"
+            >
+              <div className="space-y-4">
+
+                <PreferenceItem
+                  icon={BriefcaseBusiness}
+                  label="Preferred Role"
+                  value={user.preferredJobRole}
+                />
+
+                <PreferenceItem
+                  icon={MapPin}
+                  label="Preferred Location"
+                  value={user.preferredLocation}
+                />
+
+                <PreferenceItem
+                  icon={Clock3}
+                  label="Employment Type"
+                  value={user.employmentType}
+                />
+
+                <PreferenceItem
+                  icon={Award}
+                  label="Salary Expectation"
+                  value={user.salaryExpectation}
+                />
+
+              </div>
+            </ProfileCard>
+
+            {/* RESUME */}
+
+            <ProfileCard
+              icon={FileText}
+              title="Resume"
+              subtitle="Your professional resume"
+            >
+              {user.resume ? (
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+
                   <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-red-500 shadow-sm">
-                      <FileText size={20} />
+
+                    <div className="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                      <FileText className="w-5 h-5" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-700">
-                        {formData.resume
-                          ? "Resume Uploaded"
-                          : "No Resume Added"}
+
+                      <p className="font-semibold text-slate-800 text-sm">
+                        Resume.pdf
                       </p>
 
-                      <p className="mt-0.5 text-xs text-slate-400">
-                        {formData.resume
-                          ? "Your resume is available"
-                          : "Upload your resume from Edit Profile"}
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        PDF resume available
                       </p>
+
                     </div>
+
                   </div>
+
+                  <a
+                    href={normalizeUrl(user.resume)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-4 w-full inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-blue-600 text-white py-2.5 rounded-xl text-sm font-semibold transition"
+                  >
+                    View Resume
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+
                 </div>
-              </section>
+              ) : (
+                <EmptyState
+                  icon={FileText}
+                  text="Resume PDF not uploaded."
+                />
+              )}
+            </ProfileCard>
 
-              {/* GOVERNMENT DOCUMENT */}
+            {/* VERIFICATION */}
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                    <ShieldCheck size={19} />
-                  </div>
+            <ProfileCard
+              icon={ShieldCheck}
+              title="Verification"
+              subtitle="Government document"
+            >
+              {user.governmentDocument ? (
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
 
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Government Document
-                    </h2>
+                  <div className="flex items-center gap-3">
 
-                    <p className="text-xs text-slate-400">
-                      Identity verification document
-                    </p>
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-xl border border-slate-100 bg-slate-50 p-4">
-                  {formData.governmentDocument ? (
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
-                        <FileText size={20} />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-slate-700">
-                          {formData.governmentDocumentType}
-                        </p>
-
-                        <p className="mt-0.5 truncate text-xs text-slate-400">
-                          {formData.governmentDocumentName ||
-                            "Document uploaded"}
-                        </p>
-                      </div>
+                    <div className="w-11 h-11 rounded-xl bg-white text-emerald-600 flex items-center justify-center shadow-sm">
+                      <ShieldCheck className="w-5 h-5" />
                     </div>
-                  ) : (
-                    <div className="text-center">
-                      <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-white text-slate-400 shadow-sm">
-                        <ShieldCheck size={20} />
-                      </div>
 
-                      <p className="mt-2 text-sm font-semibold text-slate-600">
-                        No document added
+                    <div className="min-w-0">
+
+                      <p className="font-semibold text-emerald-800 text-sm">
+                        Document Added
                       </p>
 
-                      <p className="mt-1 text-xs text-slate-400">
-                        Add your document from Edit Profile
+                      <p className="text-xs text-emerald-700 mt-1 truncate">
+                        {user.governmentDocumentName ||
+                          user.governmentDocumentType ||
+                          "Government document"}
                       </p>
+
                     </div>
-                  )}
-                </div>
-              </section>
 
-              {/* SOCIAL LINKS */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                    <Globe size={19} />
                   </div>
 
-                  <div>
-                    <h2 className="text-base font-bold text-slate-800">
-                      Social Profiles
-                    </h2>
-
-                    <p className="text-xs text-slate-400">Professional links</p>
-                  </div>
                 </div>
+              ) : (
+                <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
 
-                <div className="mt-5 space-y-2">
+                  <div className="flex gap-3">
+
+                    <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0" />
+
+                    <div>
+
+                      <p className="text-sm font-semibold text-amber-800">
+                        Verification pending
+                      </p>
+
+                      <p className="text-xs text-amber-700 mt-1 leading-5">
+                        Add your government document from Edit
+                        Profile.
+                      </p>
+
+                    </div>
+
+                  </div>
+
+                </div>
+              )}
+            </ProfileCard>
+
+            {/* SOCIAL */}
+
+            <ProfileCard
+              icon={Globe}
+              title="Social Profiles"
+              subtitle="Professional links"
+            >
+              <div className="space-y-2.5">
+
+                {user.linkedin && (
+                  <SocialLink
+                    icon={Globe}
+                    label="LinkedIn"
+                    url={user.linkedin}
+                  />
+                )}
+
+                {user.github && (
+                  <SocialLink
+                    icon={Code2}
+                    label="GitHub"
+                    url={user.github}
+                  />
+                )}
+
+                {user.portfolio && (
                   <SocialLink
                     icon={Globe}
                     label="Portfolio"
-                    value={formData.portfolio}
+                    url={user.portfolio}
                   />
-                </div>
-              </section>
-            </div>
+                )}
+
+                {!user.linkedin &&
+                  !user.github &&
+                  !user.portfolio && (
+                    <EmptyState
+                      icon={Globe}
+                      text="No professional links added."
+                    />
+                  )}
+
+              </div>
+            </ProfileCard>
+
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* =======================================================
+      {/* =====================================================
           EDIT PROFILE MODAL
-      ======================================================= */}
+      ===================================================== */}
 
       {showEditModal && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-900/60 p-3 backdrop-blur-sm sm:p-5"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              handleCloseModal();
-            }
-          }}
-        >
-          <div className="relative my-auto flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
+
+          <div className="bg-white w-full max-w-4xl max-h-[94vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+
             {/* MODAL HEADER */}
 
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-100 bg-white px-4 py-4 sm:px-6">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                  <Pencil size={18} />
-                </div>
+            <div className="px-5 sm:px-7 py-4 sm:py-5 border-b border-slate-200 flex items-center justify-between">
 
-                <div>
-                  <h2 className="text-base font-bold text-slate-800 sm:text-lg">
-                    Edit Profile
-                  </h2>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+                  Edit Profile
+                </h2>
 
-                  <p className="text-[11px] text-slate-400 sm:text-xs">
-                    Update your professional information
-                  </p>
-                </div>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                  Keep your professional information up to date.
+                </p>
               </div>
 
               <button
                 type="button"
-                onClick={handleCloseModal}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-                aria-label="Close"
+                onClick={closeEditModal}
+                className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition"
               >
-                <X size={20} />
+                <X className="w-5 h-5" />
               </button>
+
             </div>
 
-            {/* FORM */}
+            {/* MODAL BODY */}
 
             <form
-              onSubmit={handleSaveProfile}
-              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={handleSave}
+              className="overflow-y-auto px-5 sm:px-7 py-6 space-y-7"
             >
-              {/* FORM BODY */}
 
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
-                {/* PROFILE PHOTO */}
+              {/* =================================================
+                  PROFILE PHOTO
+              ================================================= */}
 
-                <FormSection
-                  icon={Camera}
-                  title="Profile Photo"
-                  description="Upload your professional profile photo"
-                >
-                  <div className="sm:col-span-2">
-                    <div className="flex flex-col items-center gap-5 rounded-xl border border-slate-200 bg-slate-50 p-5 sm:flex-row">
-                      <div className="relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-600 text-3xl font-black text-white shadow-md">
-                        {formData.profilePhoto ? (
-                          <img
-                            src={formData.profilePhoto}
-                            alt="Profile Preview"
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          getInitial()
-                        )}
-                      </div>
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
 
-                      <div className="min-w-0 flex-1 text-center sm:text-left">
-                        <p className="text-sm font-semibold text-slate-700">
-                          Upload Profile Photo
-                        </p>
+                <div className="flex flex-col sm:flex-row items-center gap-5">
 
-                        <p className="mt-1 text-xs text-slate-400">
-                          JPG, JPEG or PNG. Maximum size 5MB.
-                        </p>
+                  <div className="relative shrink-0">
 
-                        <label
-                          htmlFor="profilePhoto"
-                          className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-sm transition hover:bg-blue-700"
-                        >
-                          <Camera size={15} />
-                          Choose Photo
-                        </label>
+                    <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
 
-                        <input
-                          id="profilePhoto"
-                          type="file"
-                          accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
-                          onChange={handleProfilePhotoUpload}
-                          className="hidden"
+                      {formData.profilePhoto ? (
+                        <img
+                          src={formData.profilePhoto}
+                          alt="Profile"
+                          className="w-full h-full object-cover"
                         />
-                      </div>
+                      ) : (
+                        <span className="text-3xl font-bold text-white">
+                          {getInitials(formData.name)}
+                        </span>
+                      )}
+
                     </div>
+
+                    {/* CAMERA BUTTON */}
+
+                    <label
+                      title="Change profile photo"
+                      className="absolute -right-2 -bottom-2 w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center cursor-pointer shadow-lg hover:bg-blue-700 transition border-2 border-white"
+                    >
+                      <Camera className="w-4 h-4" />
+
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
+                        onChange={handleProfilePhotoChange}
+                        className="hidden"
+                      />
+                    </label>
+
                   </div>
-                </FormSection>
 
-                {/* PERSONAL INFORMATION */}
+                  <div className="text-center sm:text-left">
 
-                <FormSection
-                  icon={User}
-                  title="Personal Information"
-                  description="Enter your basic personal details"
-                >
+                    <h3 className="font-bold text-slate-800">
+                      Profile Photo
+                    </h3>
+
+                    <p className="text-sm text-slate-500 mt-1">
+                      JPG, PNG, WEBP or GIF. Maximum 5MB.
+                    </p>
+
+                    <label className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer transition">
+
+                      <Camera className="w-4 h-4" />
+
+                      {profilePhotoFile
+                        ? "Change Photo"
+                        : "Choose Photo"}
+
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/jpg,image/webp,image/gif"
+                        onChange={handleProfilePhotoChange}
+                        className="hidden"
+                      />
+
+                    </label>
+
+                  </div>
+                </div>
+              </div>
+
+              {/* PERSONAL */}
+
+              <FormSection
+                icon={UserRound}
+                title="Personal Information"
+                description="Basic information about you"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                   <InputField
                     label="Full Name"
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    placeholder="Enter your full name"
-                    icon={UserRound}
-                    required
+                    icon={User}
                   />
 
                   <InputField
-                    label="Email Address"
+                    label="Email"
                     name="email"
                     type="email"
                     value={formData.email}
                     onChange={handleChange}
-                    placeholder="Enter your email"
                     icon={Mail}
-                    required
                   />
 
                   <InputField
-                    label="Phone Number"
+                    label="Mobile Number"
                     name="mobile"
                     value={formData.mobile}
                     onChange={handleChange}
-                    placeholder="Enter your phone number"
                     icon={Phone}
                   />
 
@@ -1187,7 +1375,6 @@ const Profile = () => {
                     name="location"
                     value={formData.location}
                     onChange={handleChange}
-                    placeholder="City, State, Country"
                     icon={MapPin}
                   />
 
@@ -1206,23 +1393,31 @@ const Profile = () => {
                     value={formData.gender}
                     onChange={handleChange}
                     icon={VenusAndMars}
-                    options={["Male", "Female", "Other", "Prefer not to say"]}
+                    options={[
+                      "Male",
+                      "Female",
+                      "Other",
+                      "Prefer not to say",
+                    ]}
                   />
-                </FormSection>
 
-                {/* EDUCATION */}
+                </div>
+              </FormSection>
 
-                <FormSection
-                  icon={GraduationCap}
-                  title="Education"
-                  description="Add your academic qualifications"
-                >
+              {/* EDUCATION */}
+
+              <FormSection
+                icon={GraduationCap}
+                title="Education"
+                description="Academic qualifications"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                   <InputField
-                    label="Highest Qualification"
+                    label="Qualification"
                     name="qualification"
                     value={formData.qualification}
                     onChange={handleChange}
-                    placeholder="e.g. B.Tech Computer Science"
                     icon={GraduationCap}
                   />
 
@@ -1231,7 +1426,6 @@ const Profile = () => {
                     name="university"
                     value={formData.university}
                     onChange={handleChange}
-                    placeholder="Enter university or college"
                     icon={Building2}
                   />
 
@@ -1240,25 +1434,28 @@ const Profile = () => {
                     name="graduationYear"
                     value={formData.graduationYear}
                     onChange={handleChange}
-                    placeholder="e.g. 2025"
                     icon={CalendarDays}
                   />
-                </FormSection>
 
-                {/* EXPERIENCE */}
+                </div>
+              </FormSection>
 
-                <FormSection
-                  icon={BriefcaseBusiness}
-                  title="Professional Experience"
-                  description="Tell employers about your experience"
-                >
+              {/* EXPERIENCE */}
+
+              <FormSection
+                icon={BriefcaseBusiness}
+                title="Professional Experience"
+                description="Your current professional status"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
                   <InputField
-                    label="Job Title"
-                    name="jobTitle"
-                    value={formData.jobTitle}
+                    label="Experience"
+                    name="experience"
+                    value={formData.experience}
                     onChange={handleChange}
-                    placeholder="e.g. Frontend Developer"
-                    icon={BriefcaseBusiness}
+                    icon={Clock3}
+                    placeholder="e.g. Fresher, 2 Years"
                   />
 
                   <InputField
@@ -1266,90 +1463,60 @@ const Profile = () => {
                     name="currentCompany"
                     value={formData.currentCompany}
                     onChange={handleChange}
-                    placeholder="Enter company name"
                     icon={Building2}
                   />
 
                   <InputField
-                    label="Total Experience"
-                    name="experience"
-                    value={formData.experience}
+                    label="Job Title"
+                    name="jobTitle"
+                    value={formData.jobTitle}
                     onChange={handleChange}
-                    placeholder="e.g. Fresher / 2 Years"
-                    icon={Clock3}
+                    icon={BriefcaseBusiness}
                   />
-                </FormSection>
 
-                {/* SKILLS */}
+                  <InputField
+                    label="Skills"
+                    name="skills"
+                    value={formData.skills}
+                    onChange={handleChange}
+                    icon={Code2}
+                    placeholder="React, Node.js, MongoDB"
+                  />
 
-                <FormSection
-                  icon={Code2}
-                  title="Skills"
-                  description="Add your technical and professional skills"
-                >
-                  <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-xs font-semibold text-slate-700">
-                      Skills
-                    </label>
+                </div>
 
-                    <div className="relative">
-                      <Code2
-                        size={16}
-                        className="absolute left-3 top-3.5 text-slate-400"
-                      />
+                <div className="mt-4">
 
-                      <input
-                        type="text"
-                        name="skills"
-                        value={formData.skills}
-                        onChange={handleChange}
-                        placeholder="React, JavaScript, Node.js, MongoDB"
-                        className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
-                      />
-                    </div>
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    Professional Bio
+                  </label>
 
-                    <p className="mt-1.5 text-[10px] text-slate-400">
-                      Separate multiple skills with commas.
-                    </p>
-                  </div>
-                </FormSection>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    rows={4}
+                    placeholder="Write a short professional summary..."
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none resize-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
+                  />
 
-                {/* ABOUT */}
+                </div>
+              </FormSection>
 
-                <FormSection
-                  icon={BookOpen}
-                  title="About You"
-                  description="Write a short professional summary"
-                >
-                  <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-xs font-semibold text-slate-700">
-                      Professional Bio
-                    </label>
+              {/* CAREER PREFERENCES */}
 
-                    <textarea
-                      name="bio"
-                      value={formData.bio}
-                      onChange={handleChange}
-                      rows={4}
-                      placeholder="Write something about yourself, your experience, strengths and career goals..."
-                      className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
-                    />
-                  </div>
-                </FormSection>
+              <FormSection
+                icon={Target}
+                title="Career Preferences"
+                description="Tell employers what kind of opportunity you want"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                {/* CAREER PREFERENCE */}
-
-                <FormSection
-                  icon={Target}
-                  title="Job Preferences"
-                  description="Tell us what kind of job you are looking for"
-                >
                   <InputField
                     label="Preferred Job Role"
                     name="preferredJobRole"
                     value={formData.preferredJobRole}
                     onChange={handleChange}
-                    placeholder="e.g. MERN Stack Developer"
                     icon={Target}
                   />
 
@@ -1358,7 +1525,6 @@ const Profile = () => {
                     name="preferredLocation"
                     value={formData.preferredLocation}
                     onChange={handleChange}
-                    placeholder="e.g. Delhi / Remote"
                     icon={MapPin}
                   />
 
@@ -1378,324 +1544,583 @@ const Profile = () => {
                   />
 
                   <InputField
-                    label="Expected Salary"
+                    label="Salary Expectation"
                     name="salaryExpectation"
                     value={formData.salaryExpectation}
                     onChange={handleChange}
-                    placeholder="e.g. ₹6 LPA"
                     icon={Award}
                   />
-                </FormSection>
 
-                {/* GOVERNMENT DOCUMENT */}
+                </div>
+              </FormSection>
 
-                <FormSection
-                  icon={ShieldCheck}
-                  title="Government Document"
-                  description="Upload one government identity document"
-                >
-                  <div className="sm:col-span-2">
-                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                      <label
-                        htmlFor="governmentDocumentType"
-                        className="mb-1.5 block text-xs font-semibold text-slate-700"
-                      >
-                        Document Type
-                      </label>
+              {/* SOCIAL */}
 
-                      <div className="relative">
-                        <ShieldCheck
-                          size={16}
-                          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                        />
+              <FormSection
+                icon={Globe}
+                title="Social Profiles"
+                description="Add your professional links"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                        <select
-                          id="governmentDocumentType"
-                          name="governmentDocumentType"
-                          value={formData.governmentDocumentType}
-                          onChange={handleChange}
-                          className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-8 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        >
-                          <option value="">Select Government Document</option>
+                  <InputField
+                    label="LinkedIn"
+                    name="linkedin"
+                    value={formData.linkedin}
+                    onChange={handleChange}
+                    icon={Globe}
+                    placeholder="https://linkedin.com/in/username"
+                  />
 
-                          <option value="Aadhaar Card">Aadhaar Card</option>
+                  <InputField
+                    label="GitHub"
+                    name="github"
+                    value={formData.github}
+                    onChange={handleChange}
+                    icon={Code2}
+                    placeholder="https://github.com/username"
+                  />
 
-                          <option value="PAN Card">PAN Card</option>
-
-                          <option value="Driving Licence">
-                            Driving Licence
-                          </option>
-
-                          <option value="Passport">Passport</option>
-                        </select>
-
-                        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                          ▼
-                        </span>
-                      </div>
-
-                      <div className="mt-4">
-                        <label
-                          htmlFor="governmentDocument"
-                          className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-4 text-sm font-semibold transition ${
-                            formData.governmentDocumentType
-                              ? "border-blue-200 bg-blue-50/50 text-blue-600 hover:bg-blue-50"
-                              : "cursor-not-allowed border-slate-200 bg-white text-slate-400"
-                          }`}
-                        >
-                          <Upload size={17} />
-
-                          {formData.governmentDocument
-                            ? "Change Document"
-                            : "Upload Document"}
-                        </label>
-
-                        <input
-                          id="governmentDocument"
-                          type="file"
-                          accept=".jpg,.jpeg,.png,.pdf"
-                          onChange={handleGovernmentDocumentUpload}
-                          disabled={!formData.governmentDocumentType}
-                          className="hidden"
-                        />
-                      </div>
-
-                      {formData.governmentDocument && (
-                        <div className="mt-3 flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 p-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-green-600 shadow-sm">
-                            <CheckCircle2 size={17} />
-                          </div>
-
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-green-700">
-                              {formData.governmentDocumentType}
-                            </p>
-
-                            <p className="mt-0.5 truncate text-[10px] text-green-600">
-                              {formData.governmentDocumentName}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-
-                      <p className="mt-2 text-[10px] text-slate-400">
-                        You can upload only one document. Supported formats:
-                        JPG, JPEG, PNG and PDF. Maximum size 5MB.
-                      </p>
-                    </div>
-                  </div>
-                </FormSection>
-
-                {/* SOCIAL */}
-
-                <FormSection
-                  icon={Globe}
-                  title="Professional Links"
-                  description="Add your professional online profiles"
-                >
                   <InputField
                     label="Portfolio"
                     name="portfolio"
                     value={formData.portfolio}
                     onChange={handleChange}
-                    placeholder="https://yourportfolio.com"
                     icon={Globe}
+                    placeholder="https://yourportfolio.com"
                   />
 
-                  <InputField
-                    label="Resume URL"
-                    name="resume"
-                    value={formData.resume}
-                    onChange={handleChange}
-                    placeholder="Paste resume URL"
-                    icon={Upload}
-                  />
-                </FormSection>
-              </div>
+                </div>
+              </FormSection>
 
-              {/* MODAL FOOTER */}
+              {/* =================================================
+                  RESUME PDF UPLOAD
+              ================================================= */}
 
-              <div className="flex shrink-0 flex-col gap-3 border-t border-slate-100 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <div className="min-h-5 text-xs">
-                  {saveMessage && (
-                    <span className="flex items-center gap-1.5 font-medium text-red-500">
-                      {saveMessage}
-                    </span>
+              <FormSection
+                icon={FileText}
+                title="Resume"
+                description="Upload your latest resume in PDF format"
+              >
+
+                <div className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/40 p-5 transition">
+
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+
+                    <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                      <FileText className="w-7 h-7" />
+                    </div>
+
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
+
+                      <h4 className="font-bold text-slate-800">
+                        {resumeFile
+                          ? resumeFile.name
+                          : user.resume
+                          ? "Current Resume"
+                          : "Upload Resume PDF"}
+                      </h4>
+
+                      <p className="text-xs text-slate-500 mt-1">
+                        Only PDF files are allowed. Maximum size
+                        5MB.
+                      </p>
+
+                    </div>
+
+                    <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer transition shrink-0">
+
+                      <Upload className="w-4 h-4" />
+
+                      {resumeFile
+                        ? "Change PDF"
+                        : "Choose PDF"}
+
+                      <input
+                        type="file"
+                        accept="application/pdf,.pdf"
+                        onChange={handleResumeChange}
+                        className="hidden"
+                      />
+
+                    </label>
+
+                  </div>
+
+                  {user.resume && !resumeFile && (
+                    <div className="mt-4 pt-4 border-t border-slate-200">
+
+                      <a
+                        href={normalizeUrl(user.resume)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700"
+                      >
+                        <FileText className="w-4 h-4" />
+                        View current resume
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+
+                    </div>
                   )}
-                </div>
 
-                <div className="flex w-full gap-2 sm:w-auto">
-                  <button
-                    type="button"
-                    onClick={handleCloseModal}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 sm:flex-none"
-                  >
-                    <X size={16} />
-                    Cancel
-                  </button>
-
-                  <button
-                    type="submit"
-                    disabled={updating}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
-                  >
-                    <Save size={16} />
-                    {updating ? "Saving..." : "Save Changes"}
-                  </button>
                 </div>
+              </FormSection>
+
+              {/* GOVERNMENT DOCUMENT */}
+
+              <FormSection
+                icon={ShieldCheck}
+                title="Government Document"
+                description="Upload your verification document"
+              >
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  <SelectField
+                    label="Document Type"
+                    name="governmentDocumentType"
+                    value={formData.governmentDocumentType}
+                    onChange={handleChange}
+                    icon={ShieldCheck}
+                    options={[
+                      "Aadhaar Card",
+                      "PAN Card",
+                      "Passport",
+                      "Driving License",
+                      "Voter ID",
+                    ]}
+                  />
+
+                  <div>
+
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Upload Document
+                    </label>
+
+                    <label className="min-h-[50px] px-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/50 flex items-center gap-3 cursor-pointer transition">
+
+                      <Upload className="w-5 h-5 text-blue-600 shrink-0" />
+
+                      <div className="min-w-0">
+
+                        <p className="text-sm font-semibold text-slate-700 truncate">
+                          {formData.governmentDocumentName ||
+                            "Choose document"}
+                        </p>
+
+                        <p className="text-xs text-slate-400">
+                          JPG, PNG, WEBP, GIF or PDF • Max 5MB
+                        </p>
+
+                      </div>
+
+                      <input
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.gif,.pdf"
+                        onChange={handleGovernmentDocumentChange}
+                        className="hidden"
+                      />
+
+                    </label>
+
+                  </div>
+
+                </div>
+              </FormSection>
+
+              {/* ERROR */}
+
+              {error && (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {typeof error === "string"
+                    ? error
+                    : error?.message ||
+                      "Something went wrong."}
+                </div>
+              )}
+
+              {/* SAVE BUTTON */}
+
+              <div className="sticky bottom-0 bg-white border-t border-slate-200 -mx-5 sm:-mx-7 px-5 sm:px-7 py-4 flex flex-col sm:flex-row gap-3 justify-end">
+
+                <button
+                  type="button"
+                  onClick={closeEditModal}
+                  disabled={updating}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-semibold text-sm transition disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm shadow-lg shadow-blue-600/20 transition"
+                >
+                  {updating ? (
+                    <>
+                      <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+
               </div>
+
             </form>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 
-// =============================================================
-// INFO ITEM
-// =============================================================
+/* =====================================================
+   PROFILE CARD
+===================================================== */
 
-const InfoItem = ({ icon: Icon, label, value }) => {
+const ProfileCard = ({
+  icon: Icon,
+  title,
+  subtitle,
+  children,
+}) => {
   return (
-    <div className="min-w-0 rounded-xl border border-slate-100 bg-slate-50 p-3">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
-          <Icon size={16} />
+    <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+
+      <div className="px-5 sm:px-6 py-5 border-b border-slate-100">
+
+        <div className="flex items-center gap-3">
+
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Icon className="w-5 h-5" />
+          </div>
+
+          <div>
+
+            <h2 className="font-bold text-slate-900">
+              {title}
+            </h2>
+
+            {subtitle && (
+              <p className="text-xs text-slate-500 mt-0.5">
+                {subtitle}
+              </p>
+            )}
+
+          </div>
+
         </div>
+      </div>
 
-        <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-            {label}
-          </p>
+      <div className="p-5 sm:p-6">
+        {children}
+      </div>
 
-          <p className="mt-1 break-words text-sm font-semibold text-slate-700">
-            {value || "Not added"}
-          </p>
+    </section>
+  );
+};
+
+/* =====================================================
+   QUICK STAT
+===================================================== */
+
+const QuickStat = ({
+  icon: Icon,
+  label,
+  value,
+}) => {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:bg-white hover:border-blue-100 transition">
+
+      <div className="flex items-center gap-2 text-slate-400">
+
+        <Icon className="w-4 h-4" />
+
+        <span className="text-xs font-medium">
+          {label}
+        </span>
+
+      </div>
+
+      <p className="mt-2 text-sm font-bold text-slate-800 line-clamp-2">
+        {value || "Not added"}
+      </p>
+
+    </div>
+  );
+};
+
+/* =====================================================
+   INFO ITEM
+===================================================== */
+
+const InfoItem = ({
+  icon: Icon,
+  label,
+  value,
+}) => {
+  return (
+    <div className="flex items-start gap-3">
+
+      <div className="w-9 h-9 rounded-lg bg-slate-50 text-blue-600 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4" />
+      </div>
+
+      <div className="min-w-0">
+
+        <p className="text-xs font-medium text-slate-400">
+          {label}
+        </p>
+
+        <p className="text-sm font-semibold text-slate-700 mt-1 break-words">
+          {value || "Not provided"}
+        </p>
+
+      </div>
+
+    </div>
+  );
+};
+
+/* =====================================================
+   PREFERENCE ITEM
+===================================================== */
+
+const PreferenceItem = ({
+  icon: Icon,
+  label,
+  value,
+}) => {
+  return (
+    <div className="flex items-center gap-3">
+
+      <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+        <Icon className="w-4 h-4" />
+      </div>
+
+      <div className="min-w-0 flex-1">
+
+        <p className="text-xs text-slate-400 font-medium">
+          {label}
+        </p>
+
+        <p className="text-sm text-slate-700 font-semibold mt-0.5 truncate">
+          {value || "Not added"}
+        </p>
+
+      </div>
+
+    </div>
+  );
+};
+
+/* =====================================================
+   TIMELINE ITEM
+===================================================== */
+
+const TimelineItem = ({
+  icon: Icon,
+  title,
+  subtitle,
+  badge,
+}) => {
+  return (
+    <div className="relative pl-8">
+
+      <div className="absolute left-2 top-2 bottom-0 w-px bg-blue-100" />
+
+      <div className="relative">
+
+        <div className="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full bg-blue-600 border-4 border-blue-50" />
+
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+
+          <div>
+
+            <h3 className="font-bold text-slate-800">
+              {title}
+            </h3>
+
+            <p className="text-sm text-slate-500 mt-1">
+              {subtitle}
+            </p>
+
+          </div>
+
+          {badge && (
+            <span className="inline-flex self-start items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold">
+
+              <CalendarDays className="w-3.5 h-3.5" />
+
+              {badge}
+
+            </span>
+          )}
+
         </div>
       </div>
     </div>
   );
 };
 
-// =============================================================
-// SOCIAL LINK
-// =============================================================
+/* =====================================================
+   SOCIAL LINK
+===================================================== */
 
-const SocialLink = ({ icon: Icon, label, value }) => {
-  if (!value) {
-    return (
-      <div className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-slate-400 shadow-sm">
-          <Icon size={16} />
-        </div>
-
-        <div>
-          <p className="text-xs font-semibold text-slate-600">{label}</p>
-
-          <p className="text-[10px] text-slate-400">Not added</p>
-        </div>
-      </div>
-    );
-  }
-
+const SocialLink = ({
+  icon: Icon,
+  label,
+  url,
+}) => {
   return (
     <a
-      href={value}
+      href={
+        url.startsWith("http://") ||
+        url.startsWith("https://")
+          ? url
+          : `https://${url}`
+      }
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-3 rounded-xl bg-slate-50 px-3 py-3 transition hover:bg-blue-50"
+      className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/50 transition group"
     >
-      <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
-        <Icon size={16} />
+
+      <div className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-blue-100 text-slate-600 group-hover:text-blue-600 flex items-center justify-center transition">
+        <Icon className="w-4 h-4" />
       </div>
 
-      <div className="min-w-0">
-        <p className="text-xs font-semibold text-slate-700">{label}</p>
+      <div className="flex-1 min-w-0">
 
-        <p className="truncate text-[10px] text-blue-500">{value}</p>
+        <p className="text-sm font-semibold text-slate-700">
+          {label}
+        </p>
+
+        <p className="text-xs text-slate-400 truncate">
+          {url}
+        </p>
+
       </div>
+
+      <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-blue-500" />
+
     </a>
   );
 };
 
-// =============================================================
-// FORM SECTION
-// =============================================================
+/* =====================================================
+   EMPTY STATE
+===================================================== */
 
-const FormSection = ({ icon: Icon, title, description, children }) => {
+const EmptyState = ({
+  icon: Icon,
+  text,
+}) => {
   return (
-    <div className="mb-7 last:mb-0">
-      <div className="mb-4 flex items-center gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-          <Icon size={17} />
-        </div>
+    <div className="py-5 text-center">
 
-        <div>
-          <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-
-          <p className="text-[10px] text-slate-400">{description}</p>
-        </div>
+      <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 flex items-center justify-center mx-auto">
+        <Icon className="w-5 h-5" />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
+      <p className="text-sm text-slate-400 mt-2">
+        {text}
+      </p>
+
     </div>
   );
 };
 
-// =============================================================
-// INPUT FIELD
-// =============================================================
+/* =====================================================
+   FORM SECTION
+===================================================== */
+
+const FormSection = ({
+  icon: Icon,
+  title,
+  description,
+  children,
+}) => {
+  return (
+    <section>
+
+      <div className="flex items-start gap-3 mb-4">
+
+        <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <Icon className="w-4 h-4" />
+        </div>
+
+        <div>
+
+          <h3 className="font-bold text-slate-800">
+            {title}
+          </h3>
+
+          <p className="text-xs text-slate-500 mt-0.5">
+            {description}
+          </p>
+
+        </div>
+
+      </div>
+
+      {children}
+
+    </section>
+  );
+};
+
+/* =====================================================
+   INPUT FIELD
+===================================================== */
 
 const InputField = ({
   label,
   name,
-  type = "text",
   value,
   onChange,
-  placeholder,
+  type = "text",
   icon: Icon,
-  required = false,
+  placeholder,
 }) => {
   return (
-    <div className="min-w-0">
-      <label
-        htmlFor={name}
-        className="mb-1.5 block text-xs font-semibold text-slate-700"
-      >
-        {label}
+    <div>
 
-        {required && <span className="ml-1 text-red-500">*</span>}
+      <label className="block text-sm font-semibold text-slate-700 mb-2">
+        {label}
       </label>
 
       <div className="relative">
+
         {Icon && (
-          <Icon
-            size={16}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
+          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         )}
 
         <input
-          id={name}
-          name={name}
           type={type}
-          value={value}
+          name={name}
+          value={value || ""}
           onChange={onChange}
           placeholder={placeholder}
-          required={required}
-          className={`w-full rounded-xl border border-slate-200 bg-slate-50 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 ${
-            Icon ? "pl-10 pr-3" : "px-3"
+          className={`w-full rounded-xl border border-slate-200 bg-white py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition ${
+            Icon ? "pl-10 pr-4" : "px-4"
           }`}
         />
+
       </div>
     </div>
   );
 };
 
-// =============================================================
-// SELECT FIELD
-// =============================================================
+/* =====================================================
+   SELECT FIELD
+===================================================== */
 
 const SelectField = ({
   label,
@@ -1706,46 +2131,46 @@ const SelectField = ({
   options = [],
 }) => {
   return (
-    <div className="min-w-0">
-      <label
-        htmlFor={name}
-        className="mb-1.5 block text-xs font-semibold text-slate-700"
-      >
+    <div>
+
+      <label className="block text-sm font-semibold text-slate-700 mb-2">
         {label}
       </label>
 
       <div className="relative">
+
         {Icon && (
-          <Icon
-            size={16}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-          />
+          <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         )}
 
         <select
-          id={name}
           name={name}
-          value={value}
+          value={value || ""}
           onChange={onChange}
-          className={`w-full appearance-none rounded-xl border border-slate-200 bg-slate-50 py-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 ${
-            Icon ? "pl-10 pr-8" : "px-3 pr-8"
+          className={`appearance-none w-full rounded-xl border border-slate-200 bg-white py-3 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition ${
+            Icon ? "pl-10 pr-4" : "px-4"
           }`}
         >
-          <option value="">Select {label}</option>
+
+          <option value="">
+            Select {label}
+          </option>
 
           {options.map((option) => (
-            <option key={option} value={option}>
+            <option
+              key={option}
+              value={option}
+            >
               {option}
             </option>
           ))}
+
         </select>
 
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-          ▼
-        </span>
       </div>
     </div>
   );
 };
 
 export default Profile;
+

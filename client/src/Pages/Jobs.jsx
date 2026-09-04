@@ -1,310 +1,71 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Search,
   MapPin,
   BriefcaseBusiness,
   Clock3,
-  Bookmark,
-  BookmarkCheck,
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
-  ChevronRight,
   X,
-  Check,
-  CircleDollarSign,
-  CalendarDays,
-  Sparkles,
-  Zap,
+  Heart,
   Users,
-  Globe2,
+  Building2,
+  IndianRupee,
+  ArrowUpDown,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
 } from "lucide-react";
 
-// =========================================================
-// JOB DATA
-// =========================================================
-
-const jobs = [
-  {
-    id: 1,
-    title: "Hub Lead",
-    company: "Paytm",
-    location: "Noida",
-    experience: "0-3 Yrs",
-    salary: "₹6-12 LPA",
-    type: "Full Time",
-    workMode: "Work from office",
-    department: "Operations",
-    role: "Operations",
-    stipend: null,
-    posted: "2 days ago",
-    applicants: "120+ applicants",
-    description:
-      "Coordinate and manage operational activities while ensuring smooth day-to-day hub operations.",
-    skills: [
-      "Operations Management",
-      "Team Handling",
-      "Inventory Management",
-    ],
-    logo: "P",
-    logoClass: "bg-blue-50 text-blue-600",
-  },
-
-  {
-    id: 2,
-    title: "Hub Lead - Manager - Device Inventory",
-    company: "Paytm",
-    location: "Noida",
-    experience: "2-5 Yrs",
-    salary: "₹8-14 LPA",
-    type: "Full Time",
-    workMode: "Work from office",
-    department: "Operations",
-    role: "Operations",
-    stipend: null,
-    posted: "3 days ago",
-    applicants: "80+ applicants",
-    description:
-      "Manage device inventory and ensure proper coordination between teams and operations.",
-    skills: [
-      "Inventory Management",
-      "Team Management",
-      "Operations",
-    ],
-    logo: "P",
-    logoClass: "bg-blue-50 text-blue-600",
-  },
-
-  {
-    id: 3,
-    title: "Dy. Manager - Store & SAP",
-    company: "Hindalco",
-    location: "Gujarat",
-    experience: "6-11 Yrs",
-    salary: "₹6-15 LPA",
-    type: "Full Time",
-    workMode: "Work from office",
-    department: "Engineering",
-    role: "Operations",
-    stipend: null,
-    posted: "1 day ago",
-    applicants: "35+ applicants",
-    description:
-      "Job responsibility includes managing inventory, store operations and SAP related activities.",
-    skills: [
-      "SAP",
-      "Inventory",
-      "Store Management",
-      "Operations",
-    ],
-    logo: "H",
-    logoClass: "bg-indigo-50 text-indigo-600",
-    featured: true,
-  },
-
-  {
-    id: 4,
-    title: "Lead - Commercial Contract",
-    company: "Adani Natural Resources",
-    location: "Ahmedabad",
-    experience: "8-12 Yrs",
-    salary: "₹18-25 LPA",
-    type: "Full Time",
-    workMode: "Hybrid",
-    department: "Sales & Business Development",
-    role: "Sales & Marketing",
-    stipend: null,
-    posted: "Today",
-    applicants: "60+ applicants",
-    description:
-      "Manage commercial contracts, negotiations and business relationships with key stakeholders.",
-    skills: [
-      "Contract Management",
-      "Negotiation",
-      "Commercial",
-    ],
-    logo: "A",
-    logoClass: "bg-orange-50 text-orange-600",
-    urgent: true,
-  },
-
-  {
-    id: 5,
-    title: "Operations Supervisor",
-    company: "Marico",
-    location: "Gurgaon",
-    experience: "1-2 Yrs",
-    salary: "₹4-7 LPA",
-    type: "Full Time",
-    workMode: "Work from office",
-    department: "Operations",
-    role: "Operations",
-    stipend: null,
-    posted: "4 days ago",
-    applicants: "90+ applicants",
-    description:
-      "Supervise daily operations and coordinate with different teams to achieve operational targets.",
-    skills: [
-      "Operations",
-      "Team Management",
-      "Coordination",
-    ],
-    logo: "M",
-    logoClass: "bg-cyan-50 text-cyan-600",
-  },
-
-  {
-    id: 6,
-    title: "Procurement Operations New Associate",
-    company: "Accenture",
-    location: "Pune",
-    experience: "0-1 Yrs",
-    salary: "₹3-6 LPA",
-    type: "Full Time",
-    workMode: "Hybrid",
-    department: "Sales & Business Development",
-    role: "Procurement & Purchase",
-    stipend: null,
-    posted: "5 days ago",
-    applicants: "150+ applicants",
-    description:
-      "Support procurement operations and manage purchase-related activities and documentation.",
-    skills: [
-      "Procurement",
-      "Purchase",
-      "Operations",
-    ],
-    logo: "A",
-    logoClass: "bg-purple-50 text-purple-600",
-  },
-
-  {
-    id: 7,
-    title: "Frontend Developer",
-    company: "Infosys",
-    location: "Bangalore",
-    experience: "1-3 Yrs",
-    salary: "₹5-9 LPA",
-    type: "Full Time",
-    workMode: "Hybrid",
-    department: "Information Technology",
-    role: "Software & IT",
-    stipend: null,
-    posted: "1 day ago",
-    applicants: "200+ applicants",
-    description:
-      "Build responsive web applications using modern frontend technologies and reusable components.",
-    skills: [
-      "React",
-      "JavaScript",
-      "HTML",
-      "CSS",
-    ],
-    logo: "I",
-    logoClass: "bg-blue-50 text-blue-700",
-  },
-];
-
-// =========================================================
-// FILTER DATA
-// =========================================================
-
-const filters = {
-  department: [
-    ["Information Technology", "314"],
-    ["Engineering", "277"],
-    ["Sales & Business Development", "1092"],
-    ["Operations", "640"],
-  ],
-
-  workMode: [
-    ["Work from office", "2300"],
-    ["Hybrid", "672"],
-    ["Remote", "320"],
-  ],
-
-  experience: [
-    ["0-1 Yrs", "845"],
-    ["1-3 Yrs", "1260"],
-    ["3-5 Yrs", "920"],
-    ["5-10 Yrs", "680"],
-  ],
-
-  location: [
-    ["Noida", "517"],
-    ["Gurgaon", "428"],
-    ["Bangalore", "684"],
-    ["Pune", "392"],
-    ["Gujarat", "300"],
-    ["Ahmedabad", "250"],
-  ],
-
-  salary: [
-    ["0-3 Lakh", "125"],
-    ["3-6 Lakh", "890"],
-    ["6-10 Lakh", "730"],
-    ["10-20 Lakh", "510"],
-    ["20+ Lakh", "250"],
-  ],
-
-  company: [
-    ["Paytm", "420"],
-    ["Infosys", "315"],
-    ["Accenture", "286"],
-    ["Hindalco", "250"],
-    ["Marico", "190"],
-  ],
-
-  role: [
-    ["Procurement & Purchase", "532"],
-    ["Software & IT", "892"],
-    ["Sales & Marketing", "765"],
-    ["Operations", "420"],
-  ],
-
-  stipend: [
-    ["Unpaid", "54"],
-    ["₹5K-10K", "230"],
-    ["₹10K-20K", "420"],
-    ["₹20K-30K", "165"],
-  ],
-};
-
-// =========================================================
-// INITIAL FILTER STATE
-// =========================================================
-
-const initialSelectedFilters = {
-  department: [],
-  workMode: [],
-  experience: [],
-  location: [],
-  salary: [],
-  company: [],
-  role: [],
-  stipend: [],
-};
-
-// =========================================================
-// COMPONENT
-// =========================================================
+import { getAllJobsUser } from "../redux/slicer/jobSlice";
 
 const Jobs = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // ============================================================
+  // REDUX
+  // ============================================================
+
+  const {
+    jobs: backendJobs = [],
+    loading,
+    error,
+    page = 1,
+    totalPages = 1,
+    total = 0,
+  } = useSelector((state) => state.jobs);
+
+  // ============================================================
+  // LOCAL STATES
+  // ============================================================
 
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
 
+  // Mobile search state
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
   const [mobileFilters, setMobileFilters] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
-  const [sortBy, setSortBy] = useState("Relevance");
+  const [sortBy, setSortBy] = useState("relevance");
 
   const [savedJobs, setSavedJobs] = useState([]);
 
-  const [selectedFilters, setSelectedFilters] = useState(
-    initialSelectedFilters
-  );
+  // IMPORTANT:
+  // Every filter has its own independent array.
+  const [selectedFilters, setSelectedFilters] = useState({
+    department: [],
+    workMode: [],
+    experience: [],
+    location: [],
+    salary: [],
+    company: [],
+    role: [],
+  });
 
   const [openFilters, setOpenFilters] = useState({
     department: true,
@@ -314,1258 +75,1582 @@ const Jobs = () => {
     salary: true,
     company: true,
     role: true,
-    stipend: true,
   });
 
-  // =========================================================
-  // TOGGLE FILTER SECTION
-  // =========================================================
+  // ============================================================
+  // FETCH JOBS
+  // 6 JOBS PER PAGE
+  // ============================================================
 
-  const toggleFilter = (filter) => {
+  useEffect(() => {
+    dispatch(
+      getAllJobsUser({
+        page: 1,
+        limit: 6,
+      })
+    );
+  }, [dispatch]);
+
+  // ============================================================
+  // NORMALIZE VALUE
+  // ============================================================
+
+  const normalizeValue = (value) => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "object") {
+      if (value.name !== undefined) {
+        return String(value.name).trim();
+      }
+
+      if (value.title !== undefined) {
+        return String(value.title).trim();
+      }
+
+      if (value.label !== undefined) {
+        return String(value.label).trim();
+      }
+
+      if (value.value !== undefined) {
+        return String(value.value).trim();
+      }
+
+      return "";
+    }
+
+    return String(value).trim();
+  };
+
+  // ============================================================
+  // GET CATEGORY NAME
+  // ============================================================
+
+  const getCategoryName = (job) => {
+    return (
+      normalizeValue(job?.categoryName) ||
+      normalizeValue(job?.category?.name) ||
+      normalizeValue(job?.category?.title) ||
+      normalizeValue(job?.category) ||
+      "Other"
+    );
+  };
+
+  // ============================================================
+  // GET ROLE NAME
+  // ============================================================
+
+  const getRoleName = (job) => {
+    return (
+      normalizeValue(job?.role) ||
+      normalizeValue(job?.roleName) ||
+      normalizeValue(job?.role?.name) ||
+      normalizeValue(job?.role?.title) ||
+      "Other"
+    );
+  };
+
+  // ============================================================
+  // GET COMPANY NAME
+  // ============================================================
+
+  const getCompanyName = (job) => {
+    return (
+      normalizeValue(job?.company) ||
+      normalizeValue(job?.companyName) ||
+      normalizeValue(job?.company?.name) ||
+      "Company"
+    );
+  };
+
+  // ============================================================
+  // GET LOCATION
+  // ============================================================
+
+  const getLocationName = (job) => {
+    return (
+      normalizeValue(job?.location) ||
+      normalizeValue(job?.jobLocation) ||
+      normalizeValue(job?.city) ||
+      "Location not specified"
+    );
+  };
+
+  // ============================================================
+  // MAP BACKEND JOB
+  // ============================================================
+
+  const mapJob = (job) => {
+    const companyName = getCompanyName(job);
+    const jobLocation = getLocationName(job);
+    const departmentName = getCategoryName(job);
+    const roleName = getRoleName(job);
+
+    const logoUrl =
+      normalizeValue(job?.companyLogo?.displayUrl) ||
+      normalizeValue(job?.companyLogo?.url) ||
+      normalizeValue(job?.companyLogo?.thumb) ||
+      normalizeValue(job?.companyLogo);
+
+    return {
+      id: job?._id,
+
+      title: normalizeValue(job?.title) || "Untitled Job",
+
+      company: companyName,
+
+      location: jobLocation,
+
+      experience: normalizeValue(job?.experience) || "0-3 Yrs",
+
+      salary: normalizeValue(job?.salary) || "Salary not disclosed",
+
+      type: normalizeValue(job?.jobType) || "Full Time",
+
+      workMode: normalizeValue(job?.jobType) || "Full Time",
+
+      // Department
+      department: departmentName,
+
+      // Role
+      role: roleName,
+
+      posted: normalizeValue(job?.daysAgo) || "Recently",
+
+      applicants: `${job?.applicantCount || 0} applicants`,
+
+      description:
+        normalizeValue(job?.description) ||
+        "No description available for this job.",
+
+      skills: Array.isArray(job?.skills) ? job.skills : [],
+
+      featured: Boolean(job?.isFeatured),
+
+      urgent: Boolean(job?.isUrgent),
+
+      logoUrl,
+
+      logo: companyName?.charAt(0)?.toUpperCase() || "C",
+
+      logoClass: "bg-blue-50 text-blue-600",
+
+      tags: Array.isArray(job?.tags) ? job.tags : [],
+
+      createdAt: job?.createdAt || null,
+
+      rawJob: job,
+    };
+  };
+
+  // ============================================================
+  // MAPPED JOBS
+  // ============================================================
+
+  const jobs = useMemo(() => {
+    if (!Array.isArray(backendJobs)) {
+      return [];
+    }
+
+    return backendJobs.map(mapJob);
+  }, [backendJobs]);
+
+  // ============================================================
+  // GET UNIQUE FILTER VALUES
+  // ============================================================
+
+  const getDynamicFilter = (key) => {
+    const uniqueValues = new Map();
+
+    jobs.forEach((job) => {
+      const value = normalizeValue(job?.[key]);
+
+      if (!value) return;
+
+      const normalizedKey = value.toLowerCase();
+
+      if (!uniqueValues.has(normalizedKey)) {
+        uniqueValues.set(normalizedKey, value);
+      }
+    });
+
+    return Array.from(uniqueValues.values())
+      .sort((a, b) => a.localeCompare(b))
+      .map((value) => [value, value]);
+  };
+
+  // ============================================================
+  // FILTER OPTIONS
+  // ============================================================
+
+  const filters = useMemo(() => {
+    return {
+      department: getDynamicFilter("department"),
+
+      workMode: getDynamicFilter("workMode"),
+
+      experience: [
+        ["0-3 Yrs", "0-3 Yrs"],
+        ["1-3 Yrs", "1-3 Yrs"],
+        ["3-5 Yrs", "3-5 Yrs"],
+        ["5+ Yrs", "5+ Yrs"],
+      ],
+
+      location: getDynamicFilter("location"),
+
+      salary: [
+        ["₹0 - ₹3 LPA", "0-3"],
+        ["₹3 - ₹6 LPA", "3-6"],
+        ["₹6 - ₹10 LPA", "6-10"],
+        ["₹10 - ₹20 LPA", "10-20"],
+        ["₹20+ LPA", "20+"],
+      ],
+
+      company: getDynamicFilter("company"),
+
+      role: getDynamicFilter("role"),
+    };
+  }, [jobs]);
+
+  // ============================================================
+  // TOGGLE FILTER SECTION
+  // ============================================================
+
+  const toggleFilter = (filterName) => {
     setOpenFilters((prev) => ({
       ...prev,
-      [filter]: !prev[filter],
+      [filterName]: !prev[filterName],
     }));
   };
 
-  // =========================================================
-  // SELECT / UNSELECT FILTER
-  // =========================================================
+  // ============================================================
+  // HANDLE FILTER CHANGE
+  // ============================================================
 
-  const handleFilterChange = (filterKey, value) => {
+  const handleFilterChange = (filterName, value) => {
+    const cleanValue = normalizeValue(value);
+
+    if (!cleanValue) return;
+
     setSelectedFilters((prev) => {
-      const currentValues = prev[filterKey];
+      const currentValues = Array.isArray(prev[filterName])
+        ? prev[filterName]
+        : [];
 
+      const alreadySelected = currentValues.some(
+        (item) =>
+          normalizeValue(item).toLowerCase() ===
+          cleanValue.toLowerCase()
+      );
+
+      // Only THIS filter changes.
       return {
         ...prev,
-        [filterKey]: currentValues.includes(value)
-          ? currentValues.filter((item) => item !== value)
-          : [...currentValues, value],
+
+        [filterName]: alreadySelected
+          ? currentValues.filter(
+              (item) =>
+                normalizeValue(item).toLowerCase() !==
+                cleanValue.toLowerCase()
+            )
+          : [...currentValues, cleanValue],
       };
     });
   };
 
-  // =========================================================
+  // ============================================================
   // RESET FILTERS
-  // =========================================================
+  // ============================================================
 
   const resetFilters = () => {
-    setSelectedFilters(initialSelectedFilters);
+    setSelectedFilters({
+      department: [],
+      workMode: [],
+      experience: [],
+      location: [],
+      salary: [],
+      company: [],
+      role: [],
+    });
+
     setSearch("");
     setLocation("");
   };
 
-  // =========================================================
-  // SAVE JOB
-  // =========================================================
+  // ============================================================
+  // CHECK IF FILTER VALUE IS SELECTED
+  // ============================================================
 
-  const toggleSaveJob = (id) => {
-    setSavedJobs((prev) =>
-      prev.includes(id)
-        ? prev.filter((jobId) => jobId !== id)
-        : [...prev, id]
+  const isFilterSelected = (filterName, value) => {
+    const selectedValues = selectedFilters[filterName] || [];
+
+    return selectedValues.some(
+      (item) =>
+        normalizeValue(item).toLowerCase() ===
+        normalizeValue(value).toLowerCase()
     );
   };
 
-  // =========================================================
-  // SALARY HELPER
-  // =========================================================
+  // ============================================================
+  // SAVE JOB
+  // ============================================================
+
+  const toggleSaveJob = (jobId) => {
+    setSavedJobs((prev) => {
+      if (prev.includes(jobId)) {
+        return prev.filter((id) => id !== jobId);
+      }
+
+      return [...prev, jobId];
+    });
+  };
+
+  // ============================================================
+  // SALARY RANGE
+  // ============================================================
 
   const getSalaryRange = (salary) => {
-    const numbers = salary.match(/\d+/g)?.map(Number) || [];
+    if (!salary) return null;
 
-    const min = numbers[0] || 0;
-    const max = numbers[1] || min;
+    const text = String(salary).toLowerCase().replace(/,/g, "");
 
-    return { min, max };
+    const numbers = text.match(/\d+(\.\d+)?/g);
+
+    if (!numbers?.length) {
+      return null;
+    }
+
+    const nums = numbers.map(Number);
+
+    if (text.includes("lpa")) {
+      return {
+        min: Math.min(...nums),
+        max: Math.max(...nums),
+      };
+    }
+
+    if (text.includes("k")) {
+      return {
+        min: Math.min(...nums) / 100,
+        max: Math.max(...nums) / 100,
+      };
+    }
+
+    if (text.includes("cr") || text.includes("crore")) {
+      return {
+        min: Math.min(...nums) * 100,
+        max: Math.max(...nums) * 100,
+      };
+    }
+
+    return {
+      min: Math.min(...nums),
+      max: Math.max(...nums),
+    };
   };
 
-  // =========================================================
-  // EXPERIENCE HELPER
-  // =========================================================
+  // ============================================================
+  // SALARY MATCH
+  // ============================================================
+
+  const matchesSalary = (salary, selectedRange) => {
+    const range = getSalaryRange(salary);
+
+    if (!range) return false;
+
+    switch (selectedRange) {
+      case "0-3":
+        return range.min <= 3;
+
+      case "3-6":
+        return range.max >= 3 && range.min <= 6;
+
+      case "6-10":
+        return range.max >= 6 && range.min <= 10;
+
+      case "10-20":
+        return range.max >= 10 && range.min <= 20;
+
+      case "20+":
+        return range.max >= 20;
+
+      default:
+        return true;
+    }
+  };
+
+  // ============================================================
+  // EXPERIENCE
+  // ============================================================
 
   const getExperienceStart = (experience) => {
-    return parseInt(experience.match(/\d+/)?.[0] || "0", 10);
+    const match = String(experience || "").match(/\d+/);
+
+    return match ? Number(match[0]) : 0;
   };
 
-  // =========================================================
-  // CHECK SALARY FILTER
-  // =========================================================
-
-  const matchesSalary = (job, selectedSalary) => {
-    if (!selectedSalary.length) return true;
-
-    const { min, max } = getSalaryRange(job.salary);
-
-    return selectedSalary.some((range) => {
-      if (range === "0-3 Lakh") {
-        return min <= 3;
-      }
-
-      if (range === "3-6 Lakh") {
-        return min <= 6 && max >= 3;
-      }
-
-      if (range === "6-10 Lakh") {
-        return min <= 10 && max >= 6;
-      }
-
-      if (range === "10-20 Lakh") {
-        return min <= 20 && max >= 10;
-      }
-
-      if (range === "20+ Lakh") {
-        return max >= 20;
-      }
-
+  const matchesExperience = (
+    jobExperience,
+    selectedExperience
+  ) => {
+    if (
+      normalizeValue(jobExperience).toLowerCase() ===
+      normalizeValue(selectedExperience).toLowerCase()
+    ) {
       return true;
-    });
+    }
+
+    return (
+      getExperienceStart(jobExperience) ===
+      getExperienceStart(selectedExperience)
+    );
   };
 
-  // =========================================================
-  // CHECK EXPERIENCE FILTER
-  // =========================================================
+  // ============================================================
+  // EXACT TEXT MATCH
+  // ============================================================
 
-  const matchesExperience = (job, selectedExperience) => {
-    if (!selectedExperience.length) return true;
-
-    const jobStart = getExperienceStart(job.experience);
-
-    return selectedExperience.some((range) => {
-      if (range === "0-1 Yrs") {
-        return jobStart <= 1;
-      }
-
-      if (range === "1-3 Yrs") {
-        return jobStart >= 1 && jobStart <= 3;
-      }
-
-      if (range === "3-5 Yrs") {
-        return jobStart >= 3 && jobStart <= 5;
-      }
-
-      if (range === "5-10 Yrs") {
-        return jobStart >= 5 && jobStart <= 10;
-      }
-
-      return true;
-    });
+  const exactMatch = (jobValue, selectedValue) => {
+    return (
+      normalizeValue(jobValue).toLowerCase() ===
+      normalizeValue(selectedValue).toLowerCase()
+    );
   };
 
-  // =========================================================
+  // ============================================================
   // FILTER JOBS
-  // =========================================================
+  // ============================================================
 
   const filteredJobs = useMemo(() => {
     let result = [...jobs];
 
-    if (search.trim()) {
-      const query = search.toLowerCase().trim();
+    // ==========================================================
+    // SEARCH
+    // ==========================================================
 
-      result = result.filter(
-        (job) =>
-          job.title.toLowerCase().includes(query) ||
-          job.company.toLowerCase().includes(query) ||
-          job.location.toLowerCase().includes(query) ||
-          job.department.toLowerCase().includes(query) ||
-          job.role.toLowerCase().includes(query) ||
-          job.skills.some((skill) =>
-            skill.toLowerCase().includes(query)
+    if (search.trim()) {
+      const searchText = search.toLowerCase().trim();
+
+      result = result.filter((job) => {
+        return (
+          job.title?.toLowerCase().includes(searchText) ||
+          job.company?.toLowerCase().includes(searchText) ||
+          job.department?.toLowerCase().includes(searchText) ||
+          job.role?.toLowerCase().includes(searchText) ||
+          job.description?.toLowerCase().includes(searchText) ||
+          job.skills?.some((skill) =>
+            normalizeValue(skill)
+              .toLowerCase()
+              .includes(searchText)
           )
-      );
+        );
+      });
     }
+
+    // ==========================================================
+    // LOCATION SEARCH
+    // ==========================================================
 
     if (location.trim()) {
-      const query = location.toLowerCase().trim();
+      const locationText = location.toLowerCase().trim();
 
       result = result.filter((job) =>
-        job.location.toLowerCase().includes(query)
+        job.location?.toLowerCase().includes(locationText)
       );
     }
 
-    if (selectedFilters.department.length) {
+    // ==========================================================
+    // DEPARTMENT
+    // ==========================================================
+
+    if (selectedFilters.department.length > 0) {
       result = result.filter((job) =>
-        selectedFilters.department.includes(job.department)
+        selectedFilters.department.some((selectedValue) =>
+          exactMatch(job.department, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.workMode.length) {
+    // ==========================================================
+    // WORK MODE
+    // ==========================================================
+
+    if (selectedFilters.workMode.length > 0) {
       result = result.filter((job) =>
-        selectedFilters.workMode.includes(job.workMode)
+        selectedFilters.workMode.some((selectedValue) =>
+          exactMatch(job.workMode, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.experience.length) {
+    // ==========================================================
+    // EXPERIENCE
+    // ==========================================================
+
+    if (selectedFilters.experience.length > 0) {
       result = result.filter((job) =>
-        matchesExperience(job, selectedFilters.experience)
+        selectedFilters.experience.some((selectedValue) =>
+          matchesExperience(job.experience, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.location.length) {
+    // ==========================================================
+    // LOCATION FILTER
+    // ==========================================================
+
+    if (selectedFilters.location.length > 0) {
       result = result.filter((job) =>
-        selectedFilters.location.includes(job.location)
+        selectedFilters.location.some((selectedValue) =>
+          exactMatch(job.location, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.salary.length) {
+    // ==========================================================
+    // SALARY FILTER
+    // ==========================================================
+
+    if (selectedFilters.salary.length > 0) {
       result = result.filter((job) =>
-        matchesSalary(job, selectedFilters.salary)
+        selectedFilters.salary.some((selectedValue) =>
+          matchesSalary(job.salary, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.company.length) {
+    // ==========================================================
+    // COMPANY FILTER
+    // ==========================================================
+
+    if (selectedFilters.company.length > 0) {
       result = result.filter((job) =>
-        selectedFilters.company.includes(job.company)
+        selectedFilters.company.some((selectedValue) =>
+          exactMatch(job.company, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.role.length) {
+    // ==========================================================
+    // ROLE
+    // ==========================================================
+
+    if (selectedFilters.role.length > 0) {
       result = result.filter((job) =>
-        selectedFilters.role.includes(job.role)
+        selectedFilters.role.some((selectedValue) =>
+          exactMatch(job.role, selectedValue)
+        )
       );
     }
 
-    if (selectedFilters.stipend.length) {
-      result = result.filter((job) => {
-        if (!job.stipend) return false;
+    // ==========================================================
+    // SORT
+    // ==========================================================
 
-        return selectedFilters.stipend.includes(job.stipend);
-      });
+    if (sortBy === "latest") {
+      result.sort(
+        (a, b) =>
+          new Date(b.createdAt || 0) -
+          new Date(a.createdAt || 0)
+      );
     }
 
-    if (sortBy === "Newest") {
-      result = [...result].reverse();
-    }
-
-    if (sortBy === "Salary: High to Low") {
+    if (sortBy === "salary-high") {
       result.sort((a, b) => {
-        const aSalary = parseInt(
-          a.salary.replace(/[^\d]/g, ""),
-          10
-        );
+        const salaryA =
+          getSalaryRange(a.salary)?.max || 0;
 
-        const bSalary = parseInt(
-          b.salary.replace(/[^\d]/g, ""),
-          10
-        );
+        const salaryB =
+          getSalaryRange(b.salary)?.max || 0;
 
-        return bSalary - aSalary;
+        return salaryB - salaryA;
       });
+    }
+
+    if (sortBy === "salary-low") {
+      result.sort((a, b) => {
+        const salaryA =
+          getSalaryRange(a.salary)?.min || 0;
+
+        const salaryB =
+          getSalaryRange(b.salary)?.min || 0;
+
+        return salaryA - salaryB;
+      });
+
+      return result;
     }
 
     return result;
   }, [
+    jobs,
     search,
     location,
     selectedFilters,
     sortBy,
   ]);
 
-  // =========================================================
+  // ============================================================
   // JOB DETAIL
-  // =========================================================
+  // ============================================================
 
   const openJobDetail = (job) => {
-    navigate(`/jobs/${job.id}`, {
-      state: {
-        job,
-      },
+    navigate(`/jobs/${job.id}`);
+  };
+
+  // ============================================================
+  // PAGINATION
+  // ============================================================
+
+  const handlePageChange = (newPage) => {
+    if (
+      newPage < 1 ||
+      newPage > totalPages ||
+      loading
+    ) {
+      return;
+    }
+
+    dispatch(
+      getAllJobsUser({
+        page: newPage,
+        limit: 6,
+      })
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
     });
   };
 
-  // =========================================================
+  // ============================================================
   // FILTER SECTION
-  // =========================================================
+  // ============================================================
 
   const FilterSection = ({
     title,
     filterKey,
-    items,
+    children,
   }) => {
     const isOpen = openFilters[filterKey];
 
     return (
-      <div className="border-b border-slate-200 py-4 last:border-b-0">
+      <div className="border-b border-slate-200 last:border-b-0">
         <button
           type="button"
           onClick={() => toggleFilter(filterKey)}
-          className="flex w-full min-w-0 items-center justify-between gap-3 text-left"
+          className="w-full flex items-center justify-between py-4 text-left"
         >
-          <span className="min-w-0 break-words text-sm font-bold text-slate-800">
+          <span className="font-semibold text-slate-800">
             {title}
           </span>
 
           {isOpen ? (
             <ChevronUp
-              size={17}
-              className="shrink-0 text-slate-500"
+              size={18}
+              className="text-slate-500"
             />
           ) : (
             <ChevronDown
-              size={17}
-              className="shrink-0 text-slate-500"
+              size={18}
+              className="text-slate-500"
             />
           )}
         </button>
 
         {isOpen && (
-          <div className="mt-3 space-y-3">
-            {items.map(([label, count]) => {
-              const checked =
-                selectedFilters[filterKey].includes(label);
-
-              return (
-                <label
-                  key={label}
-                  className="group flex min-w-0 cursor-pointer items-start gap-2.5"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() =>
-                      handleFilterChange(
-                        filterKey,
-                        label
-                      )
-                    }
-                    className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-slate-300 text-blue-600 focus:ring-blue-500"
-                  />
-
-                  <span
-                    className={`min-w-0 flex-1 break-words text-xs leading-5 transition ${
-                      checked
-                        ? "font-semibold text-blue-600"
-                        : "text-slate-600 group-hover:text-blue-600"
-                    }`}
-                  >
-                    {label}
-                  </span>
-
-                  <span className="shrink-0 whitespace-nowrap text-[11px] font-medium text-slate-400">
-                    ({count})
-                  </span>
-                </label>
-              );
-            })}
+          <div className="pb-4">
+            {children}
           </div>
         )}
       </div>
     );
   };
 
-  // =========================================================
+  // ============================================================
   // FILTER CONTENT
-  // =========================================================
+  // ============================================================
 
-  const FilterContent = () => (
-    <div className="min-w-0">
-      <div className="flex min-w-0 items-start justify-between gap-3 border-b border-slate-200 pb-4">
-        <div className="min-w-0">
-          <h2 className="text-base font-bold text-slate-900">
-            All Filters
-          </h2>
+  const FilterContent = ({
+    filterKey,
+    items,
+  }) => {
+    if (!items?.length) {
+      return (
+        <p className="text-xs text-slate-400">
+          No options available
+        </p>
+      );
+    }
 
-          <p className="mt-1 text-xs text-slate-500">
-            Refine your job search
-          </p>
+    return (
+      <div className="space-y-3">
+        {items.map(([label, value], index) => {
+          const checked = isFilterSelected(
+            filterKey,
+            value
+          );
+
+          return (
+            <label
+              key={`${filterKey}-${String(
+                value
+              )}-${index}`}
+              className="flex items-center gap-3 cursor-pointer group"
+            >
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() =>
+                  handleFilterChange(
+                    filterKey,
+                    value
+                  )
+                }
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+
+              <span
+                className={`text-sm transition ${
+                  checked
+                    ? "text-blue-600 font-medium"
+                    : "text-slate-600 group-hover:text-blue-600"
+                }`}
+              >
+                {label}
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ============================================================
+  // JOB CARD
+  // ============================================================
+
+  const JobCard = ({ job }) => {
+    const isSaved = savedJobs.includes(job.id);
+
+    return (
+      <div
+        onClick={() => openJobDetail(job)}
+        className="group bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
+      >
+        {/* TOP */}
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 min-w-0">
+            {/* LOGO */}
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-blue-50 text-blue-600 font-bold text-lg">
+              {job.logoUrl ? (
+                <img
+                  src={job.logoUrl}
+                  alt={job.company}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display =
+                      "none";
+
+                    e.currentTarget.parentElement.innerHTML =
+                      `<span>${job.logo}</span>`;
+                  }}
+                />
+              ) : (
+                job.logo
+              )}
+            </div>
+
+            {/* TITLE */}
+            <div className="min-w-0">
+              <h3 className="font-bold text-slate-900 text-base sm:text-lg group-hover:text-blue-600 transition line-clamp-2">
+                {job.title}
+              </h3>
+
+              <div className="flex items-center gap-2 mt-1">
+                <Building2
+                  size={15}
+                  className="text-slate-400 shrink-0"
+                />
+
+                <span className="text-sm text-slate-500 truncate">
+                  {job.company}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* SAVE */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+
+              toggleSaveJob(job.id);
+            }}
+            className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition ${
+              isSaved
+                ? "bg-red-50 text-red-500"
+                : "bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
+            }`}
+          >
+            <Heart
+              size={18}
+              fill={
+                isSaved
+                  ? "currentColor"
+                  : "none"
+              }
+            />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={resetFilters}
-          className="shrink-0 whitespace-nowrap text-xs font-bold text-blue-600 hover:text-blue-700"
-        >
-          Reset All
-        </button>
-      </div>
-
-      <FilterSection
-        title="Department"
-        filterKey="department"
-        items={filters.department}
-      />
-
-      <FilterSection
-        title="Work Mode"
-        filterKey="workMode"
-        items={filters.workMode}
-      />
-
-      <FilterSection
-        title="Experience"
-        filterKey="experience"
-        items={filters.experience}
-      />
-
-      <FilterSection
-        title="Location"
-        filterKey="location"
-        items={filters.location}
-      />
-
-      <FilterSection
-        title="Salary"
-        filterKey="salary"
-        items={filters.salary}
-      />
-
-      <FilterSection
-        title="Company"
-        filterKey="company"
-        items={filters.company}
-      />
-
-      <FilterSection
-        title="Role Category"
-        filterKey="role"
-        items={filters.role}
-      />
-
-      <FilterSection
-        title="Stipend"
-        filterKey="stipend"
-        items={filters.stipend}
-      />
-    </div>
-  );
-
-  // =========================================================
-  // JOB CARD
-  // =========================================================
-
- const JobCard = ({ job }) => {
-  const saved = savedJobs.includes(job.id);
-
-  return (
-    <article
-      onClick={() => openJobDetail(job)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openJobDetail(job);
-        }
-      }}
-      tabIndex={0}
-      role="button"
-      className="group relative w-full cursor-pointer overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-blue-200 hover:shadow-[0_20px_55px_rgba(37,99,235,0.10)] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-    >
-      {/* =====================================================
-          HOVER GLOW
-      ====================================================== */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-44 w-44 rounded-full bg-blue-500/5 blur-3xl transition-all duration-500 group-hover:bg-blue-500/10" />
-
-      {/* =====================================================
-          LEFT ACCENT
-      ====================================================== */}
-      <div
-        className={`absolute left-0 top-0 h-full w-1 transition-all duration-300 group-hover:w-1.5 ${
-          job.featured
-            ? "bg-gradient-to-b from-blue-500 to-indigo-600"
-            : job.urgent
-            ? "bg-gradient-to-b from-orange-400 to-red-500"
-            : "bg-transparent group-hover:bg-blue-500"
-        }`}
-      />
-
-      {/* =====================================================
-          TOP STATUS
-      ====================================================== */}
-      {(job.featured || job.urgent) && (
-        <div className="flex flex-wrap items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-slate-50/90 to-white px-4 py-3 sm:px-6">
+        {/* BADGES */}
+        <div className="flex flex-wrap items-center gap-2 mt-4">
           {job.featured && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-100 bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-700 sm:text-xs">
-              <Sparkles size={12} />
-              Featured Job
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-600">
+              Featured
             </span>
           )}
 
           {job.urgent && (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-100 bg-orange-50 px-3 py-1.5 text-[10px] font-bold text-orange-700 sm:text-xs">
-              <Zap size={12} />
-              Urgently Hiring
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* =====================================================
-          MAIN CONTENT
-      ====================================================== */}
-      <div className="relative p-4 sm:p-5 lg:p-6">
-
-        {/* ===================================================
-            HEADER
-        ==================================================== */}
-        <div className="flex items-start gap-3.5 sm:gap-4">
-
-          {/* COMPANY LOGO */}
-          <div className="relative shrink-0">
-            <div
-              className={`flex h-14 w-14 items-center justify-center rounded-2xl border border-slate-200 text-xl font-black shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-md sm:h-16 sm:w-16 sm:text-2xl ${job.logoClass}`}
-            >
-              {job.logo}
-            </div>
-
-            {/* Verified */}
-            <span className="absolute -bottom-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-blue-600 shadow-sm">
-              <Check
-                size={11}
-                strokeWidth={4}
-                className="text-white"
-              />
-            </span>
-          </div>
-
-          {/* TITLE */}
-          <div className="min-w-0 flex-1">
-
-            <div className="flex items-start justify-between gap-3">
-
-              <div className="min-w-0 flex-1">
-
-                <h2 className="line-clamp-2 text-[15px] font-extrabold leading-5 tracking-tight text-slate-900 transition-colors duration-300 group-hover:text-blue-600 sm:text-lg sm:leading-6">
-                  {job.title}
-                </h2>
-
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
-
-                  <p className="text-xs font-semibold text-slate-600 sm:text-sm">
-                    {job.company}
-                  </p>
-
-                  <span className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block" />
-
-                  <span className="text-[10px] font-medium text-slate-400 sm:text-xs">
-                    {job.posted}
-                  </span>
-
-                </div>
-              </div>
-
-              {/* SAVE BUTTON */}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  toggleSaveJob(job.id);
-                }}
-                className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-all duration-200 sm:h-10 sm:w-10 ${
-                  saved
-                    ? "border-blue-100 bg-blue-50 text-blue-600"
-                    : "border-slate-200 bg-white text-slate-400 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
-                }`}
-                aria-label={
-                  saved ? "Unsave job" : "Save job"
-                }
-              >
-                {saved ? (
-                  <BookmarkCheck size={18} />
-                ) : (
-                  <Bookmark size={18} />
-                )}
-              </button>
-
-            </div>
-          </div>
-        </div>
-
-        {/* ===================================================
-            JOB HIGHLIGHTS
-        ==================================================== */}
-        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
-
-          {/* EXPERIENCE */}
-          <div className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3 transition-colors group-hover:bg-blue-50/40">
-
-            <div className="flex items-center gap-2">
-
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-slate-500 shadow-sm">
-                <BriefcaseBusiness size={14} />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Experience
-                </p>
-
-                <p className="mt-0.5 truncate text-[11px] font-bold text-slate-700 sm:text-xs">
-                  {job.experience}
-                </p>
-              </div>
-
-            </div>
-          </div>
-
-          {/* SALARY */}
-          <div className="rounded-2xl border border-emerald-100/70 bg-emerald-50/50 p-3">
-
-            <div className="flex items-center gap-2">
-
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-emerald-600 shadow-sm">
-                <CircleDollarSign size={15} />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Salary
-                </p>
-
-                <p className="mt-0.5 truncate text-[11px] font-extrabold text-emerald-700 sm:text-xs">
-                  {job.salary}
-                </p>
-              </div>
-
-            </div>
-          </div>
-
-          {/* LOCATION */}
-          <div className="rounded-2xl border border-blue-100/70 bg-blue-50/50 p-3">
-
-            <div className="flex items-center gap-2">
-
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
-                <MapPin size={15} />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Location
-                </p>
-
-                <p className="mt-0.5 truncate text-[11px] font-bold text-slate-700 sm:text-xs">
-                  {job.location}
-                </p>
-              </div>
-
-            </div>
-          </div>
-
-          {/* WORK MODE */}
-          <div className="rounded-2xl border border-indigo-100/70 bg-indigo-50/50 p-3">
-
-            <div className="flex items-center gap-2">
-
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white text-indigo-600 shadow-sm">
-                <Globe2 size={15} />
-              </div>
-
-              <div className="min-w-0">
-                <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
-                  Work Mode
-                </p>
-
-                <p className="mt-0.5 truncate text-[11px] font-bold text-slate-700 sm:text-xs">
-                  {job.workMode}
-                </p>
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-
-        {/* ===================================================
-            DESCRIPTION
-        ==================================================== */}
-        <p className="mt-5 line-clamp-2 text-xs leading-5 text-slate-500 sm:text-sm sm:leading-6">
-          {job.description}
-        </p>
-
-        {/* ===================================================
-            SKILLS
-        ==================================================== */}
-        <div className="mt-4 flex flex-wrap items-center gap-1.5">
-
-          {job.skills.slice(0, 4).map((skill, index) => (
-            <span
-              key={skill}
-              className={`rounded-lg px-2.5 py-1.5 text-[10px] font-semibold transition-colors sm:text-[11px] ${
-                index === 0
-                  ? "border border-blue-100 bg-blue-50 text-blue-700"
-                  : "border border-slate-200 bg-white text-slate-600"
-              }`}
-            >
-              {skill}
-            </span>
-          ))}
-
-          {job.skills.length > 4 && (
-            <span className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-[10px] font-semibold text-slate-500">
-              +{job.skills.length - 4}
+            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-600">
+              Urgent
             </span>
           )}
 
+          {job.type && (
+            <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-600">
+              {job.type}
+            </span>
+          )}
         </div>
 
-        {/* ===================================================
-            FOOTER
-        ==================================================== */}
-        <div className="mt-5 border-t border-slate-100 pt-4">
-
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-
-            {/* LEFT META */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-
-              {/* Applicants */}
-              <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 sm:text-xs">
-                <Users
-                  size={14}
-                  className="text-slate-400"
-                />
-                {job.applicants}
-              </div>
-
-              {/* Job Type */}
-              <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-500 sm:text-xs">
-                <CalendarDays
-                  size={14}
-                  className="text-slate-400"
-                />
-                {job.type}
-              </div>
-
-              {/* Department */}
-              <span className="hidden rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-500 md:inline-flex">
-                {job.department}
-              </span>
-
-            </div>
-
-            {/* CTA */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openJobDetail(job);
-              }}
-              className="group/btn inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-5 py-3 text-xs font-bold text-white shadow-md shadow-blue-600/20 transition-all duration-300 hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg hover:shadow-blue-600/25 sm:w-auto sm:min-w-[135px]"
-            >
-              View Details
-
-              <ChevronRight
-                size={15}
-                className="transition-transform duration-300 group-hover/btn:translate-x-1"
-              />
-            </button>
-
-          </div>
-        </div>
-
-      </div>
-    </article>
-  );
-};
-
-  // =========================================================
-  // ACTIVE FILTER COUNT
-  // =========================================================
-
-  const activeFilterCount = Object.values(
-    selectedFilters
-  ).reduce(
-    (total, values) => total + values.length,
-    0
-  );
-
-  // =========================================================
-  // SORT OPTIONS
-  // =========================================================
-
-  const sortOptions = [
-    "Relevance",
-    "Newest",
-    "Salary: High to Low",
-  ];
-
-  // =========================================================
-  // RETURN
-  // =========================================================
-
-  return (
-    <main className="min-h-screen w-full min-w-0 overflow-x-hidden bg-slate-50">
-
-      <div className="mx-auto w-full max-w-7xl min-w-0 px-2.5 py-3 sm:px-4 sm:py-5 md:px-5 lg:px-6 xl:px-0">
-
-        {/* =====================================================
-            SEARCH HEADER
-        ====================================================== */}
-
-        <section className="w-full min-w-0 rounded-xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-4">
-
-          <div className="flex min-w-0 flex-row items-center gap-1.5 sm:gap-3">
-
-            {/* Search */}
-
-            <div className="relative min-w-0 flex-1">
-
-              <Search
-                size={16}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 sm:left-3.5 sm:h-[18px] sm:w-[18px]"
-              />
-
-              <input
-                type="text"
-                value={search}
-                onChange={(e) =>
-                  setSearch(e.target.value)
-                }
-                placeholder="Search jobs..."
-                className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
-              />
-
-            </div>
-
-            {/* Location */}
-
-            <div className="relative min-w-0 flex-1 sm:flex-none sm:w-52 lg:w-60">
-
-              <MapPin
-                size={16}
-                className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 sm:left-3.5 sm:h-[18px] sm:w-[18px]"
-              />
-
-              <input
-                type="text"
-                value={location}
-                onChange={(e) =>
-                  setLocation(e.target.value)
-                }
-                placeholder="Location"
-                className="h-10 w-full min-w-0 rounded-lg border border-slate-200 bg-slate-50 pl-9 pr-2 text-xs font-medium text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 sm:h-11 sm:pl-11 sm:pr-4 sm:text-sm"
-              />
-
-            </div>
-
-            {/* Search Button */}
-
-            <button
-              type="button"
-              className="flex h-10 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md sm:h-11 sm:gap-2 sm:px-6 sm:text-sm"
-            >
-
-              <Search
-                size={15}
-                className="shrink-0 sm:h-[17px] sm:w-[17px]"
-              />
-
-              <span className="hidden xs:inline sm:inline">
-                Search
-              </span>
-
-            </button>
-
-          </div>
-        </section>
-
-        {/* =====================================================
-            MOBILE ACTIONS
-        ====================================================== */}
-
-        <div className="mt-3 flex w-full min-w-0 gap-2 lg:hidden">
-
-          {/* FILTER */}
-
-          <button
-            type="button"
-            onClick={() => setMobileFilters(true)}
-            className="relative flex min-w-0 flex-1 items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-3 text-xs font-bold text-slate-700 shadow-sm sm:px-4 sm:text-sm"
-          >
-
-            <SlidersHorizontal
+        {/* META */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <Clock3
               size={16}
-              className="shrink-0"
+              className="text-blue-500 shrink-0"
+            />
+
+            <span>{job.experience}</span>
+          </div>
+
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <IndianRupee
+              size={16}
+              className="text-blue-500 shrink-0"
             />
 
             <span className="truncate">
-              Filters
+              {job.salary}
             </span>
+          </div>
 
-            {activeFilterCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white">
-                {activeFilterCount}
-              </span>
-            )}
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <MapPin
+              size={16}
+              className="text-blue-500 shrink-0"
+            />
 
-          </button>
+            <span className="truncate">
+              {job.location}
+            </span>
+          </div>
 
-          {/* SORT */}
+          <div className="flex items-center gap-2 text-sm text-slate-500">
+            <BriefcaseBusiness
+              size={16}
+              className="text-blue-500 shrink-0"
+            />
 
-          <div className="relative min-w-0 flex-1">
-
-            <button
-              type="button"
-              onClick={() =>
-                setSortOpen((prev) => !prev)
-              }
-              className="flex w-full min-w-0 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-3 text-xs font-bold text-slate-700 shadow-sm sm:gap-2 sm:px-4 sm:text-sm"
-            >
-
-              <ChevronDown
-                size={16}
-                className="shrink-0"
-              />
-
-              <span className="truncate">
-                {sortBy}
-              </span>
-
-            </button>
-
-            {sortOpen && (
-              <div className="absolute right-0 top-[calc(100%+6px)] z-30 w-full min-w-[170px] overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
-
-                {sortOptions.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    onClick={() => {
-                      setSortBy(item);
-                      setSortOpen(false);
-                    }}
-                    className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-3 text-left text-xs font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-600 sm:text-sm"
-                  >
-
-                    <span className="break-words">
-                      {item}
-                    </span>
-
-                    {sortBy === item && (
-                      <Check
-                        size={15}
-                        className="shrink-0"
-                      />
-                    )}
-
-                  </button>
-                ))}
-
-              </div>
-            )}
-
+            <span className="truncate">
+              {job.workMode}
+            </span>
           </div>
         </div>
 
-        {/* =====================================================
-            MAIN CONTENT
-        ====================================================== */}
+        {/* DESCRIPTION */}
+        <p className="text-sm text-slate-500 leading-6 mt-5 line-clamp-2">
+          {job.description}
+        </p>
 
-        <div className="mt-4 grid min-w-0 gap-4 sm:gap-5 lg:grid-cols-[270px_minmax(0,1fr)] xl:grid-cols-[285px_minmax(0,1fr)]">
+        {/* SKILLS */}
+        {job.skills?.length > 0 && (
+          <div className="flex flex-wrap gap-2 mt-4">
+            {job.skills.slice(0, 5).map(
+              (skill, index) => (
+                <span
+                  key={`${normalizeValue(
+                    skill
+                  )}-${index}`}
+                  className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-medium"
+                >
+                  {normalizeValue(skill)}
+                </span>
+              )
+            )}
+          </div>
+        )}
 
-          {/* ===================================================
-              DESKTOP SIDEBAR
+        {/* BOTTOM */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5 pt-5 border-t border-slate-100">
+          <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-400">
+            <span>{job.posted}</span>
+
+            <span className="flex items-center gap-1.5">
+              <Users size={14} />
+              {job.applicants}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+
+              openJobDetail(job);
+            }}
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition"
+          >
+            View Details
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // ============================================================
+  // LOADING
+  // ============================================================
+
+  if (loading && jobs.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <Loader2
+            size={42}
+            className="mx-auto text-blue-600 animate-spin"
+          />
+
+          <h2 className="mt-4 text-lg font-semibold text-slate-800">
+            Loading jobs...
+          </h2>
+
+          <p className="mt-1 text-sm text-slate-500">
+            Please wait while we fetch the latest jobs.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // ERROR
+  // ============================================================
+
+  if (error && jobs.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
+        <div className="max-w-md w-full bg-white rounded-2xl border border-red-100 p-6 text-center">
+          <div className="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-500 flex items-center justify-center">
+            <AlertCircle size={24} />
+          </div>
+
+          <h2 className="mt-4 text-lg font-bold text-slate-900">
+            Unable to load jobs
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            {error}
+          </p>
+
+          <button
+            type="button"
+            onClick={() =>
+              dispatch(
+                getAllJobsUser({
+                  page: 1,
+                  limit: 6,
+                })
+              )
+            }
+            className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
+          >
+            <RefreshCw size={16} />
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ============================================================
+  // MAIN UI
+  // ============================================================
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* ========================================================
+          HEADER
+      ======================================================== */}
+
+      <section className="bg-gradient-to-br from-slate-50 via-white to-blue-50/40 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          <div className="max-w-3xl">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
+              Find Your Dream Job
+            </h1>
+
+            <p className="mt-2 text-sm sm:text-base text-slate-500">
+              Explore the latest opportunities and find the right job for you.
+            </p>
+          </div>
+
+          {/* ====================================================
+              SEARCH
           ==================================================== */}
 
-          <aside className="hidden min-w-0 lg:block">
+          <div className="mt-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
+            <div className="flex items-center gap-1.5 md:grid md:grid-cols-[1fr_1fr_auto] md:gap-2">
+              
+              {/* KEYWORD */}
+              <div
+                className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2.5 md:px-3"
+                onClick={() =>
+                  setMobileSearchOpen(true)
+                }
+              >
+                <Search
+                  size={20}
+                  className="text-slate-400 shrink-0"
+                />
 
-            <div className="sticky top-24 max-h-[calc(100vh-7rem)] min-w-0 overflow-y-auto overflow-x-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) =>
+                    setSearch(e.target.value)
+                  }
+                  onFocus={() =>
+                    setMobileSearchOpen(true)
+                  }
+                  placeholder="Job title, skills, company..."
+                  className="w-full min-w-0 outline-none text-sm text-slate-700 placeholder:text-slate-400"
+                />
+              </div>
 
-              <FilterContent />
+              {/* LOCATION */}
+              <div
+                className={`${
+                  mobileSearchOpen
+                    ? "flex"
+                    : "hidden"
+                } md:flex min-w-0 flex-1 items-center gap-2 border-l border-slate-200 px-2 py-2.5 md:px-3`}
+              >
+                <MapPin
+                  size={20}
+                  className="text-slate-400 shrink-0"
+                />
 
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) =>
+                    setLocation(e.target.value)
+                  }
+                  placeholder="Location"
+                  className="w-full min-w-0 outline-none text-sm text-slate-700 placeholder:text-slate-400"
+                />
+              </div>
+
+              {/* SEARCH BUTTON */}
+              <button
+                type="button"
+                onClick={() =>
+                  setMobileSearchOpen(true)
+                }
+                className={`${
+                  mobileSearchOpen
+                    ? "flex"
+                    : "hidden"
+                } md:flex shrink-0 items-center justify-center rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-700 sm:px-6 sm:text-sm`}
+              >
+                <span className="sm:hidden">
+                  Search
+                </span>
+
+                <span className="hidden sm:inline">
+                  Search Jobs
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          CONTENT
+      ======================================================== */}
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* TOP */}
+        <div className="flex items-center justify-between gap-4 mb-5">
+          <div>
+            <p className="text-sm text-slate-500">
+              Showing{" "}
+              <span className="font-semibold text-slate-700">
+                {filteredJobs.length}
+              </span>{" "}
+              jobs
+
+              {total > 0 && (
+                <>
+                  {" "}
+                  of{" "}
+                  <span className="font-semibold text-slate-700">
+                    {total}
+                  </span>
+                </>
+              )}
+            </p>
+          </div>
+
+          {/* MOBILE FILTER */}
+          <button
+            type="button"
+            onClick={() =>
+              setMobileFilters(true)
+            }
+            className="lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold"
+          >
+            <SlidersHorizontal size={17} />
+            Filters
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+          {/* ====================================================
+              DESKTOP FILTER
+          ==================================================== */}
+
+          <aside className="hidden lg:block">
+            <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-24">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="font-bold text-slate-900">
+                  Filters
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <FilterSection
+                title="Department"
+                filterKey="department"
+              >
+                <FilterContent
+                  filterKey="department"
+                  items={filters.department}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Work Mode"
+                filterKey="workMode"
+              >
+                <FilterContent
+                  filterKey="workMode"
+                  items={filters.workMode}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Experience"
+                filterKey="experience"
+              >
+                <FilterContent
+                  filterKey="experience"
+                  items={filters.experience}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Location"
+                filterKey="location"
+              >
+                <FilterContent
+                  filterKey="location"
+                  items={filters.location}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Salary"
+                filterKey="salary"
+              >
+                <FilterContent
+                  filterKey="salary"
+                  items={filters.salary}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Company"
+                filterKey="company"
+              >
+                <FilterContent
+                  filterKey="company"
+                  items={filters.company}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Role"
+                filterKey="role"
+              >
+                <FilterContent
+                  filterKey="role"
+                  items={filters.role}
+                />
+              </FilterSection>
             </div>
           </aside>
 
-          {/* ===================================================
+          {/* ====================================================
               JOB LIST
           ==================================================== */}
 
-          <section className="min-w-0 w-full">
+          <main className="min-w-0">
+            {/* SORT */}
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <p className="hidden sm:block text-sm text-slate-500">
+                {filteredJobs.length} matching jobs
+              </p>
 
-            {/* HEADER */}
-
-            <div className="mb-4 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
-              <div className="min-w-0">
-
-                <h1 className="text-lg font-bold text-slate-900 sm:text-xl">
-                  Latest Jobs
-                </h1>
-
-                <p className="mt-1 break-words text-xs text-slate-500 sm:text-sm">
-
-                  Showing{" "}
-
-                  <span className="font-bold text-slate-700">
-                    {filteredJobs.length}
-                  </span>{" "}
-
-                  jobs matching your search
-
-                </p>
-
-              </div>
-
-              {/* DESKTOP SORT */}
-
-              <div className="relative hidden shrink-0 sm:block">
-
+              <div className="relative ml-auto">
                 <button
                   type="button"
                   onClick={() =>
                     setSortOpen((prev) => !prev)
                   }
-                  className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-600 shadow-sm"
+                  className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700"
                 >
+                  <ArrowUpDown size={16} />
 
-                  Sort by:
+                  {sortBy === "relevance"
+                    ? "Relevance"
+                    : sortBy === "latest"
+                    ? "Latest"
+                    : sortBy === "salary-high"
+                    ? "Salary: High to Low"
+                    : "Salary: Low to High"}
 
-                  <span className="text-slate-900">
-                    {sortBy}
-                  </span>
-
-                  <ChevronDown size={15} />
-
+                  <ChevronDown size={16} />
                 </button>
 
                 {sortOpen && (
-                  <div className="absolute right-0 top-12 z-30 w-52 overflow-hidden rounded-lg border border-slate-200 bg-white p-1 shadow-xl">
-
-                    {sortOptions.map((item) => (
-                      <button
-                        key={item}
-                        type="button"
-                        onClick={() => {
-                          setSortBy(item);
-                          setSortOpen(false);
-                        }}
-                        className="flex w-full items-center justify-between gap-2 rounded-md px-3 py-3 text-left text-sm font-medium text-slate-600 hover:bg-blue-50 hover:text-blue-600"
-                      >
-
-                        <span>
-                          {item}
-                        </span>
-
-                        {sortBy === item && (
-                          <Check size={15} />
-                        )}
-
-                      </button>
-                    ))}
-
+                  <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 overflow-hidden">
+                    {[
+                      ["relevance", "Relevance"],
+                      ["latest", "Latest"],
+                      [
+                        "salary-high",
+                        "Salary: High to Low",
+                      ],
+                      [
+                        "salary-low",
+                        "Salary: Low to High",
+                      ],
+                    ].map(
+                      ([value, label]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => {
+                            setSortBy(value);
+                            setSortOpen(false);
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 ${
+                            sortBy === value
+                              ? "text-blue-600 font-semibold bg-blue-50"
+                              : "text-slate-600"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      )
+                    )}
                   </div>
                 )}
-
               </div>
             </div>
 
-            {/* =================================================
-                ACTIVE FILTERS
-            ================================================== */}
-
-            {activeFilterCount > 0 && (
-              <div className="mb-4 flex min-w-0 flex-wrap items-center gap-1.5 sm:gap-2">
-
-                <span className="mr-1 text-xs font-bold text-slate-600">
-                  Active filters:
-                </span>
-
-                {Object.entries(selectedFilters).map(
-                  ([key, values]) =>
-                    values.map((value) => (
-                      <button
-                        key={`${key}-${value}`}
-                        type="button"
-                        onClick={() =>
-                          handleFilterChange(
-                            key,
-                            value
-                          )
-                        }
-                        className="flex max-w-full min-w-0 items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1.5 text-[10px] font-semibold text-blue-700 sm:px-3 sm:text-xs"
-                      >
-
-                        <span className="max-w-[180px] break-words sm:max-w-[250px]">
-                          {value}
-                        </span>
-
-                        <X
-                          size={12}
-                          className="shrink-0"
-                        />
-
-                      </button>
-                    ))
-                )}
-
-                <button
-                  type="button"
-                  onClick={resetFilters}
-                  className="shrink-0 text-xs font-bold text-red-500 hover:text-red-600"
-                >
-                  Clear all
-                </button>
-
+            {/* PAGINATION LOADING */}
+            {loading && jobs.length > 0 && (
+              <div className="mb-4 flex items-center gap-2 text-sm text-blue-600">
+                <Loader2
+                  size={16}
+                  className="animate-spin"
+                />
+                Updating jobs...
               </div>
             )}
 
-            {/* =================================================
-                JOBS
-            ================================================== */}
-
-            <div className="w-full min-w-0 space-y-3.5 sm:space-y-4">
-
-              {filteredJobs.length > 0 ? (
-                filteredJobs.map((job) => (
+            {/* JOBS */}
+            {filteredJobs.length > 0 ? (
+              <div className="space-y-4">
+                {filteredJobs.map((job) => (
                   <JobCard
                     key={job.id}
                     job={job}
                   />
-                ))
-              ) : (
-                <div className="w-full min-w-0 rounded-xl border border-slate-200 bg-white px-4 py-12 text-center sm:px-5 sm:py-16">
-
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100">
-
-                    <Search
-                      size={22}
-                      className="text-slate-400"
-                    />
-
-                  </div>
-
-                  <h3 className="mt-4 text-base font-bold text-slate-800">
-                    No jobs found
-                  </h3>
-
-                  <p className="mx-auto mt-2 max-w-md break-words text-sm leading-6 text-slate-500">
-                    We couldn't find jobs matching your
-                    selected filters. Try changing or
-                    clearing some filters.
-                  </p>
-
-                  <button
-                    type="button"
-                    onClick={resetFilters}
-                    className="mt-5 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-700"
-                  >
-                    Clear Filters
-                  </button>
-
-                </div>
-              )}
-
-            </div>
-
-            {/* =================================================
-                PAGINATION
-            ================================================== */}
-
-            <div className="mt-6 flex w-full items-center justify-center gap-1.5 overflow-x-auto px-1 sm:gap-2">
-
-              <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-500">
-                1
-              </button>
-
-              <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white shadow-sm">
-                2
-              </button>
-
-              <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-sm text-slate-600 hover:bg-blue-50 hover:text-blue-600">
-                3
-              </button>
-
-              <button className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:bg-blue-50 hover:text-blue-600">
-                <ChevronRight size={16} />
-              </button>
-
-            </div>
-
-          </section>
-        </div>
-      </div>
-
-      {/* =====================================================
-          MOBILE FILTER DRAWER
-      ====================================================== */}
-
-      {mobileFilters && (
-        <div className="fixed inset-0 z-[100] h-[100dvh] w-full lg:hidden">
-
-          {/* Overlay */}
-
-          <button
-            type="button"
-            aria-label="Close filters"
-            onClick={() => setMobileFilters(false)}
-            className="absolute inset-0 h-full w-full bg-slate-900/50 backdrop-blur-sm"
-          />
-
-          {/* Drawer */}
-
-          <aside className="absolute bottom-0 left-0 top-0 flex h-[100dvh] w-[calc(100%-28px)] max-w-sm flex-col overflow-hidden bg-white shadow-2xl sm:w-[88%]">
-
-            {/* HEADER */}
-
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3.5 sm:px-5 sm:py-4">
-
-              <div className="min-w-0">
-
-                <h2 className="text-lg font-bold text-slate-900">
-                  Filters
-                </h2>
-
-                <p className="mt-1 text-xs text-slate-500">
-                  Refine your job search
-                </p>
-
+                ))}
               </div>
+            ) : (
+              <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center">
+                <div className="w-14 h-14 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
+                  <Search
+                    size={25}
+                    className="text-slate-400"
+                  />
+                </div>
 
-              <button
-                type="button"
-                onClick={() =>
-                  setMobileFilters(false)
-                }
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200"
-              >
-                <X size={18} />
-              </button>
+                <h3 className="mt-4 text-lg font-bold text-slate-900">
+                  No jobs found
+                </h3>
 
-            </div>
-
-            {/* FILTER BODY */}
-
-            <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-2 sm:p-5">
-
-              <FilterContent />
-
-            </div>
-
-            {/* BOTTOM */}
-
-            <div className="shrink-0 border-t border-slate-200 bg-white p-3.5 sm:p-4">
-
-              <div className="mb-3 flex items-center justify-between gap-3">
-
-                <span className="min-w-0 text-xs font-semibold text-slate-600 sm:text-sm">
-                  {activeFilterCount} filters selected
-                </span>
+                <p className="mt-2 text-sm text-slate-500 max-w-md mx-auto">
+                  Try changing your search or removing some filters to see more jobs.
+                </p>
 
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="shrink-0 text-xs font-bold text-red-500"
+                  className="mt-5 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
                 >
-                  Clear All
+                  Clear Filters
+                </button>
+              </div>
+            )}
+
+            {/* ==================================================
+                PAGINATION
+            ================================================== */}
+
+            {totalPages > 1 && (
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+                <button
+                  type="button"
+                  disabled={page <= 1 || loading}
+                  onClick={() =>
+                    handlePageChange(page - 1)
+                  }
+                  className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+                >
+                  Previous
                 </button>
 
-              </div>
+                {Array.from(
+                  {
+                    length: Math.min(
+                      totalPages,
+                      5
+                    ),
+                  },
+                  (_, index) => {
+                    let pageNumber =
+                      index + 1;
 
+                    if (
+                      totalPages > 5 &&
+                      page > 3
+                    ) {
+                      pageNumber = Math.min(
+                        page - 2 + index,
+                        totalPages - 4
+                      );
+                    }
+
+                    return (
+                      <button
+                        key={pageNumber}
+                        type="button"
+                        disabled={loading}
+                        onClick={() =>
+                          handlePageChange(
+                            pageNumber
+                          )
+                        }
+                        className={`w-10 h-10 rounded-lg text-sm font-semibold ${
+                          page === pageNumber
+                            ? "bg-blue-600 text-white"
+                            : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    );
+                  }
+                )}
+
+                <button
+                  type="button"
+                  disabled={
+                    page >= totalPages ||
+                    loading
+                  }
+                  onClick={() =>
+                    handlePageChange(page + 1)
+                  }
+                  className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </main>
+        </div>
+      </section>
+
+      {/* ========================================================
+          MOBILE FILTER DRAWER
+      ======================================================== */}
+
+      {mobileFilters && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() =>
+              setMobileFilters(false)
+            }
+          />
+
+          <div className="absolute right-0 top-0 h-full w-[90%] max-w-sm bg-white shadow-2xl overflow-y-auto">
+            {/* HEADER */}
+            <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between z-10">
+              <h2 className="font-bold text-slate-900">
+                Filters
+              </h2>
+
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="text-xs font-semibold text-blue-600"
+                >
+                  Reset
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileFilters(false)
+                  }
+                  className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* FILTER CONTENT */}
+            <div className="px-5">
+              <FilterSection
+                title="Department"
+                filterKey="department"
+              >
+                <FilterContent
+                  filterKey="department"
+                  items={filters.department}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Work Mode"
+                filterKey="workMode"
+              >
+                <FilterContent
+                  filterKey="workMode"
+                  items={filters.workMode}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Experience"
+                filterKey="experience"
+              >
+                <FilterContent
+                  filterKey="experience"
+                  items={filters.experience}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Location"
+                filterKey="location"
+              >
+                <FilterContent
+                  filterKey="location"
+                  items={filters.location}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Salary"
+                filterKey="salary"
+              >
+                <FilterContent
+                  filterKey="salary"
+                  items={filters.salary}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Company"
+                filterKey="company"
+              >
+                <FilterContent
+                  filterKey="company"
+                  items={filters.company}
+                />
+              </FilterSection>
+
+              <FilterSection
+                title="Role"
+                filterKey="role"
+              >
+                <FilterContent
+                  filterKey="role"
+                  items={filters.role}
+                />
+              </FilterSection>
+            </div>
+
+            {/* APPLY */}
+            <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4">
               <button
                 type="button"
                 onClick={() =>
                   setMobileFilters(false)
                 }
-                className="w-full rounded-lg bg-blue-600 py-3.5 text-sm font-bold text-white shadow-md hover:bg-blue-700"
+                className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold"
               >
-                Show {filteredJobs.length} Jobs
+                Apply Filters
               </button>
-
             </div>
-
-          </aside>
+          </div>
         </div>
       )}
-    </main>
+    </div>
   );
 };
 

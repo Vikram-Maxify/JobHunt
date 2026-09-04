@@ -53,7 +53,7 @@ const ChooseUs = () => {
   ];
 
   return (
-    <section className="overflow-hidden bg-white py-6 sm:py-6 lg:py-6">
+    <section className="overflow-hidden bg-white py-2 sm:py-2 lg:py-2">
       {/* =====================================================
           MAIN CONTAINER
       ===================================================== */}

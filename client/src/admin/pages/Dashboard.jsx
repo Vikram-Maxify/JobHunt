@@ -1,30 +1,162 @@
-import React from "react";
+
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Users,
   BriefcaseBusiness,
   FileText,
   CreditCard,
   ArrowUpRight,
-  ArrowDownRight,
   UserPlus,
   Plus,
   Eye,
   CheckCircle2,
-  Clock3,
   XCircle,
   MoreHorizontal,
-  MapPin,
-  CalendarDays,
   IndianRupee,
 } from "lucide-react";
 
 import StatCard from "../components/StateCard";
 
+import { getAllUsersAdmin } from "../../redux/slicer/adminUserSlice";
+import { getAllJobsAdmin } from "../../redux/slicer/jobSlice";
+import { getAllSubscriptionsAdmin } from "../../redux/slicer/adminsubscriptionSlice";
+
 const AdminDashboard = () => {
+  /* =========================================================
+     REDUX
+  ========================================================= */
+
+  const dispatch = useDispatch();
+
+  const {
+    users,
+    total: totalUsers,
+    count: userCount,
+    fetchLoading: usersLoading,
+  } = useSelector((state) => state.adminUser);
+
+  const {
+    adminJobs,
+    adminCount,
+    adminLoading: jobsLoading,
+  } = useSelector((state) => state.jobs);
+
+  const {
+    adminSubscriptions,
+    adminSubscriptionsCount,
+    loading: subscriptionsLoading,
+  } = useSelector((state) => state.subscription);
+
+  /* =========================================================
+     FETCH DASHBOARD DATA
+  ========================================================= */
+
+  useEffect(() => {
+    dispatch(getAllUsersAdmin());
+    dispatch(getAllJobsAdmin());
+    dispatch(getAllSubscriptionsAdmin());
+  }, [dispatch]);
+
+  /* =========================================================
+     USER DATA
+  ========================================================= */
+
+  const totalUsersValue =
+    totalUsers || userCount || users?.length || 0;
+
+  /* =========================================================
+     JOB DATA
+  ========================================================= */
+
+  const totalJobsValue =
+    adminCount || adminJobs?.length || 0;
+
+  /* =========================================================
+     SUBSCRIPTION DATA
+  ========================================================= */
+
+  const totalSubscriptionsValue =
+    adminSubscriptionsCount ||
+    adminSubscriptions?.length ||
+    0;
+
+  const activeSubscriptions =
+    adminSubscriptions?.filter(
+      (subscription) =>
+        subscription?.isActive === true ||
+        subscription?.status === "active" ||
+        subscription?.status === "Active"
+    ).length || 0;
+
+  const expiredSubscriptions =
+    adminSubscriptions?.filter(
+      (subscription) =>
+        subscription?.status === "expired" ||
+        subscription?.status === "Expired"
+    ).length || 0;
+
+  /* =========================================================
+     RECENT USERS
+  ========================================================= */
+
+  const recentUsers = (users || []).slice(0, 5).map((user) => ({
+    name:
+      user?.name ||
+      user?.fullName ||
+      "Unknown User",
+
+    email:
+      user?.email ||
+      "No email",
+
+    role:
+      user?.role ||
+      user?.jobTitle ||
+      "User",
+
+    status:
+      user?.isActive === false
+        ? "Inactive"
+        : user?.isVerified === false
+          ? "Pending"
+          : "Active",
+
+    initial:
+      (
+        user?.name ||
+        user?.fullName ||
+        "U"
+      )
+        .charAt(0)
+        .toUpperCase(),
+  }));
+
+  /* =========================================================
+     FALLBACK RECENT USERS
+  ========================================================= */
+
+  const displayRecentUsers =
+    recentUsers.length > 0
+      ? recentUsers
+      : [
+        {
+          name: "No users found",
+          email: "No registered users",
+          role: "—",
+          status: "Pending",
+          initial: "U",
+        },
+      ];
+
+  /* =========================================================
+     STATS
+  ========================================================= */
+
   const stats = [
     {
       title: "Total Users",
-      value: "12,480",
+      value: usersLoading ? "..." : totalUsersValue.toLocaleString(),
       description: "Registered users",
       icon: Users,
       iconClass: "bg-blue-50 text-blue-600",
@@ -33,7 +165,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Total Jobs",
-      value: "1,248",
+      value: jobsLoading ? "..." : totalJobsValue.toLocaleString(),
       description: "Jobs listed",
       icon: BriefcaseBusiness,
       iconClass: "bg-purple-50 text-purple-600",
@@ -60,43 +192,10 @@ const AdminDashboard = () => {
     },
   ];
 
-  const recentUsers = [
-    {
-      name: "Rahul Kumar",
-      email: "rahul@gmail.com",
-      role: "Frontend Developer",
-      status: "Active",
-      initial: "R",
-    },
-    {
-      name: "Priya Sharma",
-      email: "priya@gmail.com",
-      role: "UI/UX Designer",
-      status: "Active",
-      initial: "P",
-    },
-    {
-      name: "Aman Singh",
-      email: "aman@gmail.com",
-      role: "MERN Developer",
-      status: "Pending",
-      initial: "A",
-    },
-    {
-      name: "Neha Verma",
-      email: "neha@gmail.com",
-      role: "HR Executive",
-      status: "Active",
-      initial: "N",
-    },
-    {
-      name: "Vikas Raj",
-      email: "vikas@gmail.com",
-      role: "Backend Developer",
-      status: "Active",
-      initial: "V",
-    },
-  ];
+  /* =========================================================
+     RECENT APPLICATIONS
+     TEMPORARY DATA
+  ========================================================= */
 
   const recentApplications = [
     {
@@ -129,6 +228,10 @@ const AdminDashboard = () => {
     },
   ];
 
+  /* =========================================================
+     STATUS CLASS
+  ========================================================= */
+
   const getStatusClass = (status) => {
     switch (status) {
       case "Active":
@@ -142,6 +245,8 @@ const AdminDashboard = () => {
         return "bg-blue-50 text-blue-600";
 
       case "Rejected":
+      case "Inactive":
+      case "Expired":
         return "bg-red-50 text-red-500";
 
       default:
@@ -152,6 +257,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-full bg-slate-50">
       <div className="mx-auto w-full max-w-[1600px] px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+
         {/* PAGE HEADER */}
         <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
@@ -171,19 +277,22 @@ const AdminDashboard = () => {
           <div className="flex flex-col gap-2 sm:flex-row">
             <button
               type="button"
+              onClick={() => {
+                window.location.href = "http://localhost:5173/";
+              }}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
             >
               <Eye size={16} />
               View Website
             </button>
 
-            <button
+            {/* <button
               type="button"
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
             >
               <Plus size={17} />
               Add New Job
-            </button>
+            </button> */}
           </div>
         </div>
 
@@ -199,6 +308,7 @@ const AdminDashboard = () => {
 
         {/* MAIN GRID */}
         <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
+
           {/* APPLICATION OVERVIEW */}
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
             <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
@@ -287,6 +397,7 @@ const AdminDashboard = () => {
             </div>
 
             <div className="mt-5 space-y-4">
+
               <div className="flex items-center gap-3 rounded-xl bg-blue-50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
                   <UserPlus size={18} />
@@ -298,7 +409,7 @@ const AdminDashboard = () => {
                   </p>
 
                   <p className="mt-0.5 text-lg font-black text-slate-800">
-                    128
+                    {usersLoading ? "..." : totalUsersValue}
                   </p>
                 </div>
 
@@ -319,7 +430,7 @@ const AdminDashboard = () => {
                   </p>
 
                   <p className="mt-0.5 text-lg font-black text-slate-800">
-                    36
+                    {jobsLoading ? "..." : totalJobsValue}
                   </p>
                 </div>
 
@@ -370,12 +481,14 @@ const AdminDashboard = () => {
                   className="text-green-500"
                 />
               </div>
+
             </div>
           </section>
         </div>
 
         {/* RECENT DATA */}
         <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
+
           {/* RECENT USERS */}
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6">
@@ -398,9 +511,9 @@ const AdminDashboard = () => {
             </div>
 
             <div className="divide-y divide-slate-100">
-              {recentUsers.map((user) => (
+              {displayRecentUsers.map((user, index) => (
                 <div
-                  key={user.email}
+                  key={`${user.email}-${index}`}
                   className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
@@ -477,15 +590,9 @@ const AdminDashboard = () => {
                       </p>
 
                       <p className="mt-1 hidden items-center gap-1 text-[10px] text-slate-400 sm:flex">
-                        <span>
-                          {application.company}
-                        </span>
-
+                        <span>{application.company}</span>
                         <span>•</span>
-
-                        <span>
-                          {application.date}
-                        </span>
+                        <span>{application.date}</span>
                       </p>
                     </div>
 
@@ -511,31 +618,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* BOTTOM CARDS */}
-        <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3">
-          {/* PENDING KYC */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-                <Clock3 size={19} />
-              </div>
-
-              <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-600">
-                Pending
-              </span>
-            </div>
-
-            <p className="mt-4 text-xs text-slate-400">
-              KYC Verification
-            </p>
-
-            <h3 className="mt-1 text-2xl font-black text-slate-800">
-              46
-            </h3>
-
-            <p className="mt-1 text-xs text-slate-400">
-              Documents waiting for review
-            </p>
-          </div>
+        <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
 
           {/* ACTIVE SUBSCRIPTIONS */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -554,7 +637,9 @@ const AdminDashboard = () => {
             </p>
 
             <h3 className="mt-1 text-2xl font-black text-slate-800">
-              1,284
+              {subscriptionsLoading
+                ? "..."
+                : activeSubscriptions}
             </h3>
 
             <p className="mt-1 text-xs text-slate-400">
@@ -579,13 +664,16 @@ const AdminDashboard = () => {
             </p>
 
             <h3 className="mt-1 text-2xl font-black text-slate-800">
-              186
+              {subscriptionsLoading
+                ? "..."
+                : expiredSubscriptions}
             </h3>
 
             <p className="mt-1 text-xs text-slate-400">
               Need renewal
             </p>
           </div>
+
         </div>
       </div>
     </div>
@@ -593,3 +681,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+

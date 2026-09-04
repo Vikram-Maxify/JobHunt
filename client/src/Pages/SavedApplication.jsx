@@ -1,4 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+
+import {
+  getSavedJobs,
+  unsaveJob,
+} from "../redux/slicer/jobApplicationSlice";
+
 import {
   Search,
   MapPin,
@@ -11,115 +19,89 @@ import {
   ChevronDown,
   ExternalLink,
   X,
-  CheckCircle2,
-  Clock4,
-  XCircle,
+  Loader2,
   FileText,
+  AlertCircle,
+  RefreshCw,
 } from "lucide-react";
-
-// =========================================================
-// SAVED APPLICATION DATA
-// =========================================================
-
-const savedApplications = [
-  {
-    id: 1,
-    title: "Frontend Developer",
-    company: "Infosys",
-    location: "Bangalore",
-    experience: "1-3 Yrs",
-    salary: "₹5-9 LPA",
-    type: "Full Time",
-    workMode: "Hybrid",
-    appliedDate: "24 Aug 2026",
-    savedDate: "25 Aug 2026",
-    status: "Applied",
-    logo: "I",
-    logoClass: "bg-blue-50 text-blue-600",
-  },
-  {
-    id: 2,
-    title: "Hub Lead",
-    company: "Paytm",
-    location: "Noida",
-    experience: "0-3 Yrs",
-    salary: "₹6-12 LPA",
-    type: "Full Time",
-    workMode: "Work from office",
-    appliedDate: "22 Aug 2026",
-    savedDate: "23 Aug 2026",
-    status: "Under Review",
-    logo: "P",
-    logoClass: "bg-indigo-50 text-indigo-600",
-  },
-  {
-    id: 3,
-    title: "Software Engineer",
-    company: "Accenture",
-    location: "Pune",
-    experience: "1-4 Yrs",
-    salary: "₹6-11 LPA",
-    type: "Full Time",
-    workMode: "Hybrid",
-    appliedDate: "20 Aug 2026",
-    savedDate: "21 Aug 2026",
-    status: "Interview",
-    logo: "A",
-    logoClass: "bg-purple-50 text-purple-600",
-  },
-  {
-    id: 4,
-    title: "Operations Supervisor",
-    company: "Marico",
-    location: "Gurgaon",
-    experience: "1-2 Yrs",
-    salary: "₹4-7 LPA",
-    type: "Full Time",
-    workMode: "Work from office",
-    appliedDate: "18 Aug 2026",
-    savedDate: "20 Aug 2026",
-    status: "Applied",
-    logo: "M",
-    logoClass: "bg-cyan-50 text-cyan-600",
-  },
-  {
-    id: 5,
-    title: "React Developer",
-    company: "TCS",
-    location: "Mumbai",
-    experience: "2-5 Yrs",
-    salary: "₹7-13 LPA",
-    type: "Full Time",
-    workMode: "Remote",
-    appliedDate: "15 Aug 2026",
-    savedDate: "17 Aug 2026",
-    status: "Rejected",
-    logo: "T",
-    logoClass: "bg-orange-50 text-orange-600",
-  },
-];
 
 // =========================================================
 // STATUS CONFIG
 // =========================================================
 
 const statusConfig = {
-  Applied: {
+  pending: {
+    label: "Applied",
     icon: FileText,
     className: "bg-blue-50 text-blue-700 border-blue-100",
   },
-  "Under Review": {
-    icon: Clock4,
+
+  applied: {
+    label: "Applied",
+    icon: FileText,
+    className: "bg-blue-50 text-blue-700 border-blue-100",
+  },
+
+  "under review": {
+    label: "Under Review",
+    icon: Clock3,
     className: "bg-amber-50 text-amber-700 border-amber-100",
   },
-  Interview: {
-    icon: CheckCircle2,
+
+  shortlisted: {
+    label: "Interview",
+    icon: FileText,
     className: "bg-emerald-50 text-emerald-700 border-emerald-100",
   },
-  Rejected: {
-    icon: XCircle,
+
+  interview: {
+    label: "Interview",
+    icon: FileText,
+    className: "bg-emerald-50 text-emerald-700 border-emerald-100",
+  },
+
+  rejected: {
+    label: "Rejected",
+    icon: X,
     className: "bg-red-50 text-red-600 border-red-100",
   },
+};
+
+// =========================================================
+// HELPERS
+// =========================================================
+
+const formatDate = (date) => {
+  if (!date) return "Recently";
+
+  const parsedDate = new Date(date);
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return "Recently";
+  }
+
+  return parsedDate.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+const getStatusDetails = (status) => {
+  const normalizedStatus = String(status || "pending")
+    .toLowerCase()
+    .trim();
+
+  return (
+    statusConfig[normalizedStatus] || {
+      label:
+        normalizedStatus.charAt(0).toUpperCase() +
+        normalizedStatus.slice(1),
+      icon: FileText,
+      className:
+        "bg-slate-50 text-slate-600 border-slate-100",
+    }
+  );
 };
 
 // =========================================================
@@ -127,34 +109,189 @@ const statusConfig = {
 // =========================================================
 
 const SavedApplication = () => {
-  const [applications, setApplications] =
-    useState(savedApplications);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const {
+    savedJobs = [],
+    savedJobsLoading,
+    savedJobsError,
+    unsaving,
+  } = useSelector((state) => state.application);
 
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] =
     useState("All Applications");
 
-  const [statusOpen, setStatusOpen] =
-    useState(false);
+  const [statusOpen, setStatusOpen] = useState(false);
+  const [removingJobId, setRemovingJobId] = useState(null);
 
   // =======================================================
-  // REMOVE APPLICATION
+  // GET SAVED JOBS
   // =======================================================
 
-  const removeApplication = (id) => {
-    setApplications((prev) =>
-      prev.filter((application) => application.id !== id)
-    );
+  useEffect(() => {
+    dispatch(getSavedJobs());
+  }, [dispatch]);
+
+  // =======================================================
+  // REMOVE SAVED JOB
+  // =======================================================
+
+  const removeApplication = async (jobId) => {
+    if (!jobId) return;
+
+    try {
+      setRemovingJobId(jobId);
+
+      await dispatch(unsaveJob(jobId)).unwrap();
+
+      // No local filtering required.
+      // Redux unsaveJob reducer should remove it from savedJobs.
+    } catch (error) {
+      console.error("Remove saved job error:", error);
+    } finally {
+      setRemovingJobId(null);
+    }
   };
 
   // =======================================================
-  // FILTER APPLICATIONS
+  // NORMALIZE BACKEND DATA
+  // =======================================================
+
+  const normalizedJobs = useMemo(() => {
+    return savedJobs.map((item) => {
+      /*
+       * Depending on your SavedJob controller,
+       * item may directly contain job fields
+       * OR contain a populated `job` object.
+       */
+
+      const backendJob = item?.job || item;
+
+      const companyName =
+        backendJob?.company?.name ||
+        backendJob?.companyName ||
+        (typeof backendJob?.company === "string"
+          ? backendJob.company
+          : "") ||
+        "Company";
+
+      const jobTitle =
+        backendJob?.title ||
+        backendJob?.jobTitle ||
+        "Job Opportunity";
+
+      const location =
+        backendJob?.location ||
+        backendJob?.jobLocation ||
+        "Location not specified";
+
+      const jobType =
+        backendJob?.jobType ||
+        backendJob?.type ||
+        "Full Time";
+
+      const workMode =
+        backendJob?.workMode ||
+        backendJob?.workType ||
+        "Not specified";
+
+      const experience =
+        backendJob?.experience ||
+        backendJob?.experienceLevel ||
+        "Not specified";
+
+      const salary =
+        backendJob?.salary ||
+        backendJob?.salaryRange ||
+        "Not disclosed";
+
+      const companyLogo =
+        backendJob?.companyLogo?.displayUrl ||
+        backendJob?.companyLogo?.url ||
+        backendJob?.companyLogo ||
+        null;
+
+      const jobId =
+        backendJob?._id ||
+        backendJob?.id ||
+        item?._id;
+
+      /*
+       * If your SavedJob model stores createdAt,
+       * this is the saved date.
+       */
+      const savedDate =
+        item?.createdAt ||
+        item?.savedAt ||
+        item?.savedDate;
+
+      /*
+       * If the saved job also has application information,
+       * use that status/date.
+       */
+      const applicationStatus =
+        item?.application?.status ||
+        item?.status ||
+        backendJob?.applicationStatus ||
+        null;
+
+      const appliedDate =
+        item?.application?.appliedAt ||
+        item?.appliedAt ||
+        backendJob?.appliedAt ||
+        null;
+
+      return {
+        ...item,
+
+        id: jobId,
+        title: jobTitle,
+        company: companyName,
+        location,
+        experience,
+        salary,
+        type: jobType,
+        workMode,
+
+        logo:
+          companyLogo ||
+          companyName?.charAt(0)?.toUpperCase() ||
+          "C",
+
+        logoUrl: companyLogo,
+
+        savedDate: formatDate(savedDate),
+        appliedDate: appliedDate
+          ? formatDate(appliedDate)
+          : "Not applied",
+
+        status: applicationStatus,
+      };
+    });
+  }, [savedJobs]);
+
+  // =======================================================
+  // FILTER OPTIONS
+  // =======================================================
+
+  const statusOptions = [
+    "All Applications",
+    "Applied",
+    "Under Review",
+    "Interview",
+    "Rejected",
+  ];
+
+  // =======================================================
+  // FILTER SAVED JOBS
   // =======================================================
 
   const filteredApplications = useMemo(() => {
     const query = search.toLowerCase().trim();
 
-    return applications.filter((application) => {
+    return normalizedJobs.filter((application) => {
       const matchesSearch =
         !query ||
         application.title
@@ -167,25 +304,21 @@ const SavedApplication = () => {
           .toLowerCase()
           .includes(query);
 
+      const statusDetails = getStatusDetails(
+        application.status
+      );
+
       const matchesStatus =
         statusFilter === "All Applications" ||
-        application.status === statusFilter;
+        statusDetails.label === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
-  }, [applications, search, statusFilter]);
-
-  // =======================================================
-  // STATUS OPTIONS
-  // =======================================================
-
-  const statusOptions = [
-    "All Applications",
-    "Applied",
-    "Under Review",
-    "Interview",
-    "Rejected",
-  ];
+  }, [
+    normalizedJobs,
+    search,
+    statusFilter,
+  ]);
 
   // =======================================================
   // STATUS COUNTS
@@ -193,12 +326,16 @@ const SavedApplication = () => {
 
   const getStatusCount = (status) => {
     if (status === "All Applications") {
-      return applications.length;
+      return normalizedJobs.length;
     }
 
-    return applications.filter(
-      (application) => application.status === status
-    ).length;
+    return normalizedJobs.filter((application) => {
+      const statusDetails = getStatusDetails(
+        application.status
+      );
+
+      return statusDetails.label === status;
+    }).length;
   };
 
   // =======================================================
@@ -206,12 +343,14 @@ const SavedApplication = () => {
   // =======================================================
 
   const ApplicationCard = ({ application }) => {
-    const StatusIcon =
-      statusConfig[application.status]?.icon || FileText;
+    const statusDetails = getStatusDetails(
+      application.status
+    );
 
-    const statusClass =
-      statusConfig[application.status]?.className ||
-      "bg-slate-50 text-slate-600 border-slate-100";
+    const StatusIcon = statusDetails.icon;
+
+    const isRemoving =
+      removingJobId === application.id || unsaving;
 
     return (
       <article className="group w-full min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg hover:shadow-slate-200/60">
@@ -222,12 +361,19 @@ const SavedApplication = () => {
 
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-slate-50/70 px-4 py-2.5 sm:px-5">
 
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold sm:text-xs ${statusClass}`}
-          >
-            <StatusIcon size={13} />
-            {application.status}
-          </span>
+          {application.status ? (
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold sm:text-xs ${statusDetails.className}`}
+            >
+              <StatusIcon size={13} />
+              {statusDetails.label}
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-100 bg-slate-50 px-2.5 py-1 text-[10px] font-bold text-slate-500 sm:text-xs">
+              <BookmarkCheck size={13} />
+              Saved
+            </span>
+          )}
 
           <span className="flex items-center gap-1.5 text-[10px] font-medium text-slate-400 sm:text-xs">
             <Clock3 size={13} />
@@ -247,11 +393,19 @@ const SavedApplication = () => {
 
             {/* LOGO */}
 
-            <div
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-100 text-lg font-black shadow-sm sm:h-14 sm:w-14 sm:text-xl ${application.logoClass}`}
-            >
-              {application.logo}
-            </div>
+            {application.logoUrl ? (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm sm:h-14 sm:w-14">
+                <img
+                  src={application.logoUrl}
+                  alt={application.company}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-blue-50 text-lg font-black text-blue-600 shadow-sm sm:h-14 sm:w-14 sm:text-xl">
+                {application.logo}
+              </div>
+            )}
 
             {/* JOB INFORMATION */}
 
@@ -284,10 +438,18 @@ const SavedApplication = () => {
                   onClick={() =>
                     removeApplication(application.id)
                   }
-                  aria-label="Remove saved application"
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500"
+                  disabled={isRemoving}
+                  aria-label="Remove saved job"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <X size={17} />
+                  {isRemoving ? (
+                    <Loader2
+                      size={17}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <X size={17} />
+                  )}
                 </button>
 
               </div>
@@ -301,7 +463,9 @@ const SavedApplication = () => {
                     size={13}
                     className="shrink-0 text-slate-400"
                   />
-                  {application.location}
+                  <span className="break-words">
+                    {application.location}
+                  </span>
                 </span>
 
                 <span className="flex items-center gap-1.5">
@@ -309,7 +473,9 @@ const SavedApplication = () => {
                     size={13}
                     className="shrink-0 text-slate-400"
                   />
-                  {application.experience}
+                  <span>
+                    {application.experience}
+                  </span>
                 </span>
 
                 <span className="flex items-center gap-1.5">
@@ -317,7 +483,9 @@ const SavedApplication = () => {
                     size={13}
                     className="shrink-0 text-slate-400"
                   />
-                  {application.salary}
+                  <span>
+                    {application.salary}
+                  </span>
                 </span>
 
               </div>
@@ -326,7 +494,7 @@ const SavedApplication = () => {
           </div>
 
           {/* =================================================
-              APPLICATION DETAILS
+              JOB DETAILS
           ================================================== */}
 
           <div className="mt-4 grid min-w-0 grid-cols-1 gap-2.5 sm:grid-cols-3">
@@ -361,6 +529,7 @@ const SavedApplication = () => {
                   size={13}
                   className="shrink-0 text-slate-400"
                 />
+
                 {application.appliedDate}
               </p>
             </div>
@@ -374,25 +543,41 @@ const SavedApplication = () => {
           <div className="mt-4 flex min-w-0 flex-col gap-2.5 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
 
             <p className="text-[10px] text-slate-400 sm:text-xs">
-              Application saved for later
+              Saved job
             </p>
 
             <div className="flex w-full min-w-0 gap-2 sm:w-auto">
 
               <button
                 type="button"
-                className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-600 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600 sm:flex-none sm:px-4"
+                onClick={() =>
+                  removeApplication(application.id)
+                }
+                disabled={isRemoving}
+                className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none sm:px-4"
               >
-                <BookmarkCheck
-                  size={15}
-                  className="shrink-0"
-                />
+                {isRemoving ? (
+                  <Loader2
+                    size={15}
+                    className="animate-spin"
+                  />
+                ) : (
+                  <BookmarkCheck
+                    size={15}
+                    className="shrink-0"
+                  />
+                )}
 
-                <span>Saved</span>
+                <span>
+                  {isRemoving ? "Removing..." : "Saved"}
+                </span>
               </button>
 
               <button
                 type="button"
+                onClick={() =>
+                  navigate(`/jobs/${application.id}`)
+                }
                 className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md sm:flex-none sm:px-4"
               >
                 <span>View Details</span>
@@ -410,6 +595,78 @@ const SavedApplication = () => {
       </article>
     );
   };
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (savedJobsLoading && savedJobs.length === 0) {
+    return (
+      <main className="min-h-screen w-full bg-slate-50">
+        <div className="flex min-h-[70vh] items-center justify-center px-4">
+
+          <div className="text-center">
+
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50">
+              <Loader2
+                size={28}
+                className="animate-spin text-blue-600"
+              />
+            </div>
+
+            <h2 className="mt-4 text-base font-bold text-slate-900">
+              Loading saved jobs...
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Please wait while we fetch your saved jobs.
+            </p>
+
+          </div>
+
+        </div>
+      </main>
+    );
+  }
+
+  // =========================================================
+  // ERROR
+  // =========================================================
+
+  if (savedJobsError && savedJobs.length === 0) {
+    return (
+      <main className="min-h-screen w-full bg-slate-50">
+        <div className="flex min-h-[70vh] items-center justify-center px-4">
+
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-7 text-center shadow-sm">
+
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-500">
+              <AlertCircle size={27} />
+            </div>
+
+            <h2 className="mt-4 text-lg font-bold text-slate-900">
+              Failed to load saved jobs
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              {savedJobsError}
+            </p>
+
+            <button
+              type="button"
+              onClick={() => dispatch(getSavedJobs())}
+              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-blue-700 sm:text-sm"
+            >
+              <RefreshCw size={15} />
+              Try Again
+            </button>
+
+          </div>
+
+        </div>
+      </main>
+    );
+  }
 
   // =========================================================
   // RETURN
@@ -431,6 +688,7 @@ const SavedApplication = () => {
             <div className="min-w-0">
 
               <div className="mb-2 flex items-center gap-2">
+
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                   <BookmarkCheck size={19} />
                 </div>
@@ -438,6 +696,7 @@ const SavedApplication = () => {
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-600">
                   My Applications
                 </span>
+
               </div>
 
               <h1 className="break-words text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">
@@ -461,13 +720,15 @@ const SavedApplication = () => {
               />
 
               <div>
+
                 <p className="text-lg font-black leading-none text-slate-900">
-                  {applications.length}
+                  {normalizedJobs.length}
                 </p>
 
                 <p className="mt-1 text-[10px] font-medium text-slate-400">
                   Saved Jobs
                 </p>
+
               </div>
 
             </div>
@@ -547,11 +808,13 @@ const SavedApplication = () => {
                           : "text-slate-600 hover:bg-slate-50"
                       }`}
                     >
+
                       <span>{status}</span>
 
                       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-500">
                         {getStatusCount(status)}
                       </span>
+
                     </button>
                   ))}
 
@@ -577,7 +840,7 @@ const SavedApplication = () => {
             </h2>
 
             <p className="mt-0.5 text-[11px] text-slate-500 sm:text-xs">
-              {filteredApplications.length} application
+              {filteredApplications.length} job
               {filteredApplications.length !== 1
                 ? "s"
                 : ""}{" "}
@@ -630,13 +893,13 @@ const SavedApplication = () => {
             </div>
 
             <h3 className="mt-5 text-lg font-bold text-slate-900">
-              No saved applications found
+              No saved jobs found
             </h3>
 
             <p className="mx-auto mt-2 max-w-md text-xs leading-5 text-slate-500 sm:text-sm">
               {search
-                ? "We couldn't find any saved applications matching your search."
-                : "You don't have any saved applications in this category yet."}
+                ? "We couldn't find any saved jobs matching your search."
+                : "You don't have any saved jobs yet."}
             </p>
 
             {(search ||

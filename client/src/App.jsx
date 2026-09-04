@@ -26,27 +26,33 @@ import UserLayout from "./components/UserLayout";
 // =====================================================
 
 import AdminLayout from "./admin/components/AdminLayout";
-import Users from "./admin/pages/Users";
+import CreateJob from "./admin/pages/CreateJob";
 import Jobcategories from "./admin/pages/Jobcategories";
 import AdminJobs from "./admin/pages/Jobs";
-import CreateJob from "./admin/pages/CreateJob";
-import { JobCategoryProvider } from "./admin/context/JobCategoryContext";
+import Users from "./admin/pages/Users";
+
 import { ApplicationProvider } from "./admin/context/ApplicationContext";
+import { JobCategoryProvider } from "./admin/context/JobCategoryContext";
 import { SubscriptionProvider } from "./admin/context/SubscriptionContext";
-import Applications from "./admin/pages/Applications";
+
 import ApplicationDetails from "./admin/pages/ApplicationDetails";
-import Subscriptions from "./admin/pages/Subscriptions";
-import SubscriptionForm from "./admin/pages/SubscriptionForm";
-import SubscriptionEdit from "./admin/pages/SubscriptionEdit";
+import Applications from "./admin/pages/Applications";
+
 import SubscriptionCreate from "./admin/pages/SubscriptionCreate";
+import SubscriptionEdit from "./admin/pages/SubscriptionEdit";
+import Subscriptions from "./admin/pages/Subscriptions";
+
 import AdminGallery from "./admin/pages/Gallery";
 import Settings from "./admin/pages/Settings";
+
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import AdminLogin from "./admin/pages/AdminLogin";
+import AdminProfile from "./admin/pages/AdminProfile";
 import AdminDashboard from "./admin/pages/Dashboard";
 import TestimonialManagement from "./admin/pages/TestimonialManagement";
-import { getProfile } from "./redux/slicer/authSlice";
-import AdminProfile from "./admin/pages/AdminProfile";
 import MySubscription from "./Pages/MySubscription";
+import { getProfile } from "./redux/slicer/authSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -61,13 +67,11 @@ function App() {
         <SubscriptionProvider>
           <Routes>
             {/* =====================================================
-          USER SIDE
-      ===================================================== */}
+                USER SIDE
+            ===================================================== */}
 
             <Route element={<UserLayout />}>
-              {/* =================================================
-            USER PUBLIC ROUTES
-        ================================================= */}
+              {/* PUBLIC USER ROUTES */}
 
               <Route path="/" element={<Home />} />
 
@@ -81,6 +85,8 @@ function App() {
 
               <Route path="/register" element={<Register />} />
 
+              {/* USER LOGIN */}
+
               <Route path="/login" element={<Login />} />
 
               <Route path="/jobs" element={<Jobs />} />
@@ -88,17 +94,17 @@ function App() {
               <Route path="/jobs/:id" element={<JobDetail />} />
 
               <Route path="/Carrier" element={<CarrierResources />} />
-              <Route path="/my-subscription" element={<MySubscription  />} />
+              <Route path="/my-subscription" element={<MySubscription />} />
 
               <Route path="/skills" element={<SkillDevelopment />} />
 
               <Route path="/purchases" element={<Purchases />} />
 
               {/* =================================================
-            USER PRIVATE ROUTES
-        ================================================= */}
+                  USER PRIVATE ROUTES
+              ================================================= */}
 
-              <Route element={<PrivateRoute />}>
+              <Route element={<PrivateRoute allowedRoles={["user"]} />}>
                 <Route path="/profile" element={<Profile />} />
 
                 <Route path="/applications" element={<MyApplication />} />
@@ -111,54 +117,73 @@ function App() {
             </Route>
 
             {/* =====================================================
-          ADMIN LOGIN
-          
-          IMPORTANT:
-          Admin login ke upar User Navbar/Footer nahi aayega.
-      ===================================================== */}
+                ADMIN LOGIN
+                Separate Admin Login
+            ===================================================== */}
 
             <Route path="/admin/login" element={<AdminLogin />} />
 
             {/* =====================================================
-          ADMIN PRIVATE ROUTES
-      ===================================================== */}
+                ADMIN PRIVATE ROUTES
+                Same PrivateRoute
+            ===================================================== */}
 
-            <Route element={<AdminPrivateRoute />}>
+            <Route element={<PrivateRoute allowedRoles={["admin"]} />}>
               <Route path="/admin" element={<AdminLayout />}>
-                {/* =================================================
-              /admin
-              ↓
-              Dashboard
-          ================================================= */}
+                {/* DASHBOARD */}
 
                 <Route index element={<AdminDashboard />} />
 
-                {/* =================================================
-              FUTURE ADMIN ROUTES
-          ================================================= */}
+                {/* USERS */}
+
                 <Route path="users" element={<Users />} />
+
+                {/* JOB CATEGORIES */}
+
                 <Route path="jobcategories" element={<Jobcategories />} />
+
+                {/* JOBS */}
+
                 <Route path="jobs" element={<AdminJobs />} />
+
                 <Route path="jobs/create" element={<CreateJob />} />
+
+                <Route
+                  path="/admin/reviews"
+                  element={<TestimonialManagement />}
+                />
+
+                {/* APPLICATIONS */}
+
                 <Route path="applications" element={<Applications />} />
+
                 <Route
                   path="applications/:applicationId"
                   element={<ApplicationDetails />}
                 />
+
+                {/* SUBSCRIPTIONS */}
+
                 <Route path="subscriptions" element={<Subscriptions />} />
-                <Route
-                  path="subscriptions/create"
-                  element={<SubscriptionForm />}
-                />
-                <Route
-                  path="subscriptions/edit/:id"
-                  element={<SubscriptionEdit />}
-                />
+
                 <Route
                   path="subscriptions/create"
                   element={<SubscriptionCreate />}
                 />
+
+                <Route
+                  path="subscriptions/edit/:id"
+                  element={<SubscriptionEdit />}
+                />
+
+                {/* GALLERY */}
+
                 <Route path="gallery" element={<AdminGallery />} />
+
+                <Route path="profile" element={<AdminProfile />} />
+
+                {/* SETTINGS */}
+
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>

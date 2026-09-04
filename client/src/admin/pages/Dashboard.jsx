@@ -1,5 +1,7 @@
 
-import React, { useEffect } from "react";
+// src/admin/pages/AdminDashboard.jsx
+
+import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Users,
@@ -8,7 +10,6 @@ import {
   CreditCard,
   ArrowUpRight,
   UserPlus,
-  Plus,
   Eye,
   CheckCircle2,
   XCircle,
@@ -20,7 +21,13 @@ import StatCard from "../components/StateCard";
 
 import { getAllUsersAdmin } from "../../redux/slicer/adminUserSlice";
 import { getAllJobsAdmin } from "../../redux/slicer/jobSlice";
-import { getAllSubscriptionsAdmin } from "../../redux/slicer/adminsubscriptionSlice";
+import {
+  getAllSubscriptionsAdmin,
+} from "../../redux/slicer/adminsubscriptionSlice";
+
+import {
+  getAllApplicationsAdmin,
+} from "../../redux/slicer/jobApplicationSlice";
 
 const AdminDashboard = () => {
   /* =========================================================
@@ -48,6 +55,17 @@ const AdminDashboard = () => {
     loading: subscriptionsLoading,
   } = useSelector((state) => state.subscription);
 
+  // ============================================================
+  // APPLICATION REDUX STATE
+  // ============================================================
+
+  const {
+    adminApplications = [],
+    adminApplicationsCount = 0,
+    loading: applicationsLoading = false,
+    error: applicationsError = null,
+  } = useSelector((state) => state.application || {});
+
   /* =========================================================
      FETCH DASHBOARD DATA
   ========================================================= */
@@ -56,6 +74,14 @@ const AdminDashboard = () => {
     dispatch(getAllUsersAdmin());
     dispatch(getAllJobsAdmin());
     dispatch(getAllSubscriptionsAdmin());
+
+    // Get all applications for admin dashboard
+    dispatch(
+      getAllApplicationsAdmin({
+        status: "",
+        job: "",
+      })
+    );
   }, [dispatch]);
 
   /* =========================================================
@@ -97,40 +123,100 @@ const AdminDashboard = () => {
     ).length || 0;
 
   /* =========================================================
+     APPLICATION DATA
+  ========================================================= */
+
+  const normalizedApplications = useMemo(() => {
+    return Array.isArray(adminApplications)
+      ? adminApplications
+      : [];
+  }, [adminApplications]);
+
+  /*
+   * Total applications
+   *
+   * Backend response:
+   * {
+   *   success: true,
+   *   count: 3,
+   *   data: [...]
+   * }
+   */
+
+  const totalApplicationsValue =
+    adminApplicationsCount ||
+    normalizedApplications.length ||
+    0;
+
+  /* =========================================================
+     APPLICATIONS TODAY
+  ========================================================= */
+
+  const applicationsToday = useMemo(() => {
+    const today = new Date();
+
+    return normalizedApplications.filter(
+      (application) => {
+        const applicationDate =
+          application?.appliedAt ||
+          application?.createdAt;
+
+        if (!applicationDate) {
+          return false;
+        }
+
+        const date = new Date(applicationDate);
+
+        if (Number.isNaN(date.getTime())) {
+          return false;
+        }
+
+        return (
+          date.getDate() === today.getDate() &&
+          date.getMonth() === today.getMonth() &&
+          date.getFullYear() === today.getFullYear()
+        );
+      }
+    ).length;
+  }, [normalizedApplications]);
+
+  /* =========================================================
      RECENT USERS
   ========================================================= */
 
-  const recentUsers = (users || []).slice(0, 5).map((user) => ({
-    name:
-      user?.name ||
-      user?.fullName ||
-      "Unknown User",
-
-    email:
-      user?.email ||
-      "No email",
-
-    role:
-      user?.role ||
-      user?.jobTitle ||
-      "User",
-
-    status:
-      user?.isActive === false
-        ? "Inactive"
-        : user?.isVerified === false
-          ? "Pending"
-          : "Active",
-
-    initial:
-      (
+  const recentUsers = (users || [])
+    .slice(0, 5)
+    .map((user) => ({
+      name:
         user?.name ||
         user?.fullName ||
-        "U"
-      )
-        .charAt(0)
-        .toUpperCase(),
-  }));
+        "Unknown User",
+
+      email:
+        user?.email ||
+        "No email",
+
+      role:
+        user?.role ||
+        user?.jobTitle ||
+        "User",
+
+      status:
+        user?.isActive === false
+          ? "Inactive"
+          : user?.isVerified === false
+            ? "Pending"
+            : "Active",
+
+      initial:
+        (
+          user?.name ||
+          user?.fullName ||
+          "U"
+        )
+          .charAt(0)
+          .toUpperCase(),
+    }));
 
   /* =========================================================
      FALLBACK RECENT USERS
@@ -140,14 +226,106 @@ const AdminDashboard = () => {
     recentUsers.length > 0
       ? recentUsers
       : [
-        {
-          name: "No users found",
-          email: "No registered users",
-          role: "—",
-          status: "Pending",
-          initial: "U",
-        },
-      ];
+          {
+            name: "No users found",
+            email: "No registered users",
+            role: "—",
+            status: "Pending",
+            initial: "U",
+          },
+        ];
+
+  /* =========================================================
+     FORMAT APPLICATION DATE
+  ========================================================= */
+
+  const formatApplicationDate = (dateString) => {
+    if (!dateString) {
+      return "N/A";
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return "N/A";
+    }
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  /* =========================================================
+     RECENT APPLICATIONS
+  ========================================================= */
+
+  const recentApplications = useMemo(() => {
+    return [...normalizedApplications]
+      .sort((a, b) => {
+        const dateA = new Date(
+          a?.appliedAt ||
+            a?.createdAt ||
+            0
+        );
+
+        const dateB = new Date(
+          b?.appliedAt ||
+            b?.createdAt ||
+            0
+        );
+
+        return dateB - dateA;
+      })
+      .slice(0, 5)
+      .map((application) => ({
+        id: application?._id,
+
+        name:
+          application?.applicant?.name ||
+          "Unknown Applicant",
+
+        job:
+          application?.job?.title ||
+          "Unknown Job",
+
+        company:
+          application?.job?.company ||
+          "Unknown Company",
+
+        status:
+          application?.status
+            ? application.status
+                .charAt(0)
+                .toUpperCase() +
+              application.status.slice(1)
+            : "Pending",
+
+        date: formatApplicationDate(
+          application?.appliedAt ||
+            application?.createdAt
+        ),
+      }));
+  }, [normalizedApplications]);
+
+  /* =========================================================
+     FALLBACK RECENT APPLICATIONS
+  ========================================================= */
+
+  const displayRecentApplications =
+    recentApplications.length > 0
+      ? recentApplications
+      : [
+          {
+            id: "no-applications",
+            name: "No applications found",
+            job: "—",
+            company: "—",
+            status: "Pending",
+            date: "—",
+          },
+        ];
 
   /* =========================================================
      STATS
@@ -156,7 +334,9 @@ const AdminDashboard = () => {
   const stats = [
     {
       title: "Total Users",
-      value: usersLoading ? "..." : totalUsersValue.toLocaleString(),
+      value: usersLoading
+        ? "..."
+        : totalUsersValue.toLocaleString(),
       description: "Registered users",
       icon: Users,
       iconClass: "bg-blue-50 text-blue-600",
@@ -165,7 +345,9 @@ const AdminDashboard = () => {
     },
     {
       title: "Total Jobs",
-      value: jobsLoading ? "..." : totalJobsValue.toLocaleString(),
+      value: jobsLoading
+        ? "..."
+        : totalJobsValue.toLocaleString(),
       description: "Jobs listed",
       icon: BriefcaseBusiness,
       iconClass: "bg-purple-50 text-purple-600",
@@ -174,7 +356,9 @@ const AdminDashboard = () => {
     },
     {
       title: "Applications",
-      value: "8,642",
+      value: applicationsLoading
+        ? "..."
+        : totalApplicationsValue.toLocaleString(),
       description: "Total applications",
       icon: FileText,
       iconClass: "bg-orange-50 text-orange-600",
@@ -193,60 +377,26 @@ const AdminDashboard = () => {
   ];
 
   /* =========================================================
-     RECENT APPLICATIONS
-     TEMPORARY DATA
-  ========================================================= */
-
-  const recentApplications = [
-    {
-      name: "Aman Kumar",
-      job: "React Developer",
-      company: "TechNova Solutions",
-      status: "Shortlisted",
-      date: "26 Aug 2026",
-    },
-    {
-      name: "Priya Sharma",
-      job: "UI/UX Designer",
-      company: "Creative Labs",
-      status: "Pending",
-      date: "26 Aug 2026",
-    },
-    {
-      name: "Rahul Singh",
-      job: "Node.js Developer",
-      company: "CodeWorks",
-      status: "Accepted",
-      date: "25 Aug 2026",
-    },
-    {
-      name: "Neha Gupta",
-      job: "Frontend Developer",
-      company: "WebSphere",
-      status: "Rejected",
-      date: "25 Aug 2026",
-    },
-  ];
-
-  /* =========================================================
      STATUS CLASS
   ========================================================= */
 
   const getStatusClass = (status) => {
-    switch (status) {
-      case "Active":
-      case "Accepted":
+    switch (
+      String(status || "").toLowerCase()
+    ) {
+      case "active":
+      case "accepted":
         return "bg-green-50 text-green-600";
 
-      case "Pending":
+      case "pending":
         return "bg-amber-50 text-amber-600";
 
-      case "Shortlisted":
+      case "shortlisted":
         return "bg-blue-50 text-blue-600";
 
-      case "Rejected":
-      case "Inactive":
-      case "Expired":
+      case "rejected":
+      case "inactive":
+      case "expired":
         return "bg-red-50 text-red-500";
 
       default:
@@ -254,11 +404,18 @@ const AdminDashboard = () => {
     }
   };
 
+  /* =========================================================
+     RETURN
+  ========================================================= */
+
   return (
     <div className="min-h-full bg-slate-50">
       <div className="mx-auto w-full max-w-[1600px] px-3 py-5 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
 
-        {/* PAGE HEADER */}
+        {/* =====================================================
+            PAGE HEADER
+        ====================================================== */}
+
         <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wider text-blue-600">
@@ -278,25 +435,21 @@ const AdminDashboard = () => {
             <button
               type="button"
               onClick={() => {
-                window.location.href = "http://localhost:5173/";
+                window.location.href =
+                  "http://localhost:5173/";
               }}
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-600"
             >
               <Eye size={16} />
               View Website
             </button>
-
-            {/* <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              <Plus size={17} />
-              Add New Job
-            </button> */}
           </div>
         </div>
 
-        {/* STATS */}
+        {/* =====================================================
+            STATS
+        ====================================================== */}
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((stat) => (
             <StatCard
@@ -306,10 +459,16 @@ const AdminDashboard = () => {
           ))}
         </div>
 
-        {/* MAIN GRID */}
+        {/* =====================================================
+            MAIN GRID
+        ====================================================== */}
+
         <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-3">
 
-          {/* APPLICATION OVERVIEW */}
+          {/* ===================================================
+              APPLICATION OVERVIEW
+          ==================================================== */}
+
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm xl:col-span-2">
             <div className="flex flex-col gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
               <div>
@@ -330,6 +489,7 @@ const AdminDashboard = () => {
             </div>
 
             {/* CHART */}
+
             <div className="p-5 sm:p-6">
               <div className="flex h-64 items-end gap-2 sm:gap-4">
                 {[45, 62, 52, 78, 64, 88, 72].map(
@@ -366,9 +526,11 @@ const AdminDashboard = () => {
               </div>
 
               {/* LEGEND */}
+
               <div className="mt-5 flex flex-wrap gap-4 border-t border-slate-100 pt-4">
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+
                   <span className="text-xs text-slate-500">
                     Applications
                   </span>
@@ -376,6 +538,7 @@ const AdminDashboard = () => {
 
                 <div className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
+
                   <span className="text-xs text-slate-500">
                     Successful
                   </span>
@@ -384,7 +547,10 @@ const AdminDashboard = () => {
             </div>
           </section>
 
-          {/* QUICK STATS */}
+          {/* ===================================================
+              QUICK STATS
+          ==================================================== */}
+
           <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <div>
               <h2 className="text-base font-bold text-slate-800">
@@ -398,6 +564,8 @@ const AdminDashboard = () => {
 
             <div className="mt-5 space-y-4">
 
+              {/* NEW USERS */}
+
               <div className="flex items-center gap-3 rounded-xl bg-blue-50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
                   <UserPlus size={18} />
@@ -409,7 +577,9 @@ const AdminDashboard = () => {
                   </p>
 
                   <p className="mt-0.5 text-lg font-black text-slate-800">
-                    {usersLoading ? "..." : totalUsersValue}
+                    {usersLoading
+                      ? "..."
+                      : totalUsersValue}
                   </p>
                 </div>
 
@@ -418,6 +588,8 @@ const AdminDashboard = () => {
                   className="text-green-500"
                 />
               </div>
+
+              {/* JOBS */}
 
               <div className="flex items-center gap-3 rounded-xl bg-purple-50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-purple-600 shadow-sm">
@@ -426,11 +598,13 @@ const AdminDashboard = () => {
 
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-500">
-                    Jobs Posted Today
+                    Jobs Posted 
                   </p>
 
                   <p className="mt-0.5 text-lg font-black text-slate-800">
-                    {jobsLoading ? "..." : totalJobsValue}
+                    {jobsLoading
+                      ? "..."
+                      : totalJobsValue}
                   </p>
                 </div>
 
@@ -439,6 +613,8 @@ const AdminDashboard = () => {
                   className="text-green-500"
                 />
               </div>
+
+              {/* APPLICATIONS TODAY */}
 
               <div className="flex items-center gap-3 rounded-xl bg-orange-50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-orange-600 shadow-sm">
@@ -451,7 +627,9 @@ const AdminDashboard = () => {
                   </p>
 
                   <p className="mt-0.5 text-lg font-black text-slate-800">
-                    284
+                    {applicationsLoading
+                      ? "..."
+                      : applicationsToday}
                   </p>
                 </div>
 
@@ -460,6 +638,8 @@ const AdminDashboard = () => {
                   className="text-green-500"
                 />
               </div>
+
+              {/* REVENUE */}
 
               <div className="flex items-center gap-3 rounded-xl bg-green-50 p-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-green-600 shadow-sm">
@@ -486,10 +666,16 @@ const AdminDashboard = () => {
           </section>
         </div>
 
-        {/* RECENT DATA */}
+        {/* =====================================================
+            RECENT DATA
+        ====================================================== */}
+
         <div className="mt-5 grid grid-cols-1 gap-5 xl:grid-cols-2">
 
-          {/* RECENT USERS */}
+          {/* ===================================================
+              RECENT USERS
+          ==================================================== */}
+
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6">
               <div>
@@ -511,44 +697,49 @@ const AdminDashboard = () => {
             </div>
 
             <div className="divide-y divide-slate-100">
-              {displayRecentUsers.map((user, index) => (
-                <div
-                  key={`${user.email}-${index}`}
-                  className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
-                    {user.initial}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-bold text-slate-700">
-                      {user.name}
-                    </p>
-
-                    <p className="truncate text-[10px] text-slate-400 sm:text-xs">
-                      {user.email}
-                    </p>
-                  </div>
-
-                  <div className="hidden min-w-0 flex-1 sm:block">
-                    <p className="truncate text-xs font-medium text-slate-600">
-                      {user.role}
-                    </p>
-                  </div>
-
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${getStatusClass(
-                      user.status
-                    )}`}
+              {displayRecentUsers.map(
+                (user, index) => (
+                  <div
+                    key={`${user.email}-${index}`}
+                    className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
                   >
-                    {user.status}
-                  </span>
-                </div>
-              ))}
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
+                      {user.initial}
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-slate-700">
+                        {user.name}
+                      </p>
+
+                      <p className="truncate text-[10px] text-slate-400 sm:text-xs">
+                        {user.email}
+                      </p>
+                    </div>
+
+                    <div className="hidden min-w-0 flex-1 sm:block">
+                      <p className="truncate text-xs font-medium text-slate-600">
+                        {user.role}
+                      </p>
+                    </div>
+
+                    <span
+                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${getStatusClass(
+                        user.status
+                      )}`}
+                    >
+                      {user.status}
+                    </span>
+                  </div>
+                )
+              )}
             </div>
           </section>
 
-          {/* RECENT APPLICATIONS */}
+          {/* ===================================================
+              RECENT APPLICATIONS
+          ==================================================== */}
+
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6">
               <div>
@@ -569,58 +760,100 @@ const AdminDashboard = () => {
               </button>
             </div>
 
-            <div className="divide-y divide-slate-100">
-              {recentApplications.map(
-                (application, index) => (
-                  <div
-                    key={`${application.name}-${index}`}
-                    className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-blue-600">
-                      <FileText size={17} />
-                    </div>
+            {/* APPLICATION ERROR */}
 
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-700">
-                        {application.name}
-                      </p>
+            {applicationsError &&
+            normalizedApplications.length === 0 ? (
+              <div className="p-6 text-center">
+                <p className="text-sm text-red-500">
+                  {applicationsError}
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
 
-                      <p className="truncate text-xs text-blue-600">
-                        {application.job}
-                      </p>
+                {applicationsLoading ? (
+                  [...Array(4)].map(
+                    (_, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 p-4 sm:px-6"
+                      >
+                        <div className="h-10 w-10 shrink-0 animate-pulse rounded-xl bg-slate-200" />
 
-                      <p className="mt-1 hidden items-center gap-1 text-[10px] text-slate-400 sm:flex">
-                        <span>{application.company}</span>
-                        <span>•</span>
-                        <span>{application.date}</span>
-                      </p>
-                    </div>
+                        <div className="min-w-0 flex-1 space-y-2">
+                          <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
 
-                    <span
-                      className={`hidden shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-flex ${getStatusClass(
-                        application.status
-                      )}`}
-                    >
-                      {application.status}
-                    </span>
+                          <div className="h-3 w-44 animate-pulse rounded bg-slate-100" />
+                        </div>
+                      </div>
+                    )
+                  )
+                ) : (
+                  displayRecentApplications.map(
+                    (application, index) => (
+                      <div
+                        key={`${application.id}-${index}`}
+                        className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
+                      >
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-blue-600">
+                          <FileText size={17} />
+                        </div>
 
-                    <button
-                      type="button"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                    >
-                      <MoreHorizontal size={17} />
-                    </button>
-                  </div>
-                )
-              )}
-            </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-slate-700">
+                            {application.name}
+                          </p>
+
+                          <p className="truncate text-xs text-blue-600">
+                            {application.job}
+                          </p>
+
+                          <p className="mt-1 hidden items-center gap-1 text-[10px] text-slate-400 sm:flex">
+                            <span className="truncate">
+                              {application.company}
+                            </span>
+
+                            <span>•</span>
+
+                            <span>
+                              {application.date}
+                            </span>
+                          </p>
+                        </div>
+
+                        <span
+                          className={`hidden shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-flex ${getStatusClass(
+                            application.status
+                          )}`}
+                        >
+                          {application.status}
+                        </span>
+
+                        <button
+                          type="button"
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                        >
+                          <MoreHorizontal size={17} />
+                        </button>
+                      </div>
+                    )
+                  )
+                )}
+
+              </div>
+            )}
           </section>
         </div>
 
-        {/* BOTTOM CARDS */}
+        {/* =====================================================
+            BOTTOM CARDS
+        ====================================================== */}
+
         <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2">
 
           {/* ACTIVE SUBSCRIPTIONS */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
@@ -648,6 +881,7 @@ const AdminDashboard = () => {
           </div>
 
           {/* EXPIRED */}
+
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500">

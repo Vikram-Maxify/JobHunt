@@ -1,6 +1,3 @@
-
-// src/admin/pages/AdminDashboard.jsx
-
 import React, { useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -21,13 +18,8 @@ import StatCard from "../components/StateCard";
 
 import { getAllUsersAdmin } from "../../redux/slicer/adminUserSlice";
 import { getAllJobsAdmin } from "../../redux/slicer/jobSlice";
-import {
-  getAllSubscriptionsAdmin,
-} from "../../redux/slicer/adminsubscriptionSlice";
-
-import {
-  getAllApplicationsAdmin,
-} from "../../redux/slicer/jobApplicationSlice";
+import { getAllSubscriptionsAdmin } from "../../redux/slicer/adminsubscriptionSlice";
+import { getAllApplicationsAdmin } from "../../redux/slicer/jobApplicationSlice";
 
 const AdminDashboard = () => {
   /* =========================================================
@@ -55,10 +47,6 @@ const AdminDashboard = () => {
     loading: subscriptionsLoading,
   } = useSelector((state) => state.subscription);
 
-  // ============================================================
-  // APPLICATION REDUX STATE
-  // ============================================================
-
   const {
     adminApplications = [],
     adminApplicationsCount = 0,
@@ -75,7 +63,6 @@ const AdminDashboard = () => {
     dispatch(getAllJobsAdmin());
     dispatch(getAllSubscriptionsAdmin());
 
-    // Get all applications for admin dashboard
     dispatch(
       getAllApplicationsAdmin({
         status: "",
@@ -85,30 +72,352 @@ const AdminDashboard = () => {
   }, [dispatch]);
 
   /* =========================================================
+     DATE HELPERS
+     
+     IMPORTANT:
+     createdAt  -> record creation time
+     updatedAt  -> ignored for recent/created calculations
+     ========================================================= */
+
+  const getDate = (dateString) => {
+    if (!dateString) {
+      return null;
+    }
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return null;
+    }
+
+    return date;
+  };
+
+  const isToday = (dateString) => {
+    const date = getDate(dateString);
+
+    if (!date) {
+      return false;
+    }
+
+    const today = new Date();
+
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  };
+
+  const isWithinLastDays = (dateString, days = 5) => {
+    const date = getDate(dateString);
+
+    if (!date) {
+      return false;
+    }
+
+    const now = new Date();
+
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - days);
+
+    return date >= startDate && date <= now;
+  };
+
+  const formatDate = (dateString) => {
+    const date = getDate(dateString);
+
+    if (!date) {
+      return "N/A";
+    }
+
+    return date.toLocaleDateString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  const getTimeAgo = (dateString) => {
+    const date = getDate(dateString);
+
+    if (!date) {
+      return "N/A";
+    }
+
+    const now = new Date();
+
+    const difference = now.getTime() - date.getTime();
+
+    const minutes = Math.floor(
+      difference / (1000 * 60)
+    );
+
+    const hours = Math.floor(
+      difference / (1000 * 60 * 60)
+    );
+
+    const days = Math.floor(
+      difference / (1000 * 60 * 60 * 24)
+    );
+
+    if (minutes < 1) {
+      return "Just now";
+    }
+
+    if (minutes < 60) {
+      return `${minutes} min ago`;
+    }
+
+    if (hours < 24) {
+      return `${hours} hr ago`;
+    }
+
+    if (days === 1) {
+      return "1 day ago";
+    }
+
+    return `${days} days ago`;
+  };
+
+  /* =========================================================
      USER DATA
   ========================================================= */
 
+  const normalizedUsers = useMemo(() => {
+    return Array.isArray(users) ? users : [];
+  }, [users]);
+
   const totalUsersValue =
-    totalUsers || userCount || users?.length || 0;
+    totalUsers ||
+    userCount ||
+    normalizedUsers.length ||
+    0;
+
+  /* =========================================================
+     NEW USERS TODAY
+     
+     ONLY:
+     - role === user
+     - createdAt === today
+     
+     IGNORE:
+     - updatedAt
+     - lastLogin
+  ========================================================= */
+
+  const newUsersToday = useMemo(() => {
+    return normalizedUsers.filter((user) => {
+      if (user?.role !== "user") {
+        return false;
+      }
+
+      return isToday(user?.createdAt);
+    }).length;
+  }, [normalizedUsers]);
+
+  /* =========================================================
+     RECENT USERS - LAST 5 DAYS
+     
+     ONLY:
+     - role === user
+     - createdAt last 5 days
+     - latest first
+     - maximum 5
+  ========================================================= */
+
+  const recentUsers = useMemo(() => {
+    return normalizedUsers
+      .filter((user) => {
+        if (user?.role !== "user") {
+          return false;
+        }
+
+        return isWithinLastDays(
+          user?.createdAt,
+          5
+        );
+      })
+      .sort((a, b) => {
+        return (
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+        );
+      })
+      .slice(0, 5)
+      .map((user) => ({
+        id: user?._id,
+
+        name:
+          user?.name ||
+          user?.fullName ||
+          "Unknown User",
+
+        email:
+          user?.email ||
+          "No email",
+
+        role:
+          user?.jobTitle ||
+          "User",
+
+        status:
+          user?.isActive === false
+            ? "Inactive"
+            : user?.isVerified === false
+              ? "Pending"
+              : "Active",
+
+        initial: (
+          user?.name ||
+          user?.fullName ||
+          "U"
+        )
+          .charAt(0)
+          .toUpperCase(),
+
+        createdAt: user?.createdAt,
+
+        registeredDate: formatDate(
+          user?.createdAt
+        ),
+
+        timeAgo: getTimeAgo(
+          user?.createdAt
+        ),
+      }));
+  }, [normalizedUsers]);
+
+  /* =========================================================
+     FALLBACK RECENT USERS
+  ========================================================= */
+
+  const displayRecentUsers =
+    recentUsers.length > 0
+      ? recentUsers
+      : [
+          {
+            id: "no-users",
+            name: "No recent users",
+            email:
+              "No users registered in the last 5 days",
+            role: "—",
+            status: "Pending",
+            initial: "U",
+            createdAt: null,
+            registeredDate: "—",
+            timeAgo: "—",
+          },
+        ];
 
   /* =========================================================
      JOB DATA
   ========================================================= */
 
+  const normalizedJobs = useMemo(() => {
+    return Array.isArray(adminJobs)
+      ? adminJobs
+      : [];
+  }, [adminJobs]);
+
   const totalJobsValue =
-    adminCount || adminJobs?.length || 0;
+    adminCount ||
+    normalizedJobs.length ||
+    0;
+
+  /* =========================================================
+     JOBS POSTED TODAY
+     
+     IMPORTANT:
+     createdAt only
+     updatedAt ignored
+  ========================================================= */
+
+  const jobsPostedToday = useMemo(() => {
+    return normalizedJobs.filter((job) => {
+      return isToday(job?.createdAt);
+    }).length;
+  }, [normalizedJobs]);
+
+  /* =========================================================
+     RECENT JOBS - LAST 5 DAYS
+     
+     createdAt based
+     latest first
+     maximum 5
+  ========================================================= */
+
+  const recentJobs = useMemo(() => {
+    return normalizedJobs
+      .filter((job) => {
+        return isWithinLastDays(
+          job?.createdAt,
+          5
+        );
+      })
+      .sort((a, b) => {
+        return (
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+        );
+      })
+      .slice(0, 5)
+      .map((job) => ({
+        id: job?._id,
+
+        title:
+          job?.title ||
+          "Untitled Job",
+
+        company:
+          job?.company ||
+          "Unknown Company",
+
+        location:
+          job?.location ||
+          "Location not specified",
+
+        jobType:
+          job?.jobType ||
+          "N/A",
+
+        status:
+          job?.status ||
+          "active",
+
+        createdAt:
+          job?.createdAt,
+
+        date:
+          formatDate(
+            job?.createdAt
+          ),
+
+        timeAgo:
+          getTimeAgo(
+            job?.createdAt
+          ),
+      }));
+  }, [normalizedJobs]);
 
   /* =========================================================
      SUBSCRIPTION DATA
   ========================================================= */
 
+  const normalizedSubscriptions =
+    useMemo(() => {
+      return Array.isArray(adminSubscriptions)
+        ? adminSubscriptions
+        : [];
+    }, [adminSubscriptions]);
+
   const totalSubscriptionsValue =
     adminSubscriptionsCount ||
-    adminSubscriptions?.length ||
+    normalizedSubscriptions.length ||
     0;
 
   const activeSubscriptions =
-    adminSubscriptions?.filter(
+    normalizedSubscriptions.filter(
       (subscription) =>
         subscription?.isActive === true ||
         subscription?.status === "active" ||
@@ -116,11 +425,34 @@ const AdminDashboard = () => {
     ).length || 0;
 
   const expiredSubscriptions =
-    adminSubscriptions?.filter(
+    normalizedSubscriptions.filter(
       (subscription) =>
         subscription?.status === "expired" ||
         subscription?.status === "Expired"
     ).length || 0;
+
+  /* =========================================================
+     RECENT SUBSCRIPTIONS - LAST 5 DAYS
+     
+     createdAt based
+  ========================================================= */
+
+  const recentSubscriptions = useMemo(() => {
+    return normalizedSubscriptions
+      .filter((subscription) => {
+        return isWithinLastDays(
+          subscription?.createdAt,
+          5
+        );
+      })
+      .sort((a, b) => {
+        return (
+          new Date(b.createdAt).getTime() -
+          new Date(a.createdAt).getTime()
+        );
+      })
+      .slice(0, 5);
+  }, [normalizedSubscriptions]);
 
   /* =========================================================
      APPLICATION DATA
@@ -132,17 +464,6 @@ const AdminDashboard = () => {
       : [];
   }, [adminApplications]);
 
-  /*
-   * Total applications
-   *
-   * Backend response:
-   * {
-   *   success: true,
-   *   count: 3,
-   *   data: [...]
-   * }
-   */
-
   const totalApplicationsValue =
     adminApplicationsCount ||
     normalizedApplications.length ||
@@ -150,103 +471,31 @@ const AdminDashboard = () => {
 
   /* =========================================================
      APPLICATIONS TODAY
+     
+     appliedAt first
+     createdAt fallback
   ========================================================= */
 
   const applicationsToday = useMemo(() => {
-    const today = new Date();
-
     return normalizedApplications.filter(
       (application) => {
         const applicationDate =
           application?.appliedAt ||
           application?.createdAt;
 
-        if (!applicationDate) {
-          return false;
-        }
-
-        const date = new Date(applicationDate);
-
-        if (Number.isNaN(date.getTime())) {
-          return false;
-        }
-
-        return (
-          date.getDate() === today.getDate() &&
-          date.getMonth() === today.getMonth() &&
-          date.getFullYear() === today.getFullYear()
-        );
+        return isToday(applicationDate);
       }
     ).length;
   }, [normalizedApplications]);
-
-  /* =========================================================
-     RECENT USERS
-  ========================================================= */
-
-  const recentUsers = (users || [])
-    .slice(0, 5)
-    .map((user) => ({
-      name:
-        user?.name ||
-        user?.fullName ||
-        "Unknown User",
-
-      email:
-        user?.email ||
-        "No email",
-
-      role:
-        user?.role ||
-        user?.jobTitle ||
-        "User",
-
-      status:
-        user?.isActive === false
-          ? "Inactive"
-          : user?.isVerified === false
-            ? "Pending"
-            : "Active",
-
-      initial:
-        (
-          user?.name ||
-          user?.fullName ||
-          "U"
-        )
-          .charAt(0)
-          .toUpperCase(),
-    }));
-
-  /* =========================================================
-     FALLBACK RECENT USERS
-  ========================================================= */
-
-  const displayRecentUsers =
-    recentUsers.length > 0
-      ? recentUsers
-      : [
-          {
-            name: "No users found",
-            email: "No registered users",
-            role: "—",
-            status: "Pending",
-            initial: "U",
-          },
-        ];
 
   /* =========================================================
      FORMAT APPLICATION DATE
   ========================================================= */
 
   const formatApplicationDate = (dateString) => {
-    if (!dateString) {
-      return "N/A";
-    }
+    const date = getDate(dateString);
 
-    const date = new Date(dateString);
-
-    if (Number.isNaN(date.getTime())) {
+    if (!date) {
       return "N/A";
     }
 
@@ -258,11 +507,26 @@ const AdminDashboard = () => {
   };
 
   /* =========================================================
-     RECENT APPLICATIONS
+     RECENT APPLICATIONS - LAST 5 DAYS
+     
+     appliedAt first
+     createdAt fallback
+     latest first
+     maximum 5
   ========================================================= */
 
   const recentApplications = useMemo(() => {
     return [...normalizedApplications]
+      .filter((application) => {
+        const applicationDate =
+          application?.appliedAt ||
+          application?.createdAt;
+
+        return isWithinLastDays(
+          applicationDate,
+          5
+        );
+      })
       .sort((a, b) => {
         const dateA = new Date(
           a?.appliedAt ||
@@ -306,6 +570,11 @@ const AdminDashboard = () => {
           application?.appliedAt ||
             application?.createdAt
         ),
+
+        timeAgo: getTimeAgo(
+          application?.appliedAt ||
+            application?.createdAt
+        ),
       }));
   }, [normalizedApplications]);
 
@@ -319,13 +588,59 @@ const AdminDashboard = () => {
       : [
           {
             id: "no-applications",
-            name: "No applications found",
+            name: "No recent applications",
             job: "—",
-            company: "—",
+            company: "No applications in last 5 days",
             status: "Pending",
             date: "—",
+            timeAgo: "—",
           },
         ];
+
+  /* =========================================================
+     APPLICATION CHART DATA - BASED ON ACTUAL DATA
+  ========================================================= */
+
+  const applicationChartData = useMemo(() => {
+    // Get the last 7 days
+    const days = [];
+    const now = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      days.push({
+        date: date,
+        label: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][date.getDay()],
+        count: 0,
+        // Generate realistic heights based on application data
+        // Using the actual distribution from the data
+        height: 0,
+      });
+    }
+
+    // Count applications per day from actual data
+    normalizedApplications.forEach((app) => {
+      const appDate = new Date(app.appliedAt || app.createdAt);
+      days.forEach((day) => {
+        if (
+          appDate.getFullYear() === day.date.getFullYear() &&
+          appDate.getMonth() === day.date.getMonth() &&
+          appDate.getDate() === day.date.getDate()
+        ) {
+          day.count += 1;
+        }
+      });
+    });
+
+    // Calculate heights based on actual counts (max height 85% for max count)
+    const maxCount = Math.max(...days.map(d => d.count), 1);
+    
+    return days.map((day) => ({
+      ...day,
+      height: Math.max(5, (day.count / maxCount) * 85),
+    }));
+  }, [normalizedApplications]);
 
   /* =========================================================
      STATS
@@ -339,10 +654,12 @@ const AdminDashboard = () => {
         : totalUsersValue.toLocaleString(),
       description: "Registered users",
       icon: Users,
-      iconClass: "bg-blue-50 text-blue-600",
+      iconClass:
+        "bg-blue-50 text-blue-600",
       trend: "+12.5%",
       trendPositive: true,
     },
+
     {
       title: "Total Jobs",
       value: jobsLoading
@@ -350,10 +667,12 @@ const AdminDashboard = () => {
         : totalJobsValue.toLocaleString(),
       description: "Jobs listed",
       icon: BriefcaseBusiness,
-      iconClass: "bg-purple-50 text-purple-600",
+      iconClass:
+        "bg-purple-50 text-purple-600",
       trend: "+8.2%",
       trendPositive: true,
     },
+
     {
       title: "Applications",
       value: applicationsLoading
@@ -361,16 +680,19 @@ const AdminDashboard = () => {
         : totalApplicationsValue.toLocaleString(),
       description: "Total applications",
       icon: FileText,
-      iconClass: "bg-orange-50 text-orange-600",
+      iconClass:
+        "bg-orange-50 text-orange-600",
       trend: "+15.4%",
       trendPositive: true,
     },
+
     {
       title: "Revenue",
       value: "₹4.82L",
       description: "This month's revenue",
       icon: CreditCard,
-      iconClass: "bg-green-50 text-green-600",
+      iconClass:
+        "bg-green-50 text-green-600",
       trend: "+10.8%",
       trendPositive: true,
     },
@@ -482,18 +804,26 @@ const AdminDashboard = () => {
               </div>
 
               <select className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 outline-none">
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
-                <option>Last 3 Months</option>
+                <option>
+                  Last 7 Days
+                </option>
+
+                <option>
+                  Last 30 Days
+                </option>
+
+                <option>
+                  Last 3 Months
+                </option>
               </select>
             </div>
 
-            {/* CHART */}
+            {/* CHART - Updated with actual data */}
 
             <div className="p-5 sm:p-6">
               <div className="flex h-64 items-end gap-2 sm:gap-4">
-                {[45, 62, 52, 78, 64, 88, 72].map(
-                  (height, index) => (
+                {applicationChartData.map(
+                  (day, index) => (
                     <div
                       key={index}
                       className="group flex h-full flex-1 flex-col items-center justify-end gap-2"
@@ -502,23 +832,18 @@ const AdminDashboard = () => {
                         <div
                           className="w-full max-w-10 rounded-t-lg bg-gradient-to-t from-blue-600 to-indigo-400 transition-all duration-300 group-hover:from-blue-700 group-hover:to-indigo-500"
                           style={{
-                            height: `${height}%`,
+                            height: `${day.height}%`,
                           }}
-                        />
+                        >
+                          {/* Tooltip on hover */}
+                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 scale-0 rounded bg-slate-800 px-2 py-1 text-xs text-white opacity-0 transition-all group-hover:scale-100 group-hover:opacity-100">
+                            {day.count} applications
+                          </div>
+                        </div>
                       </div>
 
                       <span className="text-[10px] font-medium text-slate-400">
-                        {
-                          [
-                            "Mon",
-                            "Tue",
-                            "Wed",
-                            "Thu",
-                            "Fri",
-                            "Sat",
-                            "Sun",
-                          ][index]
-                        }
+                        {day.label}
                       </span>
                     </div>
                   )
@@ -579,7 +904,7 @@ const AdminDashboard = () => {
                   <p className="mt-0.5 text-lg font-black text-slate-800">
                     {usersLoading
                       ? "..."
-                      : totalUsersValue}
+                      : newUsersToday}
                   </p>
                 </div>
 
@@ -598,13 +923,13 @@ const AdminDashboard = () => {
 
                 <div className="min-w-0 flex-1">
                   <p className="text-xs text-slate-500">
-                    Jobs Posted 
+                    Jobs Posted Today
                   </p>
 
                   <p className="mt-0.5 text-lg font-black text-slate-800">
                     {jobsLoading
                       ? "..."
-                      : totalJobsValue}
+                      : jobsPostedToday}
                   </p>
                 </div>
 
@@ -684,7 +1009,7 @@ const AdminDashboard = () => {
                 </h2>
 
                 <p className="mt-1 text-xs text-slate-400">
-                  Recently registered users
+                  Users registered in the last 5 days
                 </p>
               </div>
 
@@ -697,42 +1022,79 @@ const AdminDashboard = () => {
             </div>
 
             <div className="divide-y divide-slate-100">
-              {displayRecentUsers.map(
-                (user, index) => (
-                  <div
-                    key={`${user.email}-${index}`}
-                    className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
-                  >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
-                      {user.initial}
-                    </div>
 
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-slate-700">
-                        {user.name}
-                      </p>
-
-                      <p className="truncate text-[10px] text-slate-400 sm:text-xs">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    <div className="hidden min-w-0 flex-1 sm:block">
-                      <p className="truncate text-xs font-medium text-slate-600">
-                        {user.role}
-                      </p>
-                    </div>
-
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${getStatusClass(
-                        user.status
-                      )}`}
+              {usersLoading ? (
+                [...Array(5)].map(
+                  (_, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center gap-3 p-4 sm:px-6"
                     >
-                      {user.status}
-                    </span>
-                  </div>
+                      <div className="h-10 w-10 shrink-0 animate-pulse rounded-xl bg-slate-200" />
+
+                      <div className="min-w-0 flex-1 space-y-2">
+                        <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+
+                        <div className="h-3 w-44 animate-pulse rounded bg-slate-100" />
+                      </div>
+
+                      <div className="h-6 w-16 animate-pulse rounded-full bg-slate-100" />
+                    </div>
+                  )
+                )
+              ) : (
+                displayRecentUsers.map(
+                  (user, index) => (
+                    <div
+                      key={`${user.id || user.email}-${index}`}
+                      className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
+                    >
+                      {/* AVATAR */}
+
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-sm font-bold text-white">
+                        {user.initial}
+                      </div>
+
+                      {/* USER INFO */}
+
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-bold text-slate-700">
+                          {user.name}
+                        </p>
+
+                        <p className="truncate text-[10px] text-slate-400 sm:text-xs">
+                          {user.email}
+                        </p>
+                      </div>
+
+                      {/* ROLE */}
+
+                      <div className="hidden min-w-0 flex-1 sm:block">
+                        <p className="truncate text-xs font-medium text-slate-600">
+                          {user.role}
+                        </p>
+
+                        {user.createdAt && (
+                          <p className="mt-0.5 text-[10px] text-slate-400">
+                            {user.timeAgo}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* STATUS */}
+
+                      <span
+                        className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${getStatusClass(
+                          user.status
+                        )}`}
+                      >
+                        {user.status}
+                      </span>
+                    </div>
+                  )
                 )
               )}
+
             </div>
           </section>
 
@@ -741,14 +1103,16 @@ const AdminDashboard = () => {
           ==================================================== */}
 
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
             <div className="flex items-center justify-between border-b border-slate-100 p-5 sm:p-6">
+
               <div>
                 <h2 className="text-base font-bold text-slate-800">
                   Recent Applications
                 </h2>
 
                 <p className="mt-1 text-xs text-slate-400">
-                  Latest job applications
+                  Applications received in the last 5 days
                 </p>
               </div>
 
@@ -773,7 +1137,7 @@ const AdminDashboard = () => {
               <div className="divide-y divide-slate-100">
 
                 {applicationsLoading ? (
-                  [...Array(4)].map(
+                  [...Array(5)].map(
                     (_, index) => (
                       <div
                         key={index}
@@ -796,11 +1160,17 @@ const AdminDashboard = () => {
                         key={`${application.id}-${index}`}
                         className="flex items-center gap-3 p-4 transition hover:bg-slate-50 sm:px-6"
                       >
+
+                        {/* ICON */}
+
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-blue-600">
                           <FileText size={17} />
                         </div>
 
+                        {/* APPLICATION INFO */}
+
                         <div className="min-w-0 flex-1">
+
                           <p className="truncate text-sm font-bold text-slate-700">
                             {application.name}
                           </p>
@@ -810,17 +1180,38 @@ const AdminDashboard = () => {
                           </p>
 
                           <p className="mt-1 hidden items-center gap-1 text-[10px] text-slate-400 sm:flex">
+
                             <span className="truncate">
                               {application.company}
                             </span>
 
-                            <span>•</span>
+                            <span>
+                              •
+                            </span>
 
                             <span>
                               {application.date}
                             </span>
+
+                            {application.timeAgo !==
+                              "N/A" &&
+                              application.timeAgo !==
+                                "—" && (
+                                <>
+                                  <span>
+                                    •
+                                  </span>
+
+                                  <span>
+                                    {application.timeAgo}
+                                  </span>
+                                </>
+                              )}
+
                           </p>
                         </div>
+
+                        {/* STATUS */}
 
                         <span
                           className={`hidden shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold sm:inline-flex ${getStatusClass(
@@ -830,12 +1221,15 @@ const AdminDashboard = () => {
                           {application.status}
                         </span>
 
+                        {/* MENU */}
+
                         <button
                           type="button"
                           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600"
                         >
                           <MoreHorizontal size={17} />
                         </button>
+
                       </div>
                     )
                   )
@@ -843,6 +1237,7 @@ const AdminDashboard = () => {
 
               </div>
             )}
+
           </section>
         </div>
 
@@ -855,7 +1250,9 @@ const AdminDashboard = () => {
           {/* ACTIVE SUBSCRIPTIONS */}
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+
             <div className="flex items-center justify-between">
+
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
                 <CheckCircle2 size={19} />
               </div>
@@ -863,6 +1260,7 @@ const AdminDashboard = () => {
               <span className="rounded-full bg-green-50 px-2 py-1 text-[10px] font-bold text-green-600">
                 Active
               </span>
+
             </div>
 
             <p className="mt-4 text-xs text-slate-400">
@@ -878,12 +1276,15 @@ const AdminDashboard = () => {
             <p className="mt-1 text-xs text-slate-400">
               Currently active plans
             </p>
+
           </div>
 
           {/* EXPIRED */}
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+
             <div className="flex items-center justify-between">
+
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-500">
                 <XCircle size={19} />
               </div>
@@ -891,6 +1292,7 @@ const AdminDashboard = () => {
               <span className="rounded-full bg-red-50 px-2 py-1 text-[10px] font-bold text-red-500">
                 Expired
               </span>
+
             </div>
 
             <p className="mt-4 text-xs text-slate-400">
@@ -906,13 +1308,14 @@ const AdminDashboard = () => {
             <p className="mt-1 text-xs text-slate-400">
               Need renewal
             </p>
+
           </div>
 
         </div>
+
       </div>
     </div>
   );
 };
 
 export default AdminDashboard;
-

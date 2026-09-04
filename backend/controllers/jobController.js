@@ -1,9 +1,8 @@
 const Job = require("../models/Job");
 const Category = require("../models/Category");
-const {
-  uploadToImgBB,
-  deleteFromImgBB,
-} = require("../utils/imgbb");
+const JobApplication = require("../models/JobApplication");
+const SavedJob = require("../models/SavedJob");
+const { uploadToImgBB, deleteFromImgBB } = require("../utils/imgbb");
 
 // ============================================================
 // HELPERS
@@ -28,9 +27,7 @@ const parseArray = (value, fieldName) => {
 
       return parsed;
     } catch (error) {
-      throw new Error(
-        "Invalid " + fieldName + " format. Expected JSON array."
-      );
+      throw new Error("Invalid " + fieldName + " format. Expected JSON array.");
     }
   }
 
@@ -160,23 +157,14 @@ exports.createJob = async (req, res) => {
 
     const parsedResponsibilities = parseArray(
       responsibilities,
-      "responsibilities"
+      "responsibilities",
     );
 
-    const parsedRequirements = parseArray(
-      requirements,
-      "requirements"
-    );
+    const parsedRequirements = parseArray(requirements, "requirements");
 
-    const parsedSkills = parseArray(
-      skills,
-      "skills"
-    );
+    const parsedSkills = parseArray(skills, "skills");
 
-    const parsedTags = parseArray(
-      tags,
-      "tags"
-    );
+    const parsedTags = parseArray(tags, "tags");
 
     // --------------------------------------------------------
     // ARRAY VALIDATION
@@ -216,7 +204,7 @@ exports.createJob = async (req, res) => {
           req.file.originalname,
           {
             name: "company-logo-" + company,
-          }
+          },
         );
 
         companyLogo = uploadResult.data;
@@ -280,8 +268,7 @@ exports.createJob = async (req, res) => {
     // INCREMENT CATEGORY JOB COUNT
     // --------------------------------------------------------
 
-    categoryDoc.jobCount =
-      (categoryDoc.jobCount || 0) + 1;
+    categoryDoc.jobCount = (categoryDoc.jobCount || 0) + 1;
 
     await categoryDoc.save();
 
@@ -312,13 +299,7 @@ exports.createJob = async (req, res) => {
 // @route   GET /api/admin/jobs
 exports.getAllJobsAdmin = async (req, res) => {
   try {
-    const {
-      status,
-      category,
-      categoryId,
-      search,
-      sort,
-    } = req.query;
+    const { status, category, categoryId, search, sort } = req.query;
 
     const filter = {};
 
@@ -379,9 +360,7 @@ exports.getAllJobsAdmin = async (req, res) => {
         },
         {
           skills: {
-            $in: [
-              new RegExp(search, "i"),
-            ],
+            $in: [new RegExp(search, "i")],
           },
         },
       ];
@@ -418,14 +397,8 @@ exports.getAllJobsAdmin = async (req, res) => {
     // --------------------------------------------------------
 
     const jobs = await Job.find(filter)
-      .populate(
-        "categoryId",
-        "name slug"
-      )
-      .populate(
-        "postedBy",
-        "name email"
-      )
+      .populate("categoryId", "name slug")
+      .populate("postedBy", "name email")
       .sort(sortOption);
 
     return res.status(200).json({
@@ -438,8 +411,7 @@ exports.getAllJobsAdmin = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message || "Failed to fetch jobs",
+      message: error.message || "Failed to fetch jobs",
     });
   }
 };
@@ -460,14 +432,8 @@ exports.getJobByIdAdmin = async (req, res) => {
     }
 
     const job = await Job.findById(req.params.id)
-      .populate(
-        "categoryId",
-        "name slug shortDescription image"
-      )
-      .populate(
-        "postedBy",
-        "name email mobile"
-      );
+      .populate("categoryId", "name slug shortDescription image")
+      .populate("postedBy", "name email mobile");
 
     if (!job) {
       return res.status(404).json({
@@ -485,8 +451,7 @@ exports.getJobByIdAdmin = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message || "Failed to fetch job",
+      message: error.message || "Failed to fetch job",
     });
   }
 };
@@ -550,8 +515,7 @@ exports.updateJob = async (req, res) => {
     // CATEGORY UPDATE
     // --------------------------------------------------------
 
-    const selectedCategoryId =
-      category;
+    const selectedCategoryId = category;
 
     if (selectedCategoryId) {
       if (!isValidObjectId(selectedCategoryId)) {
@@ -561,19 +525,10 @@ exports.updateJob = async (req, res) => {
         });
       }
 
-      const oldCategoryId =
-        job.categoryId
-          ? job.categoryId.toString()
-          : null;
+      const oldCategoryId = job.categoryId ? job.categoryId.toString() : null;
 
-      if (
-        !oldCategoryId ||
-        selectedCategoryId !== oldCategoryId
-      ) {
-        const newCategory =
-          await Category.findById(
-            selectedCategoryId
-          );
+      if (!oldCategoryId || selectedCategoryId !== oldCategoryId) {
+        const newCategory = await Category.findById(selectedCategoryId);
 
         if (!newCategory) {
           return res.status(400).json({
@@ -584,33 +539,23 @@ exports.updateJob = async (req, res) => {
 
         // Decrease old category count
         if (job.categoryId) {
-          const oldCategory =
-            await Category.findById(
-              job.categoryId
-            );
+          const oldCategory = await Category.findById(job.categoryId);
 
           if (oldCategory) {
-            oldCategory.jobCount =
-              Math.max(
-                0,
-                (oldCategory.jobCount || 0) - 1
-              );
+            oldCategory.jobCount = Math.max(0, (oldCategory.jobCount || 0) - 1);
 
             await oldCategory.save();
           }
         }
 
         // Increase new category count
-        newCategory.jobCount =
-          (newCategory.jobCount || 0) + 1;
+        newCategory.jobCount = (newCategory.jobCount || 0) + 1;
 
         await newCategory.save();
 
-        job.categoryId =
-          newCategory._id;
+        job.categoryId = newCategory._id;
 
-        job.categoryName =
-          newCategory.name;
+        job.categoryName = newCategory.name;
       }
     }
 
@@ -651,18 +596,15 @@ exports.updateJob = async (req, res) => {
     }
 
     if (companyWebsite !== undefined) {
-      job.companyWebsite =
-        companyWebsite;
+      job.companyWebsite = companyWebsite;
     }
 
     if (companyEmail !== undefined) {
-      job.companyEmail =
-        companyEmail;
+      job.companyEmail = companyEmail;
     }
 
     if (applicationDeadline !== undefined) {
-      job.applicationDeadline =
-        applicationDeadline || null;
+      job.applicationDeadline = applicationDeadline || null;
     }
 
     // --------------------------------------------------------
@@ -670,13 +612,11 @@ exports.updateJob = async (req, res) => {
     // --------------------------------------------------------
 
     if (isFeatured !== undefined) {
-      job.isFeatured =
-        parseBoolean(isFeatured, false);
+      job.isFeatured = parseBoolean(isFeatured, false);
     }
 
     if (isUrgent !== undefined) {
-      job.isUrgent =
-        parseBoolean(isUrgent, false);
+      job.isUrgent = parseBoolean(isUrgent, false);
     }
 
     // --------------------------------------------------------
@@ -684,24 +624,19 @@ exports.updateJob = async (req, res) => {
     // --------------------------------------------------------
 
     if (responsibilities !== undefined) {
-      const parsedResponsibilities =
-        parseArray(
-          responsibilities,
-          "responsibilities"
-        );
+      const parsedResponsibilities = parseArray(
+        responsibilities,
+        "responsibilities",
+      );
 
-      if (
-        parsedResponsibilities.length === 0
-      ) {
+      if (parsedResponsibilities.length === 0) {
         return res.status(400).json({
           success: false,
-          message:
-            "At least one responsibility is required",
+          message: "At least one responsibility is required",
         });
       }
 
-      job.responsibilities =
-        parsedResponsibilities;
+      job.responsibilities = parsedResponsibilities;
     }
 
     // --------------------------------------------------------
@@ -709,24 +644,16 @@ exports.updateJob = async (req, res) => {
     // --------------------------------------------------------
 
     if (requirements !== undefined) {
-      const parsedRequirements =
-        parseArray(
-          requirements,
-          "requirements"
-        );
+      const parsedRequirements = parseArray(requirements, "requirements");
 
-      if (
-        parsedRequirements.length === 0
-      ) {
+      if (parsedRequirements.length === 0) {
         return res.status(400).json({
           success: false,
-          message:
-            "At least one requirement is required",
+          message: "At least one requirement is required",
         });
       }
 
-      job.requirements =
-        parsedRequirements;
+      job.requirements = parsedRequirements;
     }
 
     // --------------------------------------------------------
@@ -734,24 +661,16 @@ exports.updateJob = async (req, res) => {
     // --------------------------------------------------------
 
     if (skills !== undefined) {
-      const parsedSkills =
-        parseArray(
-          skills,
-          "skills"
-        );
+      const parsedSkills = parseArray(skills, "skills");
 
-      if (
-        parsedSkills.length === 0
-      ) {
+      if (parsedSkills.length === 0) {
         return res.status(400).json({
           success: false,
-          message:
-            "At least one skill is required",
+          message: "At least one skill is required",
         });
       }
 
-      job.skills =
-        parsedSkills;
+      job.skills = parsedSkills;
     }
 
     // --------------------------------------------------------
@@ -759,8 +678,7 @@ exports.updateJob = async (req, res) => {
     // --------------------------------------------------------
 
     if (tags !== undefined) {
-      job.tags =
-        parseArray(tags, "tags");
+      job.tags = parseArray(tags, "tags");
     }
 
     // --------------------------------------------------------
@@ -769,35 +687,23 @@ exports.updateJob = async (req, res) => {
 
     if (req.file) {
       // Delete old logo
-      if (
-        job.companyLogo &&
-        job.companyLogo.deleteUrl
-      ) {
+      if (job.companyLogo && job.companyLogo.deleteUrl) {
         try {
-          await deleteFromImgBB(
-            job.companyLogo.deleteUrl
-          );
+          await deleteFromImgBB(job.companyLogo.deleteUrl);
         } catch (deleteError) {
-          console.error(
-            "Old logo delete error:",
-            deleteError
-          );
+          console.error("Old logo delete error:", deleteError);
         }
       }
 
-      const uploadResult =
-        await uploadToImgBB(
-          req.file.buffer,
-          req.file.originalname,
-          {
-            name:
-              "company-logo-" +
-              (company || job.company),
-          }
-        );
+      const uploadResult = await uploadToImgBB(
+        req.file.buffer,
+        req.file.originalname,
+        {
+          name: "company-logo-" + (company || job.company),
+        },
+      );
 
-      job.companyLogo =
-        uploadResult.data;
+      job.companyLogo = uploadResult.data;
     }
 
     // --------------------------------------------------------
@@ -816,8 +722,7 @@ exports.updateJob = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message || "Failed to update job",
+      message: error.message || "Failed to update job",
     });
   }
 };
@@ -837,9 +742,7 @@ exports.deleteJob = async (req, res) => {
       });
     }
 
-    const job = await Job.findById(
-      req.params.id
-    );
+    const job = await Job.findById(req.params.id);
 
     if (!job) {
       return res.status(404).json({
@@ -852,19 +755,11 @@ exports.deleteJob = async (req, res) => {
     // DELETE COMPANY LOGO
     // --------------------------------------------------------
 
-    if (
-      job.companyLogo &&
-      job.companyLogo.deleteUrl
-    ) {
+    if (job.companyLogo && job.companyLogo.deleteUrl) {
       try {
-        await deleteFromImgBB(
-          job.companyLogo.deleteUrl
-        );
+        await deleteFromImgBB(job.companyLogo.deleteUrl);
       } catch (deleteError) {
-        console.error(
-          "Logo delete error:",
-          deleteError
-        );
+        console.error("Logo delete error:", deleteError);
       }
     }
 
@@ -873,17 +768,10 @@ exports.deleteJob = async (req, res) => {
     // --------------------------------------------------------
 
     if (job.categoryId) {
-      const category =
-        await Category.findById(
-          job.categoryId
-        );
+      const category = await Category.findById(job.categoryId);
 
       if (category) {
-        category.jobCount =
-          Math.max(
-            0,
-            (category.jobCount || 0) - 1
-          );
+        category.jobCount = Math.max(0, (category.jobCount || 0) - 1);
 
         await category.save();
       }
@@ -904,8 +792,7 @@ exports.deleteJob = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message || "Failed to delete job",
+      message: error.message || "Failed to delete job",
     });
   }
 };
@@ -920,27 +807,16 @@ exports.toggleJobStatus = async (req, res) => {
   try {
     const { status } = req.body;
 
-    const allowedStatuses = [
-      "active",
-      "draft",
-      "closed",
-      "pending",
-    ];
+    const allowedStatuses = ["active", "draft", "closed", "pending"];
 
-    if (
-      !status ||
-      !allowedStatuses.includes(status)
-    ) {
+    if (!status || !allowedStatuses.includes(status)) {
       return res.status(400).json({
         success: false,
-        message:
-          "Invalid status. Must be: active, draft, closed, or pending",
+        message: "Invalid status. Must be: active, draft, closed, or pending",
       });
     }
 
-    const job = await Job.findById(
-      req.params.id
-    );
+    const job = await Job.findById(req.params.id);
 
     if (!job) {
       return res.status(404).json({
@@ -955,22 +831,15 @@ exports.toggleJobStatus = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message:
-        "Job status updated to " +
-        status,
+      message: "Job status updated to " + status,
       data: job,
     });
   } catch (error) {
-    console.error(
-      "Toggle job status error:",
-      error
-    );
+    console.error("Toggle job status error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to update job status",
+      message: error.message || "Failed to update job status",
     });
   }
 };
@@ -983,9 +852,7 @@ exports.toggleJobStatus = async (req, res) => {
 // @route   PATCH /api/admin/jobs/:id/toggle-featured
 exports.toggleFeatured = async (req, res) => {
   try {
-    const job = await Job.findById(
-      req.params.id
-    );
+    const job = await Job.findById(req.params.id);
 
     if (!job) {
       return res.status(404).json({
@@ -994,32 +861,22 @@ exports.toggleFeatured = async (req, res) => {
       });
     }
 
-    job.isFeatured =
-      !job.isFeatured;
+    job.isFeatured = !job.isFeatured;
 
     await job.save();
 
     return res.status(200).json({
       success: true,
       message:
-        "Job " +
-        (job.isFeatured
-          ? "featured"
-          : "unfeatured") +
-        " successfully",
+        "Job " + (job.isFeatured ? "featured" : "unfeatured") + " successfully",
       data: job,
     });
   } catch (error) {
-    console.error(
-      "Toggle featured error:",
-      error
-    );
+    console.error("Toggle featured error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to toggle featured status",
+      message: error.message || "Failed to toggle featured status",
     });
   }
 };
@@ -1032,9 +889,7 @@ exports.toggleFeatured = async (req, res) => {
 // @route   PATCH /api/admin/jobs/:id/toggle-urgent
 exports.toggleUrgent = async (req, res) => {
   try {
-    const job = await Job.findById(
-      req.params.id
-    );
+    const job = await Job.findById(req.params.id);
 
     if (!job) {
       return res.status(404).json({
@@ -1043,8 +898,7 @@ exports.toggleUrgent = async (req, res) => {
       });
     }
 
-    job.isUrgent =
-      !job.isUrgent;
+    job.isUrgent = !job.isUrgent;
 
     await job.save();
 
@@ -1052,23 +906,16 @@ exports.toggleUrgent = async (req, res) => {
       success: true,
       message:
         "Job " +
-        (job.isUrgent
-          ? "marked as urgent"
-          : "unmarked as urgent") +
+        (job.isUrgent ? "marked as urgent" : "unmarked as urgent") +
         " successfully",
       data: job,
     });
   } catch (error) {
-    console.error(
-      "Toggle urgent error:",
-      error
-    );
+    console.error("Toggle urgent error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to toggle urgent status",
+      message: error.message || "Failed to toggle urgent status",
     });
   }
 };
@@ -1100,8 +947,7 @@ exports.getAllJobsUser = async (req, res) => {
     // CATEGORY
     // --------------------------------------------------------
 
-    const selectedCategoryId =
-      categoryId || category;
+    const selectedCategoryId = categoryId || category;
 
     if (selectedCategoryId) {
       if (!isValidObjectId(selectedCategoryId)) {
@@ -1111,8 +957,7 @@ exports.getAllJobsUser = async (req, res) => {
         });
       }
 
-      filter.categoryId =
-        selectedCategoryId;
+      filter.categoryId = selectedCategoryId;
     }
 
     // --------------------------------------------------------
@@ -1163,9 +1008,7 @@ exports.getAllJobsUser = async (req, res) => {
         },
         {
           skills: {
-            $in: [
-              new RegExp(search, "i"),
-            ],
+            $in: [new RegExp(search, "i")],
           },
         },
       ];
@@ -1202,62 +1045,39 @@ exports.getAllJobsUser = async (req, res) => {
     // PAGINATION
     // --------------------------------------------------------
 
-    const pageNumber = Math.max(
-      1,
-      parseInt(page) || 1
-    );
+    const pageNumber = Math.max(1, parseInt(page) || 1);
 
-    const limitNumber = Math.max(
-      1,
-      parseInt(limit) || 10
-    );
+    const limitNumber = Math.max(1, parseInt(limit) || 10);
 
-    const skip =
-      (pageNumber - 1) *
-      limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
 
     // --------------------------------------------------------
     // GET JOBS
     // --------------------------------------------------------
 
     const jobs = await Job.find(filter)
-      .populate(
-        "categoryId",
-        "name slug"
-      )
+      .populate("categoryId", "name slug")
       .sort(sortOption)
       .skip(skip)
       .limit(limitNumber)
-      .select(
-        "-postedBy -postedByName"
-      );
+      .select("-postedBy -postedByName");
 
-    const total =
-      await Job.countDocuments(
-        filter
-      );
+    const total = await Job.countDocuments(filter);
 
     return res.status(200).json({
       success: true,
       count: jobs.length,
       total,
       page: pageNumber,
-      totalPages: Math.ceil(
-        total / limitNumber
-      ),
+      totalPages: Math.ceil(total / limitNumber),
       data: jobs,
     });
   } catch (error) {
-    console.error(
-      "Get all jobs user error:",
-      error
-    );
+    console.error("Get all jobs user error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to fetch jobs",
+      message: error.message || "Failed to fetch jobs",
     });
   }
 };
@@ -1280,10 +1100,7 @@ exports.getJobByIdUser = async (req, res) => {
     const job = await Job.findOne({
       _id: req.params.id,
       status: "active",
-    }).populate(
-      "categoryId",
-      "name slug shortDescription image"
-    );
+    }).populate("categoryId", "name slug shortDescription image");
 
     if (!job) {
       return res.status(404).json({
@@ -1293,8 +1110,7 @@ exports.getJobByIdUser = async (req, res) => {
     }
 
     // Increment views
-    job.views =
-      (job.views || 0) + 1;
+    job.views = (job.views || 0) + 1;
 
     await job.save();
 
@@ -1303,16 +1119,11 @@ exports.getJobByIdUser = async (req, res) => {
       data: job,
     });
   } catch (error) {
-    console.error(
-      "Get job user error:",
-      error
-    );
+    console.error("Get job user error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to fetch job",
+      message: error.message || "Failed to fetch job",
     });
   }
 };
@@ -1323,23 +1134,16 @@ exports.getJobByIdUser = async (req, res) => {
 
 // @desc    Get jobs by category slug
 // @route   GET /api/jobs/category/:slug
-exports.getJobsByCategory = async (
-  req,
-  res
-) => {
+exports.getJobsByCategory = async (req, res) => {
   try {
     const { slug } = req.params;
 
-    const {
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { page = 1, limit = 10 } = req.query;
 
-    const category =
-      await Category.findOne({
-        slug,
-        isActive: true,
-      });
+    const category = await Category.findOne({
+      slug,
+      isActive: true,
+    });
 
     if (!category) {
       return res.status(404).json({
@@ -1348,28 +1152,17 @@ exports.getJobsByCategory = async (
       });
     }
 
-    const pageNumber = Math.max(
-      1,
-      parseInt(page) || 1
-    );
+    const pageNumber = Math.max(1, parseInt(page) || 1);
 
-    const limitNumber = Math.max(
-      1,
-      parseInt(limit) || 10
-    );
+    const limitNumber = Math.max(1, parseInt(limit) || 10);
 
-    const skip =
-      (pageNumber - 1) *
-      limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
 
     const jobs = await Job.find({
       categoryId: category._id,
       status: "active",
     })
-      .populate(
-        "categoryId",
-        "name slug"
-      )
+      .populate("categoryId", "name slug")
       .sort({
         isUrgent: -1,
         createdAt: -1,
@@ -1377,11 +1170,10 @@ exports.getJobsByCategory = async (
       .skip(skip)
       .limit(limitNumber);
 
-    const total =
-      await Job.countDocuments({
-        categoryId: category._id,
-        status: "active",
-      });
+    const total = await Job.countDocuments({
+      categoryId: category._id,
+      status: "active",
+    });
 
     return res.status(200).json({
       success: true,
@@ -1389,22 +1181,15 @@ exports.getJobsByCategory = async (
       count: jobs.length,
       total,
       page: pageNumber,
-      totalPages: Math.ceil(
-        total / limitNumber
-      ),
+      totalPages: Math.ceil(total / limitNumber),
       data: jobs,
     });
   } catch (error) {
-    console.error(
-      "Get jobs by category error:",
-      error
-    );
+    console.error("Get jobs by category error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to fetch jobs",
+      message: error.message || "Failed to fetch jobs",
     });
   }
 };
@@ -1415,36 +1200,23 @@ exports.getJobsByCategory = async (
 
 // @desc    Get featured jobs
 // @route   GET /api/jobs/featured
-exports.getFeaturedJobs = async (
-  req,
-  res
-) => {
+exports.getFeaturedJobs = async (req, res) => {
   try {
-    const {
-      limit = 6,
-    } = req.query;
+    const { limit = 6 } = req.query;
 
-    const limitNumber = Math.max(
-      1,
-      parseInt(limit) || 6
-    );
+    const limitNumber = Math.max(1, parseInt(limit) || 6);
 
     const jobs = await Job.find({
       status: "active",
       isFeatured: true,
     })
-      .populate(
-        "categoryId",
-        "name slug"
-      )
+      .populate("categoryId", "name slug")
       .sort({
         isUrgent: -1,
         createdAt: -1,
       })
       .limit(limitNumber)
-      .select(
-        "-postedBy -postedByName"
-      );
+      .select("-postedBy -postedByName");
 
     return res.status(200).json({
       success: true,
@@ -1452,16 +1224,11 @@ exports.getFeaturedJobs = async (
       data: jobs,
     });
   } catch (error) {
-    console.error(
-      "Get featured jobs error:",
-      error
-    );
+    console.error("Get featured jobs error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to fetch featured jobs",
+      message: error.message || "Failed to fetch featured jobs",
     });
   }
 };
@@ -1472,35 +1239,22 @@ exports.getFeaturedJobs = async (
 
 // @desc    Get urgent jobs
 // @route   GET /api/jobs/urgent
-exports.getUrgentJobs = async (
-  req,
-  res
-) => {
+exports.getUrgentJobs = async (req, res) => {
   try {
-    const {
-      limit = 5,
-    } = req.query;
+    const { limit = 5 } = req.query;
 
-    const limitNumber = Math.max(
-      1,
-      parseInt(limit) || 5
-    );
+    const limitNumber = Math.max(1, parseInt(limit) || 5);
 
     const jobs = await Job.find({
       status: "active",
       isUrgent: true,
     })
-      .populate(
-        "categoryId",
-        "name slug"
-      )
+      .populate("categoryId", "name slug")
       .sort({
         createdAt: -1,
       })
       .limit(limitNumber)
-      .select(
-        "-postedBy -postedByName"
-      );
+      .select("-postedBy -postedByName");
 
     return res.status(200).json({
       success: true,
@@ -1508,16 +1262,11 @@ exports.getUrgentJobs = async (
       data: jobs,
     });
   } catch (error) {
-    console.error(
-      "Get urgent jobs error:",
-      error
-    );
+    console.error("Get urgent jobs error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to fetch urgent jobs",
+      message: error.message || "Failed to fetch urgent jobs",
     });
   }
 };
@@ -1528,22 +1277,14 @@ exports.getUrgentJobs = async (
 
 // @desc    Search jobs
 // @route   GET /api/jobs/search
-exports.searchJobs = async (
-  req,
-  res
-) => {
+exports.searchJobs = async (req, res) => {
   try {
-    const {
-      q,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { q, page = 1, limit = 10 } = req.query;
 
     if (!q) {
       return res.status(400).json({
         success: false,
-        message:
-          "Search query is required",
+        message: "Search query is required",
       });
     }
 
@@ -1577,33 +1318,20 @@ exports.searchJobs = async (
         },
         {
           skills: {
-            $in: [
-              new RegExp(q, "i"),
-            ],
+            $in: [new RegExp(q, "i")],
           },
         },
       ],
     };
 
-    const pageNumber = Math.max(
-      1,
-      parseInt(page) || 1
-    );
+    const pageNumber = Math.max(1, parseInt(page) || 1);
 
-    const limitNumber = Math.max(
-      1,
-      parseInt(limit) || 10
-    );
+    const limitNumber = Math.max(1, parseInt(limit) || 10);
 
-    const skip =
-      (pageNumber - 1) *
-      limitNumber;
+    const skip = (pageNumber - 1) * limitNumber;
 
     const jobs = await Job.find(filter)
-      .populate(
-        "categoryId",
-        "name slug"
-      )
+      .populate("categoryId", "name slug")
       .sort({
         isUrgent: -1,
         createdAt: -1,
@@ -1611,33 +1339,23 @@ exports.searchJobs = async (
       .skip(skip)
       .limit(limitNumber);
 
-    const total =
-      await Job.countDocuments(
-        filter
-      );
+    const total = await Job.countDocuments(filter);
 
     return res.status(200).json({
       success: true,
       count: jobs.length,
       total,
       page: pageNumber,
-      totalPages: Math.ceil(
-        total / limitNumber
-      ),
+      totalPages: Math.ceil(total / limitNumber),
       query: q,
       data: jobs,
     });
   } catch (error) {
-    console.error(
-      "Search jobs error:",
-      error
-    );
+    console.error("Search jobs error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to search jobs",
+      message: error.message || "Failed to search jobs",
     });
   }
 };
@@ -1648,80 +1366,72 @@ exports.searchJobs = async (
 
 // @desc    Get job stats
 // @route   GET /api/jobs/stats
-exports.getJobStats = async (
-  req,
-  res
-) => {
+exports.getJobStats = async (req, res) => {
   try {
-    const totalJobs =
-      await Job.countDocuments({
-        status: "active",
-      });
+    const totalJobs = await Job.countDocuments({
+      status: "active",
+    });
 
-    const featuredJobs =
-      await Job.countDocuments({
-        status: "active",
-        isFeatured: true,
-      });
+    const featuredJobs = await Job.countDocuments({
+      status: "active",
+      isFeatured: true,
+    });
 
-    const urgentJobs =
-      await Job.countDocuments({
-        status: "active",
-        isUrgent: true,
-      });
+    const urgentJobs = await Job.countDocuments({
+      status: "active",
+      isUrgent: true,
+    });
 
     // --------------------------------------------------------
     // JOBS BY CATEGORY
     // --------------------------------------------------------
 
-    const categoryStats =
-      await Job.aggregate([
-        {
-          $match: {
-            status: "active",
+    const categoryStats = await Job.aggregate([
+      {
+        $match: {
+          status: "active",
+        },
+      },
+
+      {
+        $group: {
+          _id: "$categoryId",
+          count: {
+            $sum: 1,
           },
         },
+      },
 
-        {
-          $group: {
-            _id: "$categoryId",
-            count: {
-              $sum: 1,
-            },
-          },
+      {
+        $sort: {
+          count: -1,
         },
+      },
 
-        {
-          $sort: {
-            count: -1,
-          },
-        },
+      {
+        $limit: 5,
+      },
 
-        {
-          $limit: 5,
+      {
+        $lookup: {
+          from: "categories",
+          localField: "_id",
+          foreignField: "_id",
+          as: "category",
         },
+      },
 
-        {
-          $lookup: {
-            from: "categories",
-            localField: "_id",
-            foreignField: "_id",
-            as: "category",
-          },
-        },
+      {
+        $unwind: "$category",
+      },
 
-        {
-          $unwind: "$category",
+      {
+        $project: {
+          categoryName: "$category.name",
+          count: 1,
         },
-
-        {
-          $project: {
-            categoryName:
-              "$category.name",
-            count: 1,
-          },
-        },
-      ]);
+      },
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -1729,21 +1439,424 @@ exports.getJobStats = async (
         totalJobs,
         featuredJobs,
         urgentJobs,
-        topCategories:
-          categoryStats,
+        topCategories: categoryStats,
       },
     });
   } catch (error) {
-    console.error(
-      "Get job stats error:",
-      error
-    );
+    console.error("Get job stats error:", error);
 
     return res.status(500).json({
       success: false,
-      message:
-        error.message ||
-        "Failed to fetch job stats",
+      message: error.message || "Failed to fetch job stats",
+    });
+  }
+};
+
+// ============================================================
+// JOB APPLICATIONS - USER
+// ============================================================
+
+// @desc    Apply to a job
+// @route   POST /api/jobs/:id/apply
+exports.applyToJob = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!isValidObjectId(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
+    const job = await Job.findOne({
+      _id: jobId,
+      status: "active",
+    });
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found or no longer active",
+      });
+    }
+
+    if (
+      job.applicationDeadline &&
+      new Date() > new Date(job.applicationDeadline)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Application deadline has passed for this job",
+      });
+    }
+
+    let application;
+
+    try {
+      application = await JobApplication.create({
+        job: jobId,
+        applicant: req.user._id,
+      });
+    } catch (error) {
+      // Duplicate key error -> user already applied (unique index on job+applicant)
+      if (error.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: "You have already applied to this job",
+        });
+      }
+      throw error;
+    }
+
+    job.applicantCount = (job.applicantCount || 0) + 1;
+    await job.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "Application submitted successfully",
+      data: application,
+    });
+  } catch (error) {
+    console.error("Apply to job error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to submit application",
+    });
+  }
+};
+
+// @desc    Get logged-in user's job applications
+// @route   GET /api/jobs/my-applications
+exports.getMyApplications = async (req, res) => {
+  try {
+    const { status } = req.query;
+
+    const filter = { applicant: req.user._id };
+    if (status) {
+      filter.status = status;
+    }
+
+    const applications = await JobApplication.find(filter)
+      .populate(
+        "job",
+        "title company location jobType salary companyLogo status isFeatured isUrgent",
+      )
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    console.error("Get my applications error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch applications",
+    });
+  }
+};
+
+// ============================================================
+// JOB APPLICATIONS - ADMIN
+// ============================================================
+
+// @desc    Get all applications for a specific job (Admin)
+// @route   GET /api/admin/jobs/:id/applications
+exports.getJobApplicationsAdmin = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!isValidObjectId(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
+    const { status } = req.query;
+
+    const filter = { job: jobId };
+    if (status) {
+      filter.status = status;
+    }
+
+    const applications = await JobApplication.find(filter)
+      .populate("applicant", "name email mobile")
+      .populate("job", "title company")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    console.error("Get job applications error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch applications",
+    });
+  }
+};
+
+// @desc    Get all applications across all jobs (Admin)
+// @route   GET /api/admin/applications
+exports.getAllApplicationsAdmin = async (req, res) => {
+  try {
+    const { status, job } = req.query;
+
+    const filter = {};
+    if (status) {
+      filter.status = status;
+    }
+
+    if (job) {
+      if (!isValidObjectId(job)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid job ID",
+        });
+      }
+      filter.job = job;
+    }
+
+    const applications = await JobApplication.find(filter)
+      .populate("applicant", "name email mobile")
+      .populate("job", "title company location")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: applications.length,
+      data: applications,
+    });
+  } catch (error) {
+    console.error("Get all applications error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch applications",
+    });
+  }
+};
+
+// @desc    Update application status - shortlist / reject (Admin)
+// @route   PATCH /api/admin/applications/:id/status
+exports.updateApplicationStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const allowedStatuses = ["pending", "shortlisted", "rejected"];
+
+    if (!status || !allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid status. Must be: pending, shortlisted, or rejected",
+      });
+    }
+
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application ID",
+      });
+    }
+
+    const application = await JobApplication.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    application.status = status;
+    await application.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Application status updated to " + status,
+      data: application,
+    });
+  } catch (error) {
+    console.error("Update application status error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to update application status",
+    });
+  }
+};
+
+// @desc    Delete an application (Admin)
+// @route   DELETE /api/admin/applications/:id
+exports.deleteApplication = async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application ID",
+      });
+    }
+
+    const application = await JobApplication.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    await application.deleteOne();
+
+    // Job ka applicantCount sync rakho
+    const job = await Job.findById(application.job);
+    if (job) {
+      job.applicantCount = Math.max(0, (job.applicantCount || 0) - 1);
+      await job.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Application deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete application error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to delete application",
+    });
+  }
+};
+
+// ============================================================
+// SAVED JOBS - USER
+// ============================================================
+
+// @desc    Save a job
+// @route   POST /api/jobs/:id/save
+exports.saveJob = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!isValidObjectId(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
+    const job = await Job.findOne({
+      _id: jobId,
+      status: "active",
+    });
+
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found or no longer active",
+      });
+    }
+
+    try {
+      const saved = await SavedJob.create({
+        job: jobId,
+        user: req.user._id,
+      });
+
+      return res.status(201).json({
+        success: true,
+        message: "Job saved successfully",
+        data: saved,
+      });
+    } catch (error) {
+      if (error.code === 11000) {
+        return res.status(400).json({
+          success: false,
+          message: "Job is already saved",
+        });
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.error("Save job error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to save job",
+    });
+  }
+};
+
+// @desc    Unsave a job
+// @route   DELETE /api/jobs/:id/save
+exports.unsaveJob = async (req, res) => {
+  try {
+    const jobId = req.params.id;
+
+    if (!isValidObjectId(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID",
+      });
+    }
+
+    const result = await SavedJob.findOneAndDelete({
+      job: jobId,
+      user: req.user._id,
+    });
+
+    if (!result) {
+      return res.status(404).json({
+        success: false,
+        message: "This job is not in your saved list",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Job removed from saved list",
+    });
+  } catch (error) {
+    console.error("Unsave job error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to unsave job",
+    });
+  }
+};
+
+// @desc    Get logged-in user's saved jobs
+// @route   GET /api/jobs/saved
+exports.getSavedJobs = async (req, res) => {
+  try {
+    const savedJobs = await SavedJob.find({ user: req.user._id })
+      .populate(
+        "job",
+        "title company location jobType salary companyLogo status isFeatured isUrgent",
+      )
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      count: savedJobs.length,
+      data: savedJobs,
+    });
+  } catch (error) {
+    console.error("Get saved jobs error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Failed to fetch saved jobs",
     });
   }
 };

@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
 import {
   BriefcaseBusiness,
   CalendarDays,
@@ -12,99 +13,183 @@ import {
   ChevronDown,
   Building2,
   ArrowUpRight,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { getMyApplications } from "../redux/slicer/jobApplicationSlice";
 
 const MyAppication = () => {
+  const dispatch = useDispatch();
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
 
   // =========================================================
-  // DEMO APPLICATION DATA
-  // Replace this with localStorage / API data later
+  // REDUX STATE
   // =========================================================
 
-  const applications = [
-    {
-      id: 1,
-      jobTitle: "Frontend Developer",
-      company: "TechNova Solutions",
-      location: "Delhi, India",
-      type: "Full Time",
-      salary: "₹6 - ₹9 LPA",
-      appliedDate: "25 Aug 2026",
-      status: "Applied",
-      logo: "T",
-    },
-    {
-      id: 2,
-      jobTitle: "MERN Stack Developer",
-      company: "CodeCraft Technologies",
-      location: "Bangalore, India",
-      type: "Full Time",
-      salary: "₹7 - ₹12 LPA",
-      appliedDate: "22 Aug 2026",
-      status: "Under Review",
-      logo: "C",
-    },
-    {
-      id: 3,
-      jobTitle: "React JS Developer",
-      company: "DigitalWorks",
-      location: "Remote",
-      type: "Full Time",
-      salary: "₹5 - ₹8 LPA",
-      appliedDate: "18 Aug 2026",
-      status: "Shortlisted",
-      logo: "D",
-    },
-    {
-      id: 4,
-      jobTitle: "Junior Web Developer",
-      company: "WebSphere Pvt Ltd",
-      location: "Mumbai, India",
-      type: "Full Time",
-      salary: "₹4 - ₹6 LPA",
-      appliedDate: "12 Aug 2026",
-      status: "Rejected",
-      logo: "W",
-    },
-    {
-      id: 5,
-      jobTitle: "Software Developer Intern",
-      company: "Innovate Labs",
-      location: "Pune, India",
-      type: "Internship",
-      salary: "₹20K - ₹30K / Month",
-      appliedDate: "08 Aug 2026",
-      status: "Interview",
-      logo: "I",
-    },
-  ];
+  const {
+  applications = [],
+  loading,
+  error,
+} = useSelector((state) => state.application);
+
+  // =========================================================
+  // FETCH MY APPLICATIONS
+  // =========================================================
+
+  useEffect(() => {
+    dispatch(getMyApplications());
+  }, [dispatch]);
+
+  // =========================================================
+  // FORMAT BACKEND APPLICATION DATA
+  // =========================================================
+
+  const formattedApplications = useMemo(() => {
+    if (!Array.isArray(applications)) {
+      return [];
+    }
+
+    return applications.map((application) => {
+      const job = application.job || {};
+
+      const companyName =
+        job.company?.name ||
+        job.companyName ||
+        job.company ||
+        "Company";
+
+      const location =
+        job.location?.city ||
+        job.location ||
+        job.jobLocation ||
+        "Location not specified";
+
+      const jobType =
+        job.jobType ||
+        job.type ||
+        job.employmentType ||
+        "Full Time";
+
+      let salary = "Salary not specified";
+
+      if (job.salary) {
+        if (typeof job.salary === "string") {
+          salary = job.salary;
+        } else if (
+          typeof job.salary === "object"
+        ) {
+          if (
+            job.salary.min !== undefined &&
+            job.salary.max !== undefined
+          ) {
+            salary = `₹${job.salary.min} - ₹${job.salary.max}`;
+          } else if (job.salary.amount) {
+            salary = `₹${job.salary.amount}`;
+          }
+        }
+      }
+
+      const rawStatus =
+        application.status || "pending";
+
+      // Backend status -> UI status
+      const statusMap = {
+        pending: "Applied",
+        applied: "Applied",
+        review: "Under Review",
+        reviewed: "Under Review",
+        "under-review": "Under Review",
+        shortlisted: "Shortlisted",
+        interview: "Interview",
+        rejected: "Rejected",
+        accepted: "Shortlisted",
+      };
+
+      const displayStatus =
+        statusMap[
+          String(rawStatus).toLowerCase()
+        ] || rawStatus;
+
+      return {
+        id: application._id,
+
+        jobId:
+          typeof application.job === "object"
+            ? application.job?._id
+            : application.job,
+
+        jobTitle:
+          job.title ||
+          job.jobTitle ||
+          "Job Title",
+
+        company: companyName,
+
+        location,
+
+        type: jobType,
+
+        salary,
+
+        appliedDate: application.appliedAt
+          ? new Date(
+              application.appliedAt
+            ).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "Date not available",
+
+        status: displayStatus,
+
+        logo:
+          companyName
+            ?.charAt(0)
+            ?.toUpperCase() || "J",
+      };
+    });
+  }, [applications]);
 
   // =========================================================
   // FILTER APPLICATIONS
   // =========================================================
 
   const filteredApplications = useMemo(() => {
-    return applications.filter((application) => {
-      const matchesSearch =
-        application.jobTitle
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        application.company
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        application.location
-          .toLowerCase()
-          .includes(searchTerm.toLowerCase());
+    return formattedApplications.filter(
+      (application) => {
+        const search =
+          searchTerm.toLowerCase().trim();
 
-      const matchesStatus =
-        statusFilter === "All" ||
-        application.status === statusFilter;
+        const matchesSearch =
+          application.jobTitle
+            .toLowerCase()
+            .includes(search) ||
+          application.company
+            .toLowerCase()
+            .includes(search) ||
+          application.location
+            .toLowerCase()
+            .includes(search);
 
-      return matchesSearch && matchesStatus;
-    });
-  }, [searchTerm, statusFilter]);
+        const matchesStatus =
+          statusFilter === "All" ||
+          application.status === statusFilter;
+
+        return (
+          matchesSearch &&
+          matchesStatus
+        );
+      }
+    );
+  }, [
+    formattedApplications,
+    searchTerm,
+    statusFilter,
+  ]);
 
   // =========================================================
   // STATUS CONFIG
@@ -166,29 +251,91 @@ const MyAppication = () => {
   // STATISTICS
   // =========================================================
 
-  const totalApplications = applications.length;
+  const totalApplications =
+    formattedApplications.length;
 
-  const underReview = applications.filter(
-    (item) => item.status === "Under Review"
-  ).length;
+  const underReview =
+    formattedApplications.filter(
+      (item) =>
+        item.status === "Under Review"
+    ).length;
 
-  const shortlisted = applications.filter(
-    (item) =>
-      item.status === "Shortlisted" ||
-      item.status === "Interview"
-  ).length;
+  const shortlisted =
+    formattedApplications.filter(
+      (item) =>
+        item.status === "Shortlisted" ||
+        item.status === "Interview"
+    ).length;
 
-  const rejected = applications.filter(
-    (item) => item.status === "Rejected"
-  ).length;
+  const rejected =
+    formattedApplications.filter(
+      (item) =>
+        item.status === "Rejected"
+    ).length;
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (loading) {
+    return (
+      <main className="min-h-[calc(100vh-68px)] bg-slate-50">
+        <div className="mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-4">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2
+              size={36}
+              className="animate-spin text-blue-600"
+            />
+
+            <p className="text-sm font-medium text-slate-500">
+              Loading your applications...
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // =========================================================
+  // ERROR
+  // =========================================================
+
+  if (error) {
+    return (
+      <main className="min-h-[calc(100vh-68px)] bg-slate-50">
+        <div className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-9">
+          <div className="rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+              <AlertCircle size={26} />
+            </div>
+
+            <h2 className="mt-4 text-lg font-bold text-slate-800">
+              Failed to load applications
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              {typeof error === "string"
+                ? error
+                : "Something went wrong while loading your applications."}
+            </p>
+
+            <button
+              type="button"
+              onClick={() =>
+                dispatch(getMyApplications())
+              }
+              className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-[calc(100vh-68px)] overflow-x-hidden bg-slate-50">
-
-      {/* =====================================================
-          PAGE CONTAINER
-      ===================================================== */}
-
       <div className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-5 sm:py-7 lg:px-8 lg:py-9">
 
         {/* =====================================================
@@ -197,14 +344,11 @@ const MyAppication = () => {
 
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-5 shadow-lg sm:p-7 lg:p-8">
 
-          {/* Background Decorations */}
-
           <div className="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
 
           <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
 
           <div className="relative">
-
             <div className="flex items-start gap-3">
 
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-sm sm:h-12 sm:w-12">
@@ -212,22 +356,17 @@ const MyAppication = () => {
               </div>
 
               <div className="min-w-0">
-
                 <h1 className="text-xl font-black text-white sm:text-2xl lg:text-3xl">
                   My Applications
                 </h1>
 
                 <p className="mt-1 max-w-2xl text-xs leading-5 text-blue-100 sm:text-sm">
-                  Track all your job applications and stay updated
-                  with your application progress.
+                  Track all your job applications and stay updated with your application progress.
                 </p>
-
               </div>
 
             </div>
-
           </div>
-
         </section>
 
         {/* =====================================================
@@ -278,10 +417,7 @@ const MyAppication = () => {
 
           <div className="flex flex-col gap-3 md:flex-row">
 
-            {/* SEARCH */}
-
             <div className="relative min-w-0 flex-1">
-
               <Search
                 size={18}
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -296,10 +432,7 @@ const MyAppication = () => {
                 placeholder="Search by job title, company or location..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-4 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
               />
-
             </div>
-
-            {/* FILTER */}
 
             <div className="relative w-full md:w-52">
 
@@ -343,7 +476,6 @@ const MyAppication = () => {
             </div>
 
           </div>
-
         </section>
 
         {/* =====================================================
@@ -370,9 +502,8 @@ const MyAppication = () => {
 
           </div>
 
-          {/* APPLICATION CARDS */}
-
           {filteredApplications.length > 0 ? (
+
             <div className="space-y-4">
 
               {filteredApplications.map(
@@ -382,7 +513,8 @@ const MyAppication = () => {
                       application.status
                     );
 
-                  const StatusIcon = status.icon;
+                  const StatusIcon =
+                    status.icon;
 
                   return (
                     <article
@@ -392,17 +524,13 @@ const MyAppication = () => {
 
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-                        {/* LEFT SIDE */}
+                        {/* LEFT */}
 
                         <div className="flex min-w-0 gap-3 sm:gap-4">
-
-                          {/* COMPANY LOGO */}
 
                           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-black text-white shadow-sm sm:h-14 sm:w-14 sm:text-xl">
                             {application.logo}
                           </div>
-
-                          {/* JOB DETAILS */}
 
                           <div className="min-w-0 flex-1">
 
@@ -412,13 +540,10 @@ const MyAppication = () => {
                                 {application.jobTitle}
                               </h3>
 
-                              {/* STATUS */}
-
                               <span
                                 className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${status.bg} ${status.text} ${status.border}`}
                               >
                                 <StatusIcon size={12} />
-
                                 {application.status}
                               </span>
 
@@ -459,20 +584,15 @@ const MyAppication = () => {
                             </div>
 
                           </div>
-
                         </div>
 
-                        {/* RIGHT SIDE */}
+                        {/* RIGHT */}
 
                         <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-center lg:border-t-0 lg:pt-0">
 
-                          {/* APPLIED DATE */}
-
                           <div className="flex items-center gap-2 text-xs text-slate-400 lg:mr-3">
 
-                            <CalendarDays
-                              size={14}
-                            />
+                            <CalendarDays size={14} />
 
                             <span>
                               Applied{" "}
@@ -481,16 +601,12 @@ const MyAppication = () => {
 
                           </div>
 
-                          {/* VIEW BUTTON */}
-
                           <button
                             type="button"
                             className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-600 transition hover:bg-blue-600 hover:text-white sm:w-auto"
                           >
                             View Details
-                            <ArrowUpRight
-                              size={14}
-                            />
+                            <ArrowUpRight size={14} />
                           </button>
 
                         </div>
@@ -503,11 +619,8 @@ const MyAppication = () => {
               )}
 
             </div>
-          ) : (
 
-            /* =================================================
-               EMPTY STATE
-            ================================================= */
+          ) : (
 
             <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center">
 
@@ -520,8 +633,7 @@ const MyAppication = () => {
               </h3>
 
               <p className="mx-auto mt-1.5 max-w-sm text-xs leading-5 text-slate-400">
-                We couldn't find any applications matching
-                your search or selected filter.
+                We couldn't find any applications matching your search or selected filter.
               </p>
 
               <button
@@ -536,13 +648,11 @@ const MyAppication = () => {
               </button>
 
             </div>
-
           )}
 
         </section>
 
       </div>
-
     </main>
   );
 };
@@ -588,3 +698,4 @@ const StatCard = ({
 };
 
 export default MyAppication;
+

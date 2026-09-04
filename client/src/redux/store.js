@@ -1,14 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from '../redux/slicer/authSlice'
-import categoryReducer from '../redux/slicer/categorySlice'
-import jobsReducer from '../redux/slicer/jobSlice'
-import galleryReducer from '../redux/slicer/gallerySlice'
-import subscriptionReducer from '../redux/slicer/adminsubscriptionSlice'
-import testimonialReducer from '../redux/slicer/testimonialSlice'
-import adminUserReducer from '../redux/slicer/adminuserSlice'
-import testimonialsReducer from '../redux/slicer/userTestimonialSlice'
-import userSubscriptionReducer from '../redux/slicer/UserSubscription'
-
+import subscriptionReducer from "../redux/slicer/adminsubscriptionSlice";
+import adminUserReducer from "../redux/slicer/adminuserSlice";
+import authReducer from "../redux/slicer/authSlice";
+import categoryReducer from "../redux/slicer/categorySlice";
+import galleryReducer from "../redux/slicer/gallerySlice";
+import jobsReducer from "../redux/slicer/jobSlice";
+import testimonialReducer from "../redux/slicer/testimonialSlice";
+import userSubscriptionReducer from "../redux/slicer/userSubscriptionSlice";
+import testimonialsReducer from "../redux/slicer/userTestimonialSlice";
+import applicationReducer from "../redux/slicer/jobApplicationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -21,5 +21,7 @@ export const store = configureStore({
     adminUser: adminUserReducer,
     usertestimonial: testimonialsReducer,
     userSubscription: userSubscriptionReducer,
-  }
+    userSubscription: userSubscriptionReducer,
+    application: applicationReducer,
+  },
 });

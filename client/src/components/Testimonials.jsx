@@ -19,6 +19,7 @@ import {
 import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
+import { Link } from "react-router-dom";
 
 import { getTestimonials } from "../redux/slicer/userTestimonialSlice";
 
@@ -130,7 +131,7 @@ const Testimonials = () => {
   // =====================================================
 
   return (
-    <section className="overflow-hidden bg-slate-50 py-8 sm:py-10 lg:py-12">
+    <section className="overflow-hidden bg-slate-50 py-4 sm:py-4 lg:py-4">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
 
         {/* =================================================
@@ -213,7 +214,7 @@ const Testimonials = () => {
                 spaceBetween: 24,
               },
             }}
-            className="testimonials-swiper !pb-12"
+            className="testimonials-swiper !pb-4"
           >
 
             {testimonials.map((testimonial) => {
@@ -454,9 +455,10 @@ const Testimonials = () => {
             CTA
         ================================================= */}
 
-        <div className="mt-3 flex justify-center">
+        <div className="mt-2 flex justify-center">
 
-          <button
+         <Link to='/subscription'>
+           <button
             type="button"
             className="
               group
@@ -492,6 +494,7 @@ const Testimonials = () => {
               className="transition-transform duration-300 group-hover:translate-x-1"
             />
           </button>
+         </Link>
 
         </div>
 

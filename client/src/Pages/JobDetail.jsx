@@ -1,65 +1,90 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+
+import { getJobByIdUser } from "../redux/slicer/jobSlice";
+
+import {
+  applyToJob,
+  resetApplicationState,
+  clearApplicationError,
+  saveJob,
+  unsaveJob,
+} from "../redux/slicer/jobApplicationSlice";
+
 import {
   ArrowLeft,
   MapPin,
   BriefcaseBusiness,
   Clock3,
   IndianRupee,
-  Building2,
-  CalendarDays,
+  Users,
   Bookmark,
-  BookmarkCheck,
   Share2,
   CheckCircle2,
-  Users,
   X,
-  Upload,
-  FileText,
   User,
   Mail,
   Phone,
   Globe,
   Send,
-  Camera,
-  ShieldCheck,
+  AlertCircle,
+  Building2,
+  Upload,
+  FileText,
 } from "lucide-react";
 
 const JobDetail = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-
-  const job = location.state?.job;
+  const dispatch = useDispatch();
+  const { id } = useParams();
 
   // =========================================================
-  // APPLICATION MODAL
+  // JOB STATE
+  // =========================================================
+
+  const { selectedJob, jobLoading, jobError } = useSelector(
+    (state) => state.jobs
+  );
+
+  // =========================================================
+  // APPLICATION STATE
+  // =========================================================
+
+  const {
+    applying,
+    success: applicationSuccess,
+    error: applicationError,
+    message: applicationMessage,
+    saving,
+    unsaving,
+  } = useSelector((state) => state.application || {});
+
+  // =========================================================
+  // LOCAL STATE
   // =========================================================
 
   const [showApplyModal, setShowApplyModal] = useState(false);
+
   const [applicationStep, setApplicationStep] = useState("options");
+
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // =========================================================
-  // SAVE JOB
-  // =========================================================
-
-  const [savedJob, setSavedJob] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // =========================================================
-  // APPLICATION FORM
+  // FORM DATA
   // =========================================================
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
-    experienceType: "Fresher",
+    experienceType: "",
     experience: "",
-
     profilePhoto: null,
     governmentDocument: null,
     resume: null,
-
     skills: "",
     currentLocation: "",
     expectedSalary: "",
@@ -71,59 +96,163 @@ const JobDetail = () => {
   });
 
   // =========================================================
-  // LOCK BACKGROUND SCROLL WHEN MODAL IS OPEN
+  // GET JOB
+  // =========================================================
+
+  useEffect(() => {
+    if (id) {
+      dispatch(getJobByIdUser(id));
+    }
+  }, [dispatch, id]);
+
+  // =========================================================
+  // JOB DATA
+  // =========================================================
+
+  const backendJob = selectedJob;
+
+  const job = backendJob
+    ? {
+        ...backendJob,
+
+        id: backendJob._id || backendJob.id,
+
+        type: backendJob.jobType || "Full Time",
+
+        posted: backendJob.daysAgo || "Recently",
+
+        applicants: backendJob.applicantCount ?? 0,
+
+        logo:
+          backendJob.companyLogo?.displayUrl ||
+          backendJob.companyLogo?.url ||
+          backendJob.company?.charAt(0)?.toUpperCase() ||
+          "C",
+
+        logoClass: "bg-blue-100 text-blue-600",
+
+        responsibilities: backendJob.responsibilities || [],
+
+        requirements: backendJob.requirements || [],
+
+        skills: backendJob.skills || [],
+      }
+    : null;
+
+  // =========================================================
+  // LOAD SAVED APPLICATION DETAILS
+  // =========================================================
+
+  useEffect(() => {
+    const savedApplication = localStorage.getItem("jobApplication");
+
+    if (!savedApplication) return;
+
+    try {
+      const parsedData = JSON.parse(savedApplication);
+
+      setFormData((prev) => ({
+        ...prev,
+
+        name: parsedData.name || "",
+        email: parsedData.email || "",
+        phone: parsedData.phone || "",
+
+        experienceType: parsedData.experienceType || "",
+
+        experience: parsedData.experience || "",
+
+        skills: parsedData.skills || "",
+
+        currentLocation: parsedData.currentLocation || "",
+
+        expectedSalary: parsedData.expectedSalary || "",
+
+        noticePeriod: parsedData.noticePeriod || "",
+
+        linkedin: parsedData.linkedin || "",
+
+        portfolio: parsedData.portfolio || "",
+
+        coverLetter: parsedData.coverLetter || "",
+
+        additionalInfo: parsedData.additionalInfo || "",
+      }));
+    } catch (error) {
+      console.error("Error loading saved application:", error);
+    }
+  }, []);
+
+  // =========================================================
+  // SCROLL LOCK
   // =========================================================
 
   useEffect(() => {
     if (showApplyModal) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "";
+      document.body.style.overflow = "auto";
     }
 
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = "auto";
     };
   }, [showApplyModal]);
 
   // =========================================================
-  // FORM CHANGE
+  // CHECK BACKEND SAVED STATUS
+  // =========================================================
+  //
+  // If your getJobByIdUser API returns isSaved, this will
+  // automatically show the correct bookmark state.
+  //
+  // If backend does not return isSaved, it stays false.
+  //
   // =========================================================
 
-  const handleChange = (e) => {
-    const { name, value, files, type } = e.target;
+  useEffect(() => {
+    if (!backendJob) return;
 
-    if (type === "file") {
-      const file = files?.[0] || null;
-
-      setFormData((prev) => ({
-        ...prev,
-        [name]: file,
-      }));
-
-      return;
+    if (typeof backendJob.isSaved === "boolean") {
+      setIsSaved(backendJob.isSaved);
+    } else if (typeof backendJob.saved === "boolean") {
+      setIsSaved(backendJob.saved);
     }
+  }, [backendJob]);
+
+  // =========================================================
+  // HANDLE INPUT
+  // =========================================================
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    if (applicationError) {
+      dispatch(clearApplicationError());
+    }
   };
 
   // =========================================================
-  // FILE SIZE VALIDATION
+  // FILE VALIDATION
   // =========================================================
 
-  const validateFileSize = (file, maxSizeMB) => {
-    if (!file) return true;
+  const validateFile = (file, allowedTypes, maxSize) => {
+    if (!file) return false;
 
-    const maxSize = maxSizeMB * 1024 * 1024;
+    if (!allowedTypes.includes(file.type)) {
+      alert("Invalid file type. Please select a supported file.");
+      return false;
+    }
 
     if (file.size > maxSize) {
       alert(
-        `${file.name} is too large. Maximum allowed size is ${maxSizeMB}MB.`
+        `File size should not exceed ${maxSize / (1024 * 1024)} MB.`
       );
-
       return false;
     }
 
@@ -131,28 +260,22 @@ const JobDetail = () => {
   };
 
   // =========================================================
-  // PROFILE PHOTO CHANGE
+  // PROFILE PHOTO
   // =========================================================
 
-  const handleProfilePhotoChange = (e) => {
-    const file = e.target.files?.[0] || null;
+  const handleProfilePhoto = (e) => {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
     const allowedTypes = [
       "image/jpeg",
-      "image/jpg",
       "image/png",
+      "image/jpg",
+      "image/webp",
     ];
 
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload JPG, JPEG or PNG image only.");
-      e.target.value = "";
-      return;
-    }
-
-    if (!validateFileSize(file, 2)) {
-      e.target.value = "";
+    if (!validateFile(file, allowedTypes, 5 * 1024 * 1024)) {
       return;
     }
 
@@ -160,32 +283,30 @@ const JobDetail = () => {
       ...prev,
       profilePhoto: file,
     }));
+
+    if (applicationError) {
+      dispatch(clearApplicationError());
+    }
   };
 
   // =========================================================
-  // GOVERNMENT DOCUMENT CHANGE
+  // GOVERNMENT DOCUMENT
   // =========================================================
 
-  const handleGovernmentDocumentChange = (e) => {
-    const file = e.target.files?.[0] || null;
+  const handleGovernmentDocument = (e) => {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
     const allowedTypes = [
       "image/jpeg",
-      "image/jpg",
       "image/png",
+      "image/jpg",
+      "image/webp",
       "application/pdf",
     ];
 
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload JPG, JPEG, PNG or PDF document only.");
-      e.target.value = "";
-      return;
-    }
-
-    if (!validateFileSize(file, 5)) {
-      e.target.value = "";
+    if (!validateFile(file, allowedTypes, 10 * 1024 * 1024)) {
       return;
     }
 
@@ -193,14 +314,18 @@ const JobDetail = () => {
       ...prev,
       governmentDocument: file,
     }));
+
+    if (applicationError) {
+      dispatch(clearApplicationError());
+    }
   };
 
   // =========================================================
-  // RESUME CHANGE
+  // RESUME
   // =========================================================
 
-  const handleResumeChange = (e) => {
-    const file = e.target.files?.[0] || null;
+  const handleResume = (e) => {
+    const file = e.target.files?.[0];
 
     if (!file) return;
 
@@ -210,14 +335,7 @@ const JobDetail = () => {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ];
 
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload PDF, DOC or DOCX file only.");
-      e.target.value = "";
-      return;
-    }
-
-    if (!validateFileSize(file, 5)) {
-      e.target.value = "";
+    if (!validateFile(file, allowedTypes, 10 * 1024 * 1024)) {
       return;
     }
 
@@ -225,10 +343,14 @@ const JobDetail = () => {
       ...prev,
       resume: file,
     }));
+
+    if (applicationError) {
+      dispatch(clearApplicationError());
+    }
   };
 
   // =========================================================
-  // SAVE APPLICATION
+  // SAVE APPLICATION DETAILS LOCALLY
   // =========================================================
 
   const saveApplication = () => {
@@ -248,54 +370,35 @@ const JobDetail = () => {
       additionalInfo: formData.additionalInfo,
     };
 
-    localStorage.setItem(
-      "careerSphereApplication",
-      JSON.stringify(dataToSave)
-    );
-
-    alert("Application details saved successfully!");
+    localStorage.setItem("jobApplication", JSON.stringify(dataToSave));
   };
 
   // =========================================================
-  // LOAD SAVED APPLICATION
+  // SAVE / UNSAVE JOB
   // =========================================================
 
-  const loadSavedApplication = () => {
-    const savedApplication = localStorage.getItem(
-      "careerSphereApplication"
-    );
-
-    if (!savedApplication) {
-      alert(
-        "No saved application found. Please fill the application manually."
-      );
-
-      setApplicationStep("manual");
+  const handleSaveToggle = async () => {
+    if (!job?._id) {
+      console.error("Job ID is missing");
       return;
     }
 
     try {
-      const savedData = JSON.parse(savedApplication);
+      if (isSaved) {
+        await dispatch(unsaveJob(job._id)).unwrap();
 
-      setFormData((prev) => ({
-        ...prev,
-        ...savedData,
+        setIsSaved(false);
 
-        // File objects cannot be restored from localStorage
-        profilePhoto: null,
-        governmentDocument: null,
-        resume: null,
-      }));
+        console.log("Job removed from saved jobs");
+      } else {
+        await dispatch(saveJob(job._id)).unwrap();
 
-      setApplicationStep("manual");
+        setIsSaved(true);
+
+        console.log("Job saved successfully");
+      }
     } catch (error) {
-      console.error("Saved application error:", error);
-
-      alert(
-        "Unable to load saved application. Please fill the form manually."
-      );
-
-      setApplicationStep("manual");
+      console.error("Save/Unsave job error:", error);
     }
   };
 
@@ -303,144 +406,114 @@ const JobDetail = () => {
   // SUBMIT APPLICATION
   // =========================================================
 
-  const submitApplication = (e) => {
+  const submitApplication = async (e) => {
     e.preventDefault();
 
-    if (!formData.resume) {
-      alert("Please upload your resume.");
+    if (!job?._id) {
+      alert("Job information is missing.");
       return;
     }
 
-    if (!formData.profilePhoto) {
-      alert("Please upload your profile photo.");
-      return;
-    }
+    dispatch(clearApplicationError());
 
-    if (!formData.governmentDocument) {
-      alert("Please upload your government ID document.");
-      return;
-    }
+    try {
+      // Save user's form details locally
+      saveApplication();
 
-    // =====================================================
-    // FORM DATA FOR BACKEND
-    // =====================================================
+      console.log("Submitting application for job:", job._id);
 
-    const applicationData = new FormData();
+      // Backend currently accepts only jobId
+      const result = await dispatch(
+        applyToJob(job._id)
+      ).unwrap();
 
-    applicationData.append("name", formData.name);
-    applicationData.append("email", formData.email);
-    applicationData.append("phone", formData.phone);
+      console.log(
+        "Application submitted successfully:",
+        result
+      );
 
-    applicationData.append(
-      "experienceType",
-      formData.experienceType
-    );
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error(
+        "Application submission error:",
+        error
+      );
 
-    applicationData.append(
-      "experience",
-      formData.experience
-    );
-
-    applicationData.append(
-      "skills",
-      formData.skills
-    );
-
-    applicationData.append(
-      "currentLocation",
-      formData.currentLocation
-    );
-
-    applicationData.append(
-      "expectedSalary",
-      formData.expectedSalary
-    );
-
-    applicationData.append(
-      "noticePeriod",
-      formData.noticePeriod
-    );
-
-    applicationData.append(
-      "linkedin",
-      formData.linkedin
-    );
-
-    applicationData.append(
-      "portfolio",
-      formData.portfolio
-    );
-
-    applicationData.append(
-      "coverLetter",
-      formData.coverLetter
-    );
-
-    applicationData.append(
-      "additionalInfo",
-      formData.additionalInfo
-    );
-
-    // Job information
-    applicationData.append(
-      "jobId",
-      job?._id || job?.id || ""
-    );
-
-    applicationData.append(
-      "jobTitle",
-      job?.title || ""
-    );
-
-    applicationData.append(
-      "company",
-      job?.company || ""
-    );
-
-    // Files
-    applicationData.append(
-      "profilePhoto",
-      formData.profilePhoto
-    );
-
-    applicationData.append(
-      "governmentDocument",
-      formData.governmentDocument
-    );
-
-    applicationData.append(
-      "resume",
-      formData.resume
-    );
-
-    // =====================================================
-    // DEBUG
-    // =====================================================
-
-    console.log("Application Data:", formData);
-    console.log("Applied Job:", job);
-
-    for (const [key, value] of applicationData.entries()) {
-      console.log(key, value);
-    }
-
-    // Backend API will go here
-
-    setIsSubmitted(true);
-  };
-
-  // =========================================================
-  // CLOSE APPLICATION MODAL
-  // =========================================================
-
-  const closeApplicationModal = () => {
-    setShowApplyModal(false);
-
-    setTimeout(() => {
-      setApplicationStep("options");
       setIsSubmitted(false);
-    }, 200);
+    }
   };
+
+  // =========================================================
+  // OPEN APPLY MODAL
+  // =========================================================
+
+  const openApplyModal = () => {
+    dispatch(resetApplicationState());
+
+    setIsSubmitted(false);
+    setApplicationStep("options");
+    setShowApplyModal(true);
+  };
+
+  // =========================================================
+  // CLOSE MODAL
+  // =========================================================
+
+  const closeModal = () => {
+    if (applying) return;
+
+    setShowApplyModal(false);
+    setApplicationStep("options");
+    setIsSubmitted(false);
+
+    dispatch(resetApplicationState());
+  };
+
+  // =========================================================
+  // SHARE JOB
+  // =========================================================
+
+  const handleShare = async () => {
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: job?.title,
+          text: `${job?.title} at ${job?.company}`,
+          url: window.location.href,
+        });
+      } else {
+        await navigator.clipboard.writeText(
+          window.location.href
+        );
+
+        alert("Job link copied!");
+      }
+    } catch (error) {
+      console.error("Share error:", error);
+    }
+  };
+
+  // =========================================================
+  // LOADING
+  // =========================================================
+
+  if (jobLoading) {
+    return (
+      <main className="min-h-screen bg-slate-50 px-4 py-10">
+        <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-blue-100 border-t-blue-600" />
+
+          <h1 className="mt-5 text-xl font-bold text-slate-900">
+            Loading Job...
+          </h1>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Please wait while job details are loading.
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   // =========================================================
   // JOB NOT FOUND
@@ -450,481 +523,470 @@ const JobDetail = () => {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-
-          <h1 className="text-xl font-bold text-slate-900">
+          <h1 className="text-2xl font-bold text-slate-900">
             Job not found
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            This job may no longer be available.
+            {jobError ||
+              "This job may no longer be available."}
           </p>
 
           <button
             onClick={() => navigate("/jobs")}
-            className="mt-6 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white hover:bg-blue-700"
+            className="mt-6 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
           >
             Back to Jobs
           </button>
-
         </div>
       </main>
     );
   }
 
+  // =========================================================
+  // UI
+  // =========================================================
+
   return (
-    <>
+    <main className="min-h-screen bg-slate-50">
+
       {/* =====================================================
-          JOB DETAIL PAGE
-      ====================================================== */}
+          BACK BUTTON
+      ===================================================== */}
 
-      <main className="min-h-screen bg-slate-50 py-5 sm:py-8">
+      <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+        <button
+          onClick={() => navigate("/jobs")}
+          className="flex items-center gap-2 text-sm font-semibold text-slate-600 transition hover:text-blue-600"
+        >
+          <ArrowLeft size={18} />
+          Back to Jobs
+        </button>
+      </div>
 
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+      {/* =====================================================
+          MAIN CONTENT
+      ===================================================== */}
 
-          {/* BACK BUTTON */}
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
 
-          <button
-            onClick={() => navigate("/jobs")}
-            className="mb-5 flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-blue-50 hover:text-blue-600"
-          >
-            <ArrowLeft size={17} />
-            Back to Jobs
-          </button>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          {/* =================================================
+              LEFT CONTENT
+          ================================================= */}
 
-            {/* =================================================
-                LEFT CONTENT
-            ================================================== */}
+          <div className="lg:col-span-2">
 
-            <div className="space-y-6 lg:col-span-2">
+            {/* JOB HEADER */}
 
-              {/* HEADER */}
+            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
 
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex items-start gap-4">
 
-                  <div className="flex min-w-0 gap-4">
-
-                    {/* LOGO */}
-
-                    <div
-                      className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-xl font-black shadow-sm sm:h-20 sm:w-20 ${job.logoClass}`}
-                    >
-                      {job.logo}
-                    </div>
-
-                    <div className="min-w-0">
-
-                      <h1 className="break-words text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
-                        {job.title}
-                      </h1>
-
-                      <p className="mt-2 flex items-center gap-2 text-sm font-bold text-blue-600 sm:text-base">
-                        <Building2 size={17} />
-                        {job.company}
-                      </p>
-
-                      <div className="mt-4 flex flex-wrap gap-x-5 gap-y-3 text-sm text-slate-600">
-
-                        <span className="flex items-center gap-1.5">
-                          <MapPin size={16} />
-                          {job.location}
-                        </span>
-
-                        <span className="flex items-center gap-1.5">
-                          <BriefcaseBusiness size={16} />
-                          {job.experience}
-                        </span>
-
-                        <span className="flex items-center gap-1.5">
-                          <Clock3 size={16} />
-                          {job.type}
-                        </span>
-
-                      </div>
-
-                    </div>
+                  <div
+                    className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${job.logoClass}`}
+                  >
+                    {job.logo}
                   </div>
 
-                  {/* ACTIONS */}
+                  <div>
 
-                  <div className="flex gap-2">
+                    <h1 className="text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
+                      {job.title}
+                    </h1>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setSavedJob((prev) => !prev)
-                      }
-                      className={`flex h-10 w-10 items-center justify-center rounded-lg border transition ${
-                        savedJob
-                          ? "border-blue-200 bg-blue-50 text-blue-600"
-                          : "border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
-                      }`}
-                      title={
-                        savedJob
-                          ? "Remove saved job"
-                          : "Save Job"
-                      }
-                    >
-                      {savedJob ? (
-                        <BookmarkCheck size={18} />
-                      ) : (
-                        <Bookmark size={18} />
-                      )}
-                    </button>
+                    <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
 
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (navigator.share) {
-                          navigator.share({
-                            title: job.title,
-                            text: `Check this job at ${job.company}`,
-                            url: window.location.href,
-                          });
-                        } else {
-                          navigator.clipboard.writeText(
-                            window.location.href
-                          );
+                      <span className="flex items-center gap-1.5">
+                        <Building2 size={16} />
+                        {job.company}
+                      </span>
 
-                          alert(
-                            "Job link copied to clipboard!"
-                          );
-                        }
-                      }}
-                      className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-500 hover:bg-blue-50 hover:text-blue-600"
-                      title="Share Job"
-                    >
-                      <Share2 size={18} />
-                    </button>
+                      <span className="flex items-center gap-1.5">
+                        <MapPin size={16} />
+                        {job.location}
+                      </span>
+
+                    </div>
 
                   </div>
 
                 </div>
 
-                {/* STATS */}
+                {/* ACTIONS */}
 
-                <div className="mt-2 grid grid-cols-3 gap-2 border-t border-slate-100 pt-5 sm:gap-3">
+                <div className="flex items-center gap-2">
+
+                  {/* SAVE */}
+
+                  <button
+                    type="button"
+                    onClick={handleSaveToggle}
+                    disabled={saving || unsaving}
+                    title={isSaved ? "Unsave Job" : "Save Job"}
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg border transition ${
+                      isSaved
+                        ? "border-blue-200 bg-blue-50 text-blue-600"
+                        : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600"
+                    } ${
+                      saving || unsaving
+                        ? "cursor-not-allowed opacity-60"
+                        : ""
+                    }`}
+                  >
+                    {saving || unsaving ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                    ) : (
+                      <Bookmark
+                        size={19}
+                        fill={
+                          isSaved
+                            ? "currentColor"
+                            : "none"
+                        }
+                      />
+                    )}
+                  </button>
+
+                  {/* SHARE */}
+
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:border-blue-200 hover:text-blue-600"
+                    title="Share Job"
+                  >
+                    <Share2 size={19} />
+                  </button>
+
+                </div>
+
+              </div>
+
+              {/* META */}
+
+              <div className="mt-6 flex flex-wrap gap-3">
+
+                <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  <BriefcaseBusiness
+                    size={17}
+                    className="text-blue-600"
+                  />
+                  {job.experience}
+                </div>
+
+                <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  <Clock3
+                    size={17}
+                    className="text-blue-600"
+                  />
+                  {job.type}
+                </div>
+
+                <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  <MapPin
+                    size={17}
+                    className="text-blue-600"
+                  />
+                  {job.location}
+                </div>
+
+              </div>
+
+              {/* STATS */}
+
+              <div className="mt-6 grid grid-cols-1 divide-y divide-slate-200 border-t border-slate-200 pt-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+
+                <div className="pb-4 sm:px-4 sm:pb-0 sm:first:pl-0">
+
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <IndianRupee size={15} />
+                    Salary
+                  </div>
+
+                  <p className="mt-1 font-bold text-slate-900">
+                    {job.salary}
+                  </p>
+
+                </div>
+
+                <div className="py-4 sm:px-4 sm:py-0">
+
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <Clock3 size={15} />
+                    Posted
+                  </div>
+
+                  <p className="mt-1 font-bold text-slate-900">
+                    {job.posted}
+                  </p>
+
+                </div>
+
+                <div className="pt-4 sm:px-4 sm:pt-0">
+
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    <Users size={15} />
+                    Applicants
+                  </div>
+
+                  <p className="mt-1 font-bold text-slate-900">
+                    {job.applicants}
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* DESCRIPTION */}
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+
+              <h2 className="text-xl font-bold text-slate-900">
+                Job Description
+              </h2>
+
+              <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600 sm:text-base">
+                {job.description}
+              </p>
+
+            </div>
+
+            {/* RESPONSIBILITIES */}
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+
+              <h2 className="text-xl font-bold text-slate-900">
+                Responsibilities
+              </h2>
+
+              <div className="mt-5 space-y-4">
+
+                {job.responsibilities?.length > 0 ? (
+                  job.responsibilities.map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
+                      >
+                        <CheckCircle2
+                          size={19}
+                          className="mt-1 shrink-0 text-blue-600"
+                        />
+
+                        <span>{item}</span>
+                      </div>
+                    )
+                  )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No responsibilities specified.
+                  </p>
+                )}
+
+              </div>
+
+            </div>
+
+            {/* REQUIREMENTS */}
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+
+              <h2 className="text-xl font-bold text-slate-900">
+                Requirements
+              </h2>
+
+              <div className="mt-5 space-y-4">
+
+                {job.requirements?.length > 0 ? (
+                  job.requirements.map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
+                      >
+                        <CheckCircle2
+                          size={19}
+                          className="mt-1 shrink-0 text-blue-600"
+                        />
+
+                        <span>{item}</span>
+                      </div>
+                    )
+                  )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No requirements specified.
+                  </p>
+                )}
+
+              </div>
+
+            </div>
+
+            {/* SKILLS */}
+
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+
+              <h2 className="text-xl font-bold text-slate-900">
+                Skills
+              </h2>
+
+              <div className="mt-5 flex flex-wrap gap-2">
+
+                {job.skills?.length > 0 ? (
+                  job.skills.map(
+                    (skill, index) => (
+                      <span
+                        key={`${skill}-${index}`}
+                        className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
+                      >
+                        {skill}
+                      </span>
+                    )
+                  )
+                ) : (
+                  <p className="text-sm text-slate-500">
+                    No skills specified.
+                  </p>
+                )}
+
+              </div>
+
+            </div>
+
+          </div>
+
+          {/* =================================================
+              RIGHT SIDEBAR
+          ================================================= */}
+
+          <div className="lg:col-span-1">
+
+            <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
+              {/* APPLY */}
+
+              <button
+                onClick={openApplyModal}
+                disabled={applying}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Apply Now
+                <Send size={17} />
+              </button>
+
+              {/* OVERVIEW */}
+
+              <div className="mt-7">
+
+                <h2 className="text-lg font-bold text-slate-900">
+                  Job Overview
+                </h2>
+
+                <div className="mt-5 space-y-5">
+
+                  {/* EXPERIENCE */}
+
+                  <div className="flex items-start gap-3">
+
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <BriefcaseBusiness size={18} />
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-medium text-slate-400">
+                        Experience
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        {job.experience}
+                      </p>
+                    </div>
+
+                  </div>
+
+                  {/* LOCATION */}
+
+                  <div className="flex items-start gap-3">
+
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <MapPin size={18} />
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-medium text-slate-400">
+                        Location
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        {job.location}
+                      </p>
+                    </div>
+
+                  </div>
 
                   {/* SALARY */}
 
-                  <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+                  <div className="flex items-start gap-3">
 
-                    <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
-                      Salary
-                    </p>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <IndianRupee size={18} />
+                    </div>
 
-                    <p className="mt-1 flex min-w-0 items-center gap-1 text-xs font-bold text-slate-900 sm:text-sm">
+                    <div>
+                      <p className="text-xs font-medium text-slate-400">
+                        Salary
+                      </p>
 
-                      <IndianRupee
-                        size={13}
-                        className="shrink-0 sm:h-[15px] sm:w-[15px]"
-                      />
-
-                      <span className="truncate">
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
                         {job.salary}
-                      </span>
-
-                    </p>
+                      </p>
+                    </div>
 
                   </div>
 
                   {/* POSTED */}
 
-                  <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+                  <div className="flex items-start gap-3">
 
-                    <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
-                      Posted
-                    </p>
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <Clock3 size={18} />
+                    </div>
 
-                    <p className="mt-1 truncate text-xs font-bold text-slate-900 sm:text-sm">
-                      {job.posted}
-                    </p>
+                    <div>
+                      <p className="text-xs font-medium text-slate-400">
+                        Posted
+                      </p>
+
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        {job.posted}
+                      </p>
+                    </div>
 
                   </div>
 
-                  {/* APPLICANTS */}
+                  {/* COMPANY */}
 
-                  <div className="min-w-0 rounded-xl bg-slate-50 p-3 sm:p-4">
+                  <div className="flex items-start gap-3">
 
-                    <p className="text-[10px] font-medium text-slate-500 sm:text-xs">
-                      Applicants
-                    </p>
-
-                    <p className="mt-1 flex min-w-0 items-center gap-1 text-xs font-bold text-slate-900 sm:text-sm">
-
-                      <Users
-                        size={13}
-                        className="shrink-0 sm:h-[15px] sm:w-[15px]"
-                      />
-
-                      <span className="truncate">
-                        {job.applicants}
-                      </span>
-
-                    </p>
-
-                  </div>
-
-                </div>
-
-              </section>
-
-              {/* DESCRIPTION */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-                <h2 className="text-xl font-bold text-slate-900">
-                  Job Description
-                </h2>
-
-                <p className="mt-4 text-sm leading-7 text-slate-600 sm:text-base">
-                  {job.description}
-                </p>
-
-              </section>
-
-              {/* RESPONSIBILITIES */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-                <h2 className="text-xl font-bold text-slate-900">
-                  Responsibilities
-                </h2>
-
-                <div className="mt-5 space-y-3">
-
-                  {[
-                    "Manage daily activities and coordinate with different teams.",
-                    "Maintain smooth communication with internal stakeholders.",
-                    "Monitor operational performance and achieve targets.",
-                    "Prepare reports and maintain required documentation.",
-                    "Work collaboratively with team members and management.",
-                  ].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
-                    >
-                      <CheckCircle2
-                        size={19}
-                        className="mt-1 shrink-0 text-blue-600"
-                      />
-
-                      <span>{item}</span>
-                    </div>
-                  ))}
-
-                </div>
-
-              </section>
-
-              {/* REQUIREMENTS */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-                <h2 className="text-xl font-bold text-slate-900">
-                  Requirements
-                </h2>
-
-                <div className="mt-5 space-y-3">
-
-                  {[
-                    "Good communication and interpersonal skills.",
-                    "Ability to work independently and as part of a team.",
-                    "Strong problem-solving and analytical skills.",
-                    "Relevant experience in the required field.",
-                    "Good understanding of the job responsibilities.",
-                  ].map((item) => (
-                    <div
-                      key={item}
-                      className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
-                    >
-                      <CheckCircle2
-                        size={19}
-                        className="mt-1 shrink-0 text-blue-600"
-                      />
-
-                      <span>{item}</span>
-                    </div>
-                  ))}
-
-                </div>
-
-              </section>
-
-              {/* SKILLS */}
-
-              <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-                <h2 className="text-xl font-bold text-slate-900">
-                  Skills Required
-                </h2>
-
-                <div className="mt-5 flex flex-wrap gap-2">
-
-                  {job.skills.map((skill) => (
-                    <span
-                      key={skill}
-                      className="rounded-full bg-blue-50 px-4 py-2 text-xs font-bold text-blue-700 sm:text-sm"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-
-                </div>
-
-              </section>
-
-            </div>
-
-            {/* =================================================
-                RIGHT SIDEBAR
-            ================================================== */}
-
-            <aside className="h-fit lg:sticky lg:top-24">
-
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-
-                {/* APPLY BUTTON */}
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowApplyModal(true);
-                    setApplicationStep("options");
-                    setIsSubmitted(false);
-                  }}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
-                >
-                  <Send size={17} />
-                  Apply for this Job
-                </button>
-
-                {/* JOB OVERVIEW */}
-
-                <div className="mt-6 border-t border-slate-100 pt-5">
-
-                  <h3 className="text-base font-bold text-slate-900">
-                    Job Overview
-                  </h3>
-
-                  <div className="mt-5 space-y-5">
-
-                    {/* EXPERIENCE */}
-
-                    <div className="flex gap-3">
-
-                      <BriefcaseBusiness
-                        size={19}
-                        className="shrink-0 text-blue-600"
-                      />
-
-                      <div>
-
-                        <p className="text-xs text-slate-500">
-                          Experience
-                        </p>
-
-                        <p className="mt-1 text-sm font-semibold text-slate-800">
-                          {job.experience}
-                        </p>
-
-                      </div>
-
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                      <Building2 size={18} />
                     </div>
 
-                    {/* LOCATION */}
+                    <div>
+                      <p className="text-xs font-medium text-slate-400">
+                        Company
+                      </p>
 
-                    <div className="flex gap-3">
-
-                      <MapPin
-                        size={19}
-                        className="shrink-0 text-blue-600"
-                      />
-
-                      <div>
-
-                        <p className="text-xs text-slate-500">
-                          Location
-                        </p>
-
-                        <p className="mt-1 break-words text-sm font-semibold text-slate-800">
-                          {job.location}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    {/* SALARY */}
-
-                    <div className="flex gap-3">
-
-                      <IndianRupee
-                        size={19}
-                        className="shrink-0 text-blue-600"
-                      />
-
-                      <div>
-
-                        <p className="text-xs text-slate-500">
-                          Salary
-                        </p>
-
-                        <p className="mt-1 text-sm font-semibold text-slate-800">
-                          {job.salary}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    {/* POSTED */}
-
-                    <div className="flex gap-3">
-
-                      <CalendarDays
-                        size={19}
-                        className="shrink-0 text-blue-600"
-                      />
-
-                      <div>
-
-                        <p className="text-xs text-slate-500">
-                          Posted
-                        </p>
-
-                        <p className="mt-1 text-sm font-semibold text-slate-800">
-                          {job.posted}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    {/* COMPANY */}
-
-                    <div className="flex gap-3">
-
-                      <Building2
-                        size={19}
-                        className="shrink-0 text-blue-600"
-                      />
-
-                      <div>
-
-                        <p className="text-xs text-slate-500">
-                          Company
-                        </p>
-
-                        <p className="mt-1 break-words text-sm font-semibold text-slate-800">
-                          {job.company}
-                        </p>
-
-                      </div>
-
+                      <p className="mt-1 text-sm font-semibold text-slate-800">
+                        {job.company}
+                      </p>
                     </div>
 
                   </div>
@@ -933,364 +995,294 @@ const JobDetail = () => {
 
               </div>
 
-            </aside>
+            </div>
 
           </div>
 
         </div>
 
-      </main>
+      </div>
 
       {/* =====================================================
           APPLICATION MODAL
-      ====================================================== */}
+      ===================================================== */}
 
       {showApplyModal && (
-        <div
-          className="fixed inset-0 z-[999] flex items-center justify-center overflow-hidden bg-slate-950/60 p-3 backdrop-blur-sm sm:p-5"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) {
-              closeApplicationModal();
-            }
-          }}
-        >
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
 
-          {/* =================================================
-              MODAL CONTAINER
-          ================================================== */}
+          <div className="relative flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
 
-          <div className="relative flex h-full max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            {/* MODAL HEADER */}
 
-            {/* =================================================
-                MODAL HEADER
-            ================================================== */}
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
 
-            <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
+              <div>
 
-              <div className="min-w-0 pr-4">
-
-                <h2 className="truncate text-base font-bold text-slate-900 sm:text-lg">
+                <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
                   Apply for {job.title}
                 </h2>
 
-                <p className="mt-1 truncate text-xs text-slate-500">
-                  {job.company} • {job.location}
+                <p className="mt-1 text-sm text-slate-500">
+                  {job.company}
                 </p>
 
               </div>
 
               <button
-                type="button"
-                onClick={closeApplicationModal}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700"
-                aria-label="Close application modal"
+                onClick={closeModal}
+                disabled={applying}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <X size={18} />
+                <X size={20} />
               </button>
 
             </div>
 
-            {/* =================================================
-                SUCCESS
-            ================================================== */}
+            {/* SUCCESS */}
 
             {isSubmitted ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
 
-              <div className="min-h-0 flex-1 overflow-y-auto px-5 py-12 text-center sm:px-8">
-
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
                   <CheckCircle2 size={34} />
                 </div>
 
-                <h2 className="mt-5 text-xl font-bold text-slate-900">
+                <h3 className="mt-5 text-2xl font-bold text-slate-900">
                   Application Submitted!
-                </h2>
+                </h3>
 
-                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
-
-                  Your application for{" "}
-
-                  <span className="font-semibold text-slate-700">
-                    {job.title}
-                  </span>{" "}
-
-                  at{" "}
-
-                  <span className="font-semibold text-slate-700">
-                    {job.company}
-                  </span>{" "}
-
-                  has been submitted successfully.
-
+                <p className="mt-3 max-w-md text-sm leading-6 text-slate-500">
+                  {applicationMessage ||
+                    "Your application has been submitted successfully. The employer will review your application."}
                 </p>
 
                 <button
-                  type="button"
-                  onClick={closeApplicationModal}
-                  className="mt-7 rounded-xl bg-blue-600 px-7 py-3 text-sm font-bold text-white hover:bg-blue-700"
+                  onClick={closeModal}
+                  className="mt-7 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
                 >
-                  Done
+                  Close
                 </button>
 
               </div>
-
             ) : (
-
               <>
-                {/* =================================================
-                    APPLICATION OPTIONS
-                ================================================== */}
 
-                {applicationStep === "options" && (
+                {/* ERROR */}
 
-                  <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
+                {applicationError && (
+                  <div className="mx-5 mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:mx-6">
 
-                    <div className="text-center">
+                    <AlertCircle
+                      size={19}
+                      className="mt-0.5 shrink-0 text-red-600"
+                    />
 
-                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-600">
-                        <FileText size={25} />
-                      </div>
+                    <div>
 
-                      <h3 className="mt-4 text-lg font-bold text-slate-900">
-                        How would you like to apply?
-                      </h3>
-
-                      <p className="mt-1 text-sm text-slate-500">
-                        Choose an application method to continue.
+                      <p className="text-sm font-semibold text-red-800">
+                        Application Failed
                       </p>
 
-                    </div>
-
-                    <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-                      {/* SAVED APPLICATION */}
-
-                      <button
-                        type="button"
-                        onClick={loadSavedApplication}
-                        className="group rounded-2xl border-2 border-slate-200 bg-white p-5 text-left transition hover:border-blue-500 hover:bg-blue-50"
-                      >
-
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                          <FileText size={22} />
-                        </div>
-
-                        <h4 className="mt-4 text-base font-bold text-slate-900">
-                          Saved Application
-                        </h4>
-
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
-                          Use your previously saved application details and apply quickly.
-                        </p>
-
-                        <span className="mt-4 block text-xs font-bold text-blue-600">
-                          Use Saved Details →
-                        </span>
-
-                      </button>
-
-                      {/* MANUAL APPLICATION */}
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setApplicationStep("manual")
-                        }
-                        className="group rounded-2xl border-2 border-slate-200 bg-white p-5 text-left transition hover:border-blue-500 hover:bg-blue-50"
-                      >
-
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
-                          <User size={22} />
-                        </div>
-
-                        <h4 className="mt-4 text-base font-bold text-slate-900">
-                          Manual Application
-                        </h4>
-
-                        <p className="mt-2 text-sm leading-6 text-slate-500">
-                          Fill in your personal information and upload your photo, government document and resume.
-                        </p>
-
-                        <span className="mt-4 block text-xs font-bold text-blue-600">
-                          Fill Application →
-                        </span>
-
-                      </button>
-
-                    </div>
-
-                    <div className="mt-6 rounded-xl bg-blue-50 p-4">
-
-                      <p className="text-xs leading-5 text-blue-700">
-
-                        <strong>Tip:</strong> Save your application once.
-                        Next time you can use the saved details to apply
-                        much faster.
-
+                      <p className="mt-1 text-sm text-red-700">
+                        {applicationError}
                       </p>
 
                     </div>
 
                   </div>
-
                 )}
 
-                {/* =================================================
-                    MANUAL APPLICATION FORM
-                ================================================== */}
+                {/* OPTIONS */}
 
-                {applicationStep === "manual" && (
+                {applicationStep === "options" && (
+                  <div className="overflow-y-auto px-5 py-6 sm:px-6">
 
-                  <form
-                    onSubmit={submitApplication}
-                    className="flex min-h-0 flex-1 flex-col overflow-hidden"
-                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
 
-                    {/* =================================================
-                        SCROLLABLE FORM CONTENT
-                    ================================================== */}
+                      {/* MANUAL */}
 
-                    <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-7">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          dispatch(clearApplicationError());
+                          setApplicationStep("manual");
+                        }}
+                        className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
+                      >
 
-                      {/* FORM HEADING */}
+                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                          <User size={21} />
+                        </div>
 
-                      <div className="mb-6">
-
-                        <h3 className="text-lg font-bold text-slate-900">
-                          Application Details
+                        <h3 className="mt-4 font-bold text-slate-900">
+                          Apply Manually
                         </h3>
 
-                        <p className="mt-1 text-xs text-slate-500">
-                          Complete your information to apply for this job.
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          Fill in your details and submit your application.
                         </p>
 
-                      </div>
+                      </button>
 
-                      {/* =================================================
-                          PERSONAL INFORMATION
-                      ================================================== */}
+                      {/* SAVED DETAILS */}
 
-                      <div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          dispatch(clearApplicationError());
+                          setApplicationStep("manual");
+                        }}
+                        className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
+                      >
 
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Personal Information
-                        </h4>
+                        <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                          <FileText size={21} />
+                        </div>
 
-                        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <h3 className="mt-4 font-bold text-slate-900">
+                          Use Saved Details
+                        </h3>
 
-                          {/* NAME */}
+                        <p className="mt-2 text-sm leading-6 text-slate-500">
+                          Continue with your previously saved application details.
+                        </p>
 
-                          <div>
+                      </button>
 
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Full Name *
-                            </label>
+                    </div>
 
-                            <div className="relative">
+                  </div>
+                )}
 
-                              <User
-                                size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                              />
+                {/* MANUAL FORM */}
 
-                              <input
-                                required
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Enter your full name"
-                                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                              />
+                {applicationStep === "manual" && (
+                  <form
+                    onSubmit={submitApplication}
+                    className="overflow-y-auto px-5 py-6 sm:px-6"
+                  >
 
-                            </div>
+                    {/* PERSONAL INFORMATION */}
 
-                          </div>
+                    <div>
 
-                          {/* EMAIL */}
+                      <h3 className="text-base font-bold text-slate-900">
+                        Personal Information
+                      </h3>
 
-                          <div>
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
 
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Email Address *
-                            </label>
+                        {/* NAME */}
 
-                            <div className="relative">
+                        <div>
 
-                              <Mail
-                                size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                              />
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Full Name *
+                          </label>
 
-                              <input
-                                required
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="you@example.com"
-                                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                              />
+                          <div className="relative">
 
-                            </div>
+                            <User
+                              size={17}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                            />
 
-                          </div>
-
-                          {/* PHONE */}
-
-                          <div>
-
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Phone Number *
-                            </label>
-
-                            <div className="relative">
-
-                              <Phone
-                                size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                              />
-
-                              <input
-                                required
-                                type="tel"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleChange}
-                                placeholder="Enter phone number"
-                                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                              />
-
-                            </div>
+                            <input
+                              type="text"
+                              name="name"
+                              value={formData.name}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="Enter your full name"
+                              className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
 
                           </div>
 
-                          {/* LOCATION */}
+                        </div>
 
-                          <div>
+                        {/* EMAIL */}
 
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Current Location *
-                            </label>
+                        <div>
 
-                            <div className="relative">
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Email *
+                          </label>
 
-                              <MapPin
-                                size={16}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                              />
+                          <div className="relative">
 
-                              <input
-                                required
-                                type="text"
-                                name="currentLocation"
-                                value={formData.currentLocation}
-                                onChange={handleChange}
-                                placeholder="City, State"
-                                className="h-11 w-full rounded-lg border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                              />
+                            <Mail
+                              size={17}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                            />
 
-                            </div>
+                            <input
+                              type="email"
+                              name="email"
+                              value={formData.email}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="Enter your email"
+                              className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+
+                          </div>
+
+                        </div>
+
+                        {/* PHONE */}
+
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Phone *
+                          </label>
+
+                          <div className="relative">
+
+                            <Phone
+                              size={17}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                            />
+
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={formData.phone}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="Enter your phone number"
+                              className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+
+                          </div>
+
+                        </div>
+
+                        {/* LOCATION */}
+
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Current Location *
+                          </label>
+
+                          <div className="relative">
+
+                            <MapPin
+                              size={17}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                            />
+
+                            <input
+                              type="text"
+                              name="currentLocation"
+                              value={formData.currentLocation}
+                              onChange={handleInputChange}
+                              required
+                              placeholder="City, State"
+                              className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
 
                           </div>
 
@@ -1298,516 +1290,281 @@ const JobDetail = () => {
 
                       </div>
 
-                      {/* =================================================
-                          EXPERIENCE
-                      ================================================== */}
+                    </div>
 
-                      <div className="mt-7">
+                    {/* EXPERIENCE */}
 
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Experience
-                        </h4>
+                    <div className="mt-7">
 
-                        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      <h3 className="text-base font-bold text-slate-900">
+                        Experience
+                      </h3>
 
-                          {/* FRESHER */}
+                      <div className="mt-4 grid gap-4 sm:grid-cols-2">
 
-                          <label
-                            className={`cursor-pointer rounded-xl border-2 p-4 transition ${
-                              formData.experienceType === "Fresher"
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-slate-200 bg-white"
-                            }`}
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Experience Type *
+                          </label>
+
+                          <select
+                            name="experienceType"
+                            value={formData.experienceType}
+                            onChange={handleInputChange}
+                            required
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           >
 
-                            <input
-                              type="radio"
-                              name="experienceType"
-                              value="Fresher"
-                              checked={
-                                formData.experienceType ===
-                                "Fresher"
-                              }
-                              onChange={handleChange}
-                              className="sr-only"
+                            <option value="">
+                              Select experience type
+                            </option>
+
+                            <option value="Fresher">
+                              Fresher
+                            </option>
+
+                            <option value="Experienced">
+                              Experienced
+                            </option>
+
+                          </select>
+
+                        </div>
+
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Years of Experience
+                          </label>
+
+                          <input
+                            type="text"
+                            name="experience"
+                            value={formData.experience}
+                            onChange={handleInputChange}
+                            placeholder="e.g. 2 years"
+                            className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                          />
+
+                        </div>
+
+                      </div>
+
+                    </div>
+
+                    {/* DOCUMENTS */}
+
+                    <div className="mt-7">
+
+                      <h3 className="text-base font-bold text-slate-900">
+                        Documents
+                      </h3>
+
+                      <div className="mt-4 grid gap-4 sm:grid-cols-3">
+
+                        {/* PROFILE PHOTO */}
+
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Profile Photo
+                          </label>
+
+                          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
+
+                            <Upload
+                              size={20}
+                              className="text-slate-400"
                             />
 
-                            <div className="flex items-center gap-3">
+                            <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
+                              {formData.profilePhoto
+                                ? formData.profilePhoto.name
+                                : "Upload Photo"}
+                            </span>
 
-                              <div
-                                className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                                  formData.experienceType ===
-                                  "Fresher"
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-slate-100 text-slate-500"
-                                }`}
-                              >
-                                <User size={17} />
-                              </div>
-
-                              <div>
-
-                                <p className="text-sm font-bold text-slate-800">
-                                  Fresher
-                                </p>
-
-                                <p className="mt-0.5 text-[11px] text-slate-500">
-                                  I have no professional experience
-                                </p>
-
-                              </div>
-
-                            </div>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/jpg,image/webp"
+                              onChange={handleProfilePhoto}
+                              className="hidden"
+                            />
 
                           </label>
 
-                          {/* EXPERIENCED */}
+                        </div>
 
-                          <label
-                            className={`cursor-pointer rounded-xl border-2 p-4 transition ${
-                              formData.experienceType ===
-                              "Experienced"
-                                ? "border-blue-500 bg-blue-50"
-                                : "border-slate-200 bg-white"
-                            }`}
-                          >
+                        {/* GOVERNMENT DOCUMENT */}
 
-                            <input
-                              type="radio"
-                              name="experienceType"
-                              value="Experienced"
-                              checked={
-                                formData.experienceType ===
-                                "Experienced"
-                              }
-                              onChange={handleChange}
-                              className="sr-only"
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Government Document
+                          </label>
+
+                          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
+
+                            <FileText
+                              size={20}
+                              className="text-slate-400"
                             />
 
-                            <div className="flex items-center gap-3">
+                            <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
+                              {formData.governmentDocument
+                                ? formData.governmentDocument.name
+                                : "Upload Document"}
+                            </span>
 
-                              <div
-                                className={`flex h-9 w-9 items-center justify-center rounded-full ${
-                                  formData.experienceType ===
-                                  "Experienced"
-                                    ? "bg-blue-600 text-white"
-                                    : "bg-slate-100 text-slate-500"
-                                }`}
-                              >
-                                <BriefcaseBusiness size={17} />
-                              </div>
-
-                              <div>
-
-                                <p className="text-sm font-bold text-slate-800">
-                                  Experienced
-                                </p>
-
-                                <p className="mt-0.5 text-[11px] text-slate-500">
-                                  I have professional experience
-                                </p>
-
-                              </div>
-
-                            </div>
+                            <input
+                              type="file"
+                              accept=".pdf,image/jpeg,image/png,image/jpg,image/webp"
+                              onChange={handleGovernmentDocument}
+                              className="hidden"
+                            />
 
                           </label>
 
                         </div>
 
-                        {/* EXPERIENCE YEARS */}
+                        {/* RESUME */}
 
-                        {formData.experienceType ===
-                          "Experienced" && (
-                          <div className="mt-4">
+                        <div>
 
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Total Experience *
-                            </label>
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Resume *
+                          </label>
 
-                            <input
-                              required
-                              type="text"
-                              name="experience"
-                              value={formData.experience}
-                              onChange={handleChange}
-                              placeholder="Example: 2 Years 6 Months"
-                              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                          <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
+
+                            <FileText
+                              size={20}
+                              className="text-slate-400"
                             />
 
-                          </div>
-                        )}
-
-                      </div>
-
-                      {/* =================================================
-                          PROFILE PHOTO
-                      ================================================== */}
-
-                      <div className="mt-7">
-
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Profile Photo
-                        </h4>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          Upload a clear recent photo of yourself.
-                        </p>
-
-                        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-7 text-center transition hover:border-blue-400 hover:bg-blue-50">
-
-                          {formData.profilePhoto ? (
-                            <>
-
-                              <div className="relative">
-
-                                <img
-                                  src={URL.createObjectURL(
-                                    formData.profilePhoto
-                                  )}
-                                  alt="Profile preview"
-                                  className="h-24 w-24 rounded-full border-4 border-white object-cover shadow-md"
-                                />
-
-                                <div className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-green-500 text-white ring-2 ring-white">
-                                  <CheckCircle2 size={15} />
-                                </div>
-
-                              </div>
-
-                              <span className="mt-3 max-w-full truncate text-sm font-bold text-green-700">
-                                {formData.profilePhoto.name}
-                              </span>
-
-                              <span className="mt-1 text-xs text-slate-500">
-                                Click to change photo
-                              </span>
-
-                            </>
-                          ) : (
-                            <>
-
-                              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                                <Camera size={22} />
-                              </div>
-
-                              <span className="mt-3 text-sm font-bold text-slate-700">
-                                Upload your profile photo *
-                              </span>
-
-                              <span className="mt-1 text-xs text-slate-500">
-                                JPG, JPEG or PNG • Max 2MB
-                              </span>
-
-                            </>
-                          )}
-
-                          <input
-                            required
-                            type="file"
-                            name="profilePhoto"
-                            accept="image/jpeg,image/jpg,image/png"
-                            onChange={handleProfilePhotoChange}
-                            className="hidden"
-                          />
-
-                        </label>
-
-                      </div>
-
-                      {/* =================================================
-                          GOVERNMENT DOCUMENT
-                      ================================================== */}
-
-                      <div className="mt-7">
-
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Government ID Document
-                        </h4>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          Upload a valid government-issued identity document.
-                        </p>
-
-                        <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 p-4">
-
-                          <div className="flex items-start gap-3">
-
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
-                              <ShieldCheck size={20} />
-                            </div>
-
-                            <div>
-
-                              <p className="text-sm font-bold text-blue-900">
-                                Identity Verification
-                              </p>
-
-                              <p className="mt-1 text-xs leading-5 text-blue-700">
-                                Please upload a valid government-issued
-                                document for verification.
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-7 text-center transition hover:border-blue-400 hover:bg-blue-50">
-
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                            <FileText size={22} />
-                          </div>
-
-                          <span className="mt-3 text-sm font-bold text-slate-700">
-                            Upload government document *
-                          </span>
-
-                          <span className="mt-1 text-xs text-slate-500">
-                            Aadhaar, PAN, Passport, Driving Licence • PDF, JPG, PNG • Max 5MB
-                          </span>
-
-                          <input
-                            required
-                            type="file"
-                            name="governmentDocument"
-                            accept=".pdf,.jpg,.jpeg,.png"
-                            onChange={
-                              handleGovernmentDocumentChange
-                            }
-                            className="hidden"
-                          />
-
-                          {formData.governmentDocument && (
-                            <div className="mt-4 flex max-w-full items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
-
-                              <ShieldCheck
-                                size={15}
-                                className="shrink-0 text-green-600"
-                              />
-
-                              <span className="max-w-[260px] truncate text-xs font-semibold text-green-700">
-                                {formData.governmentDocument.name}
-                              </span>
-
-                            </div>
-                          )}
-
-                        </label>
-
-                      </div>
-
-                      {/* =================================================
-                          RESUME
-                      ================================================== */}
-
-                      <div className="mt-7">
-
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Resume
-                        </h4>
-
-                        <label className="mt-4 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-5 py-7 text-center transition hover:border-blue-400 hover:bg-blue-50">
-
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600">
-                            <Upload size={22} />
-                          </div>
-
-                          <span className="mt-3 text-sm font-bold text-slate-700">
-                            Upload your resume *
-                          </span>
-
-                          <span className="mt-1 text-xs text-slate-500">
-                            PDF, DOC or DOCX • Max 5MB
-                          </span>
-
-                          <input
-                            required
-                            type="file"
-                            name="resume"
-                            accept=".pdf,.doc,.docx"
-                            onChange={handleResumeChange}
-                            className="hidden"
-                          />
-
-                          {formData.resume && (
-                            <div className="mt-4 flex max-w-full items-center gap-2 rounded-lg bg-green-50 px-3 py-2">
-
-                              <FileText
-                                size={15}
-                                className="shrink-0 text-green-600"
-                              />
-
-                              <span className="max-w-[220px] truncate text-xs font-semibold text-green-700">
-                                {formData.resume.name}
-                              </span>
-
-                            </div>
-                          )}
-
-                        </label>
-
-                      </div>
-
-                      {/* =================================================
-                          PROFESSIONAL DETAILS
-                      ================================================== */}
-
-                      <div className="mt-7">
-
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Professional Details
-                        </h4>
-
-                        <div className="mt-4 space-y-4">
-
-                          {/* SKILLS */}
-
-                          <div>
-
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Skills *
-                            </label>
+                            <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
+                              {formData.resume
+                                ? formData.resume.name
+                                : "Upload Resume"}
+                            </span>
 
                             <input
+                              type="file"
+                              accept=".pdf,.doc,.docx"
+                              onChange={handleResume}
                               required
-                              type="text"
-                              name="skills"
-                              value={formData.skills}
-                              onChange={handleChange}
-                              placeholder="React, JavaScript, Node.js, MongoDB..."
-                              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                              className="hidden"
                             />
 
-                          </div>
-
-                          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-
-                            {/* EXPECTED SALARY */}
-
-                            <div>
-
-                              <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                                Expected Salary
-                              </label>
-
-                              <div className="relative">
-
-                                <IndianRupee
-                                  size={16}
-                                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                                />
-
-                                <input
-                                  type="text"
-                                  name="expectedSalary"
-                                  value={
-                                    formData.expectedSalary
-                                  }
-                                  onChange={handleChange}
-                                  placeholder="Example: ₹8 LPA"
-                                  className="h-11 w-full rounded-lg border border-slate-200 pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                                />
-
-                              </div>
-
-                            </div>
-
-                            {/* NOTICE PERIOD */}
-
-                            <div>
-
-                              <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                                Notice Period
-                              </label>
-
-                              <select
-                                name="noticePeriod"
-                                value={
-                                  formData.noticePeriod
-                                }
-                                onChange={handleChange}
-                                className="h-11 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-800 outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                              >
-
-                                <option value="">
-                                  Select notice period
-                                </option>
-
-                                <option value="Immediate">
-                                  Immediate
-                                </option>
-
-                                <option value="15 Days">
-                                  15 Days
-                                </option>
-
-                                <option value="30 Days">
-                                  30 Days
-                                </option>
-
-                                <option value="60 Days">
-                                  60 Days
-                                </option>
-
-                                <option value="90 Days">
-                                  90 Days
-                                </option>
-
-                              </select>
-
-                            </div>
-
-                          </div>
+                          </label>
 
                         </div>
 
                       </div>
 
-                      {/* =================================================
-                          ONLINE PROFILES
-                      ================================================== */}
+                    </div>
 
-                      <div className="mt-7">
+                    {/* PROFESSIONAL INFORMATION */}
 
-                        <h4 className="text-sm font-bold text-slate-900">
-                          Online Profiles
-                        </h4>
+                    <div className="mt-7">
 
-                        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <h3 className="text-base font-bold text-slate-900">
+                        Professional Information
+                      </h3>
 
-                          {/* LINKEDIN */}
+                      <div className="mt-4 space-y-4">
+
+                        {/* SKILLS */}
+
+                        <div>
+
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Skills *
+                          </label>
+
+                          <input
+                            type="text"
+                            name="skills"
+                            value={formData.skills}
+                            onChange={handleInputChange}
+                            required
+                            placeholder="React, JavaScript, Node.js..."
+                            className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                          />
+
+                        </div>
+
+                        {/* SALARY / NOTICE */}
+
+                        <div className="grid gap-4 sm:grid-cols-2">
 
                           <div>
 
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              LinkedIn Profile
+                            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                              Expected Salary
+                            </label>
+
+                            <input
+                              type="text"
+                              name="expectedSalary"
+                              value={formData.expectedSalary}
+                              onChange={handleInputChange}
+                              placeholder="e.g. ₹6 LPA"
+                              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+
+                          </div>
+
+                          <div>
+
+                            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                              Notice Period
+                            </label>
+
+                            <input
+                              type="text"
+                              name="noticePeriod"
+                              value={formData.noticePeriod}
+                              onChange={handleInputChange}
+                              placeholder="e.g. 30 days"
+                              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+
+                          </div>
+
+                        </div>
+
+                        {/* LINKEDIN / PORTFOLIO */}
+
+                        <div className="grid gap-4 sm:grid-cols-2">
+
+                          <div>
+
+                            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                              LinkedIn
                             </label>
 
                             <input
                               type="url"
                               name="linkedin"
                               value={formData.linkedin}
-                              onChange={handleChange}
-                              placeholder="https://linkedin.com/in/..."
-                              className="h-11 w-full rounded-lg border border-slate-200 px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                              onChange={handleInputChange}
+                              placeholder="LinkedIn URL"
+                              className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
                           </div>
 
-                          {/* PORTFOLIO */}
-
                           <div>
 
-                            <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                              Portfolio / Website
+                            <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                              Portfolio
                             </label>
 
                             <div className="relative">
 
                               <Globe
-                                size={16}
+                                size={17}
                                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                               />
 
@@ -1815,9 +1572,9 @@ const JobDetail = () => {
                                 type="url"
                                 name="portfolio"
                                 value={formData.portfolio}
-                                onChange={handleChange}
-                                placeholder="https://yourwebsite.com"
-                                className="h-11 w-full rounded-lg border border-slate-200 pl-10 pr-3 text-sm text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
+                                onChange={handleInputChange}
+                                placeholder="Portfolio URL"
+                                className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                               />
 
                             </div>
@@ -1826,97 +1583,97 @@ const JobDetail = () => {
 
                         </div>
 
-                      </div>
+                        {/* COVER LETTER */}
 
-                      {/* =================================================
-                          COVER LETTER
-                      ================================================== */}
+                        <div>
 
-                      <div className="mt-7">
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Cover Letter
+                          </label>
 
-                        <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                          Cover Letter
-                        </label>
+                          <textarea
+                            name="coverLetter"
+                            value={formData.coverLetter}
+                            onChange={handleInputChange}
+                            rows={5}
+                            placeholder="Write a short cover letter..."
+                            className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                          />
 
-                        <textarea
-                          name="coverLetter"
-                          value={formData.coverLetter}
-                          onChange={handleChange}
-                          rows={5}
-                          placeholder="Tell the recruiter why you are a good fit for this position..."
-                          className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm leading-6 text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        />
+                        </div>
 
-                      </div>
+                        {/* ADDITIONAL INFO */}
 
-                      {/* =================================================
-                          ADDITIONAL INFORMATION
-                      ================================================== */}
+                        <div>
 
-                      <div className="mt-4">
+                          <label className="mb-1.5 block text-sm font-semibold text-slate-700">
+                            Additional Information
+                          </label>
 
-                        <label className="mb-1.5 block text-xs font-bold text-slate-700">
-                          Additional Information
-                        </label>
+                          <textarea
+                            name="additionalInfo"
+                            value={formData.additionalInfo}
+                            onChange={handleInputChange}
+                            rows={4}
+                            placeholder="Anything else you want the employer to know..."
+                            className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                          />
 
-                        <textarea
-                          name="additionalInfo"
-                          value={formData.additionalInfo}
-                          onChange={handleChange}
-                          rows={4}
-                          placeholder="Anything else you want the recruiter to know..."
-                          className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm leading-6 text-slate-800 outline-none placeholder:text-slate-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
-                        />
+                        </div>
 
                       </div>
 
                     </div>
 
-                    {/* =================================================
-                        FORM FOOTER
-                    ================================================== */}
+                    {/* NOTICE */}
 
-                    <div className="shrink-0 border-t border-slate-200 bg-white p-4 sm:px-7">
+                    <div className="mt-6 flex items-start gap-3 rounded-lg bg-blue-50 p-4">
 
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <AlertCircle
+                        size={18}
+                        className="mt-0.5 shrink-0 text-blue-600"
+                      />
 
-                        {/* BACK */}
+                      <p className="text-xs leading-5 text-blue-700 sm:text-sm">
+                        Please make sure all information provided is accurate before submitting your application.
+                      </p>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setApplicationStep("options")
-                          }
-                          className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50"
-                        >
-                          Back
-                        </button>
+                    </div>
 
-                        <div className="flex flex-col gap-2 sm:flex-row">
+                    {/* ACTIONS */}
 
-                          {/* SAVE */}
+                    <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
 
-                          <button
-                            type="button"
-                            onClick={saveApplication}
-                            className="rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold text-blue-600 transition hover:bg-blue-100"
-                          >
-                            Save Application
-                          </button>
+                      <button
+                        type="button"
+                        disabled={applying}
+                        onClick={() =>
+                          setApplicationStep("options")
+                        }
+                        className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Back
+                      </button>
 
-                          {/* SUBMIT */}
+                      <button
+                        type="submit"
+                        disabled={applying}
+                        className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
 
-                          <button
-                            type="submit"
-                            className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700"
-                          >
-                            <Send size={16} />
+                        {applying ? (
+                          <>
+                            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                            Submitting...
+                          </>
+                        ) : (
+                          <>
                             Submit Application
-                          </button>
+                            <Send size={17} />
+                          </>
+                        )}
 
-                        </div>
-
-                      </div>
+                      </button>
 
                     </div>
 
@@ -1927,9 +1684,11 @@ const JobDetail = () => {
             )}
 
           </div>
+
         </div>
       )}
-    </>
+
+    </main>
   );
 };
 

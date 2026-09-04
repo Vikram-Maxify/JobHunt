@@ -299,7 +299,7 @@ const JobCategories = () => {
           {/* =========================
               BROWSE ALL
           ========================== */}
-          {!loading &&
+          {/* {!loading &&
             !error &&
             categories?.length > 0 && (
               <div className="text-center mt-8 sm:mt-10">
@@ -321,7 +321,7 @@ const JobCategories = () => {
                   Explore all available job categories
                 </p>
               </div>
-            )}
+            )} */}
 
         </div>
       </section>

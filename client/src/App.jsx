@@ -52,6 +52,7 @@ import AdminDashboard from "./admin/pages/Dashboard";
 import TestimonialManagement from "./admin/pages/TestimonialManagement";
 import { getProfile } from "./redux/slicer/authSlice";
 import AdminProfile from "./admin/pages/AdminProfile";
+import MySubscription from "./Pages/MySubscription";
 
 function App() {
   const dispatch = useDispatch();
@@ -93,6 +94,7 @@ function App() {
               <Route path="/jobs/:id" element={<JobDetail />} />
 
               <Route path="/Carrier" element={<CarrierResources />} />
+              <Route path="/my-subscription" element={<MySubscription  />} />
 
               <Route path="/skills" element={<SkillDevelopment />} />
 

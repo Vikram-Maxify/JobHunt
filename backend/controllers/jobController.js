@@ -4,7 +4,6 @@ const JobApplication = require("../models/JobApplication");
 const UserSubscription = require("../models/UserSubscription");
 const SavedJob = require("../models/SavedJob");
 const { uploadToImgBB, deleteFromImgBB } = require("../utils/imgbb");
-const { sendApplicationConfirmation } = require("../utils/mailer");
 
 // ============================================================
 // HELPERS
@@ -1476,6 +1475,13 @@ exports.applyToJob = async (req, res) => {
       });
     }
 
+    if (req.body.jobId !== jobId) {
+      return res.status(400).json({
+        success: false,
+        message: "Job ID is required and must match the requested job",
+      });
+    }
+
     // =================================================
     // 2. FIND ACTIVE JOB
     // =================================================
@@ -1604,6 +1610,76 @@ exports.applyToJob = async (req, res) => {
     // 8. CREATE APPLICATION
     // =================================================
 
+    const requiredFields = [
+      "name",
+      "email",
+      "phone",
+      "experienceType",
+      "currentLocation",
+      "skills",
+      "passport",
+    ];
+    const missingField = requiredFields.find(
+      (field) => !String(req.body[field] || "").trim(),
+    );
+
+    if (missingField || !req.files?.resume?.[0]) {
+      return res.status(400).json({
+        success: false,
+        message: `Missing required application field: ${
+          missingField || "resume"
+        }`,
+      });
+    }
+
+    let skills;
+    try {
+      skills = parseArray(req.body.skills, "skills")
+        .map((skill) => String(skill).trim())
+        .filter(Boolean);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+
+    if (!skills.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Skills are required",
+      });
+    }
+
+    const fileData = (fieldName) => {
+      const file = req.files?.[fieldName]?.[0];
+
+      if (!file) return undefined;
+
+      return {
+        filename: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        data: file.buffer,
+      };
+    };
+
+    let profilePhoto;
+    const profilePhotoFile = req.files?.profilePhoto?.[0];
+    if (profilePhotoFile) {
+      const uploadResult = await uploadToImgBB(
+        profilePhotoFile.buffer,
+        profilePhotoFile.originalname,
+        { name: `application-profile-${userId}` },
+      );
+      profilePhoto = {
+        url: uploadResult.data.displayUrl || uploadResult.data.url,
+        filename: profilePhotoFile.originalname,
+        mimetype: profilePhotoFile.mimetype,
+        size: profilePhotoFile.size,
+      };
+    }
+
     let application;
 
     try {
@@ -1612,6 +1688,26 @@ exports.applyToJob = async (req, res) => {
         applicant: userId,
         status: "pending",
         appliedAt: new Date(),
+        isSendMail: false,
+        applicationData: {
+          name: req.body.name.trim(),
+          email: req.body.email.trim(),
+          phone: req.body.phone.trim(),
+          experienceType: req.body.experienceType.trim(),
+          experience: String(req.body.experience || "").trim(),
+          skills,
+          currentLocation: req.body.currentLocation.trim(),
+          expectedSalary: String(req.body.expectedSalary || "").trim(),
+          noticePeriod: String(req.body.noticePeriod || "").trim(),
+          linkedin: String(req.body.linkedin || "").trim(),
+          portfolio: String(req.body.portfolio || "").trim(),
+          coverLetter: String(req.body.coverLetter || "").trim(),
+          additionalInfo: String(req.body.additionalInfo || "").trim(),
+          passport: req.body.passport.trim(),
+          profilePhoto,
+          governmentDocument: fileData("governmentDocument"),
+          resume: fileData("resume"),
+        },
       });
     } catch (error) {
       // -----------------------------------------------
@@ -1635,53 +1731,6 @@ exports.applyToJob = async (req, res) => {
     job.applicantCount = (job.applicantCount || 0) + 1;
 
     await job.save();
-
-    // =================================================
-    // 10. SEND EMAIL AFTER 5 MINUTES
-    // =================================================
-
-    setTimeout(
-      async () => {
-        try {
-          // Get fresh user data
-          const user = await User.findById(userId).select("name email");
-
-          if (!user) {
-            console.log(
-              `User not found. Application email not sent. User ID: ${userId}`,
-            );
-
-            return;
-          }
-
-          // Get fresh job data
-          const freshJob = await Job.findById(jobId).select(
-            "title location company",
-          );
-
-          if (!freshJob) {
-            console.log(
-              `Job not found. Application email not sent. Job ID: ${jobId}`,
-            );
-
-            return;
-          }
-
-          // Send email
-          await sendApplicationConfirmation({
-            user,
-            job: freshJob,
-          });
-
-          console.log(
-            `Application confirmation email sent successfully to ${user.email}`,
-          );
-        } catch (error) {
-          console.error("Application confirmation email error:", error);
-        }
-      },
-      5 * 60 * 1000,
-    );
 
     // =================================================
     // 11. RESPONSE

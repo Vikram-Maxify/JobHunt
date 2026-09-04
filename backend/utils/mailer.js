@@ -316,6 +316,27 @@ const sendApplicationConfirmation = async ({ user, job }) => {
   }
 };
 
+const sendSubscriptionConfirmation = async ({ user, subscription }) => {
+  const mailOptions = {
+    from: `"Job Portal" <${process.env.MAIL_USER}>`,
+    to: user.email,
+    subject: `Subscription Activated - ${subscription.planName}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+        <h2>Subscription Activated Successfully</h2>
+        <p>Hi <strong>${user.name}</strong>,</p>
+        <p>Your <strong>${subscription.planName}</strong> plan is now active.</p>
+        <p>Valid until: <strong>${subscription.endDate.toLocaleDateString("en-IN")}</strong></p>
+        <p>You can now apply for jobs according to your plan limits.</p>
+      </div>
+    `,
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  console.log("Subscription confirmation email sent:", info.messageId);
+  return info;
+};
+
 // =====================================================
 // EXPORT
 // =====================================================
@@ -324,4 +345,5 @@ module.exports = {
   transporter,
   sendWelcomeEmail,
   sendApplicationConfirmation,
+  sendSubscriptionConfirmation,
 };

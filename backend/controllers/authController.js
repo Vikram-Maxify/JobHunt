@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 const { sendWelcomeEmail } = require("../utils/mailer");
+const { uploadToImgBB } = require("../utils/imgbb");
 
 // Generate JWT
 const generateToken = (id) => {
@@ -278,8 +279,13 @@ exports.updateProfile = async (req, res) => {
 
       if (req.files.profilePhoto?.[0]) {
         const file = req.files.profilePhoto[0];
-
-        updateData.profilePhoto = file.path || file.location || file.filename;
+        const uploadResult = await uploadToImgBB(
+          file.buffer,
+          file.originalname,
+          { name: `profile-${req.user._id}` },
+        );
+        updateData.profilePhoto =
+          uploadResult.data.displayUrl || uploadResult.data.url;
       }
 
       // ---------------------------------------------------

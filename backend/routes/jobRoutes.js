@@ -18,6 +18,10 @@ const {
 } = require("../controllers/jobController");
 
 const { protect } = require("../middleware/auth");
+const {
+  uploadProfileFields,
+  handleUploadError,
+} = require("../middleware/upload");
 
 // Public user routes
 router.get("/", getAllJobsUser);
@@ -43,7 +47,13 @@ router.get("/applications/my", protect, getMyApplications);
 router.get("/saved", protect, getSavedJobs);
 
 // Apply to job
-router.post("/:id/apply", protect, applyToJob);
+router.post(
+  "/:id/apply",
+  protect,
+  uploadProfileFields,
+  handleUploadError,
+  applyToJob,
+);
 
 // Get single job
 router.get("/:id", getJobByIdUser);

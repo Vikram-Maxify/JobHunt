@@ -13,8 +13,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   buySubscription,
   createSubscriptionOrder,
+  fetchMySubscription,
   verifySubscriptionPayment,
 } from "../redux/slicer/userSubscriptionSlice";
+import FeedbackModal from "../components/FeedbackModal";
 
 const iconMap = {
   Free: Zap,
@@ -44,6 +46,7 @@ const Purchases = () => {
 
   const [processing, setProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
+  const [feedback, setFeedback] = useState(null);
 
   const subscriptionId = location.state?.subscriptionId;
   const planName = location.state?.planName;
@@ -76,8 +79,13 @@ const Purchases = () => {
         }),
       ).unwrap();
 
-      alert(`${planName} plan activated successfully.`);
-      navigate("/my-subscription");
+      await dispatch(fetchMySubscription()).unwrap();
+      setFeedback({
+        title: "Purchase successful",
+        message: `${planName} plan is now active. A confirmation email has been sent to your registered email address.`,
+        type: "success",
+      });
+      setTimeout(() => navigate("/my-subscription"), 1200);
     } catch (err) {
       setErrorMsg(err || "Activation failed. Please try again.");
     } finally {
@@ -124,8 +132,14 @@ const Purchases = () => {
               }),
             ).unwrap();
 
-            alert("Payment successful. Your subscription is now active.");
-            navigate("/my-subscription");
+            await dispatch(fetchMySubscription()).unwrap();
+            setFeedback({
+              title: "Payment successful",
+              message:
+                "Your subscription is now active. A confirmation email has been sent to your registered email address.",
+              type: "success",
+            });
+            setTimeout(() => navigate("/my-subscription"), 1200);
           } catch (err) {
             setErrorMsg(err || "Payment verification failed.");
           } finally {
@@ -435,6 +449,9 @@ const Purchases = () => {
           {/* Order summary */}
         </div>
       </section>
+      {feedback && (
+        <FeedbackModal {...feedback} onClose={() => setFeedback(null)} />
+      )}
     </main>
   );
 };

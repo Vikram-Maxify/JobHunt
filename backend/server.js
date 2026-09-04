@@ -19,6 +19,9 @@ const testimonialRoutes = require("./routes/testimonialRoutes");
 const adminTestimonialRoutes = require("./routes/adminTestimonialRoutes");
 
 const errorHandler = require("./middleware/error");
+const {
+  startApplicationEmailScheduler,
+} = require("./jobs/applicationEmailScheduler");
 
 connectDB();
 
@@ -104,4 +107,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📁 http://localhost:${PORT}`);
+  startApplicationEmailScheduler();
 });

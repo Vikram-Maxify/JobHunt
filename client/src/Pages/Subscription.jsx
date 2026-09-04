@@ -2,21 +2,25 @@ import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchAllSubscriptions } from "../redux/slicer/userSubscriptionSlice"; // apna actual path daal dena
+import {
+  fetchAllSubscriptions,
+  fetchMySubscription,
+} from "../redux/slicer/userSubscriptionSlice";
 
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.auth || {});
 
-  const { subscriptions, fetchLoading, fetchError } = useSelector(
-    (state) => state.userSubscription,
-  );
+  const { subscriptions, fetchLoading, fetchError, mySubscription } =
+    useSelector((state) => state.userSubscription);
 
   useEffect(() => {
     dispatch(fetchAllSubscriptions());
-  }, [dispatch]);
+    if (isAuthenticated) dispatch(fetchMySubscription());
+  }, [dispatch, isAuthenticated]);
 
   const handlePlanSelect = (plan) => {
     setSelectedPlan(plan.planName);
@@ -24,6 +28,9 @@ const Subscription = () => {
 
   // Button click -> /purchases pe navigate, wahan payment ke baad buySubscription API call hogi
   const handlePlanClick = (plan) => {
+    const activePlanId = mySubscription?.subscription?._id;
+    if (activePlanId && activePlanId === plan._id) return;
+
     navigate("/purchases", {
       state: {
         subscriptionId: plan._id,
@@ -89,6 +96,8 @@ const Subscription = () => {
             {subscriptions.map((plan) => {
               const isSelected = selectedPlan === plan.planName;
               const isPopular = plan.isPopular;
+              const isAlreadyPurchased =
+                mySubscription?.subscription?._id === plan._id;
               const accent = plan.color || "#4F46E5";
 
               // discount hai to original price wapas nikal ke strikethrough dikhao
@@ -179,11 +188,18 @@ const Subscription = () => {
                       e.stopPropagation();
                       handlePlanClick(plan);
                     }}
+                    disabled={isAlreadyPurchased}
                     className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition sm:py-3.5 hover:opacity-90"
-                    style={{ backgroundColor: accent }}
+                    style={{
+                      backgroundColor: isAlreadyPurchased ? "#94a3b8" : accent,
+                    }}
                   >
-                    Go {plan.planName}
-                    <ArrowRight size={16} className="sm:size-[17px]" />
+                    {isAlreadyPurchased
+                      ? "Already Purchased"
+                      : `Go ${plan.planName}`}
+                    {!isAlreadyPurchased && (
+                      <ArrowRight size={16} className="sm:size-[17px]" />
+                    )}
                   </button>
 
                   <div className="my-5 h-px bg-slate-100 sm:my-6 lg:my-7" />

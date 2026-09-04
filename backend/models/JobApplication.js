@@ -27,6 +27,46 @@ const JobApplicationSchema = new mongoose.Schema(
       type: Date,
       default: Date.now,
     },
+
+    isSendMail: {
+      type: Boolean,
+      default: false,
+    },
+
+    applicationData: {
+      name: String,
+      email: String,
+      phone: String,
+      experienceType: String,
+      experience: String,
+      skills: [String],
+      currentLocation: String,
+      expectedSalary: String,
+      noticePeriod: String,
+      linkedin: String,
+      portfolio: String,
+      coverLetter: String,
+      additionalInfo: String,
+      passport: String,
+      profilePhoto: {
+        url: String,
+        filename: String,
+        mimetype: String,
+        size: Number,
+      },
+      governmentDocument: {
+        filename: String,
+        mimetype: String,
+        size: Number,
+        data: Buffer,
+      },
+      resume: {
+        filename: String,
+        mimetype: String,
+        size: Number,
+        data: Buffer,
+      },
+    },
   },
   {
     timestamps: true,

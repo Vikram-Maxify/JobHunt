@@ -2,6 +2,15 @@ const crypto = require("crypto");
 const UserSubscription = require("../models/UserSubscription");
 const Subscription = require("../models/Subscription");
 const razorpayInstance = require("../config/razorpay");
+const { sendSubscriptionConfirmation } = require("../utils/mailer");
+
+const sendPurchaseEmail = async (user, subscription) => {
+  try {
+    await sendSubscriptionConfirmation({ user, subscription });
+  } catch (error) {
+    console.error("Subscription confirmation email error:", error.message);
+  }
+};
 
 // @desc    Buy subscription (User) - free plans ya manual activation ke liye
 // @route   POST /api/subscriptions/buy
@@ -70,6 +79,11 @@ exports.buySubscription = async (req, res) => {
         "Upgraded/Replaced with new subscription";
       await existingSubscription.save();
     }
+
+    await sendPurchaseEmail(req.user, {
+      planName: subscription.planName,
+      endDate,
+    });
 
     res.status(201).json({
       success: true,
@@ -254,6 +268,11 @@ exports.verifySubscriptionPayment = async (req, res) => {
         "Upgraded/Replaced with new subscription";
       await existingSubscription.save();
     }
+
+    await sendPurchaseEmail(req.user, {
+      planName: subscription.planName,
+      endDate,
+    });
 
     res.status(201).json({
       success: true,

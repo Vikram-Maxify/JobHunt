@@ -1,27 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../api";
-
-// ============================================================
-// APPLY TO JOB - USER
-// POST /api/jobs/:id/apply
-// ============================================================
-
-export const applyToJob = createAsyncThunk(
-  "application/applyToJob",
-  async (jobId, { rejectWithValue }) => {
-    try {
-      const response = await api.post(`/jobs/${jobId}/apply`);
-
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to submit application"
-      );
-    }
-  }
-);
+import { applyToJob } from "./jobSlice";
 
 // ============================================================
 // GET MY APPLICATIONS - USER
@@ -43,10 +22,10 @@ export const getMyApplications = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to fetch applications"
+          "Failed to fetch applications",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -69,10 +48,10 @@ export const getJobApplicationsAdmin = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to fetch job applications"
+          "Failed to fetch job applications",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -97,9 +76,7 @@ export const getAllApplicationsAdmin = createAsyncThunk(
       const query = params.toString();
 
       const response = await api.get(
-        query
-          ? `/admin/applications?${query}`
-          : `/admin/applications`
+        query ? `/admin/applications?${query}` : `/admin/applications`,
       );
 
       return response.data;
@@ -107,10 +84,10 @@ export const getAllApplicationsAdmin = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to fetch applications"
+          "Failed to fetch applications",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -124,7 +101,7 @@ export const updateApplicationStatus = createAsyncThunk(
     try {
       const response = await api.patch(
         `/admin/applications/${applicationId}/status`,
-        { status }
+        { status },
       );
 
       return response.data;
@@ -132,10 +109,10 @@ export const updateApplicationStatus = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to update application status"
+          "Failed to update application status",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -147,9 +124,7 @@ export const deleteApplication = createAsyncThunk(
   "application/deleteApplication",
   async (applicationId, { rejectWithValue }) => {
     try {
-      const response = await api.delete(
-        `/admin/applications/${applicationId}`
-      );
+      const response = await api.delete(`/admin/applications/${applicationId}`);
 
       return {
         ...response.data,
@@ -159,10 +134,10 @@ export const deleteApplication = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to delete application"
+          "Failed to delete application",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -179,12 +154,10 @@ export const saveJob = createAsyncThunk(
       return response.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to save job"
+        error.response?.data?.message || error.message || "Failed to save job",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -206,10 +179,10 @@ export const unsaveJob = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to remove saved job"
+          "Failed to remove saved job",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -228,10 +201,10 @@ export const getSavedJobs = createAsyncThunk(
       return rejectWithValue(
         error.response?.data?.message ||
           error.message ||
-          "Failed to fetch saved jobs"
+          "Failed to fetch saved jobs",
       );
     }
-  }
+  },
 );
 
 // ============================================================
@@ -332,11 +305,9 @@ const applicationSlice = createSlice({
         state.success = true;
 
         state.message =
-          action.payload?.message ||
-          "Application submitted successfully";
+          action.payload?.message || "Application submitted successfully";
 
-        state.currentApplication =
-          action.payload?.data || null;
+        state.currentApplication = action.payload?.data || null;
 
         state.error = null;
       })
@@ -345,9 +316,7 @@ const applicationSlice = createSlice({
         state.applying = false;
         state.success = false;
 
-        state.error =
-          action.payload ||
-          "Failed to submit application";
+        state.error = action.payload || "Failed to submit application";
 
         state.message = "";
       })
@@ -364,13 +333,10 @@ const applicationSlice = createSlice({
       .addCase(getMyApplications.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.applications =
-          action.payload?.data || [];
+        state.applications = action.payload?.data || [];
 
         state.applicationsCount =
-          action.payload?.count ||
-          action.payload?.data?.length ||
-          0;
+          action.payload?.count || action.payload?.data?.length || 0;
 
         state.error = null;
       })
@@ -381,9 +347,7 @@ const applicationSlice = createSlice({
         state.applications = [];
         state.applicationsCount = 0;
 
-        state.error =
-          action.payload ||
-          "Failed to fetch applications";
+        state.error = action.payload || "Failed to fetch applications";
       })
 
       // ========================================================
@@ -395,36 +359,25 @@ const applicationSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(
-        getJobApplicationsAdmin.fulfilled,
-        (state, action) => {
-          state.loading = false;
+      .addCase(getJobApplicationsAdmin.fulfilled, (state, action) => {
+        state.loading = false;
 
-          state.adminApplications =
-            action.payload?.data || [];
+        state.adminApplications = action.payload?.data || [];
 
-          state.adminApplicationsCount =
-            action.payload?.count ||
-            action.payload?.data?.length ||
-            0;
+        state.adminApplicationsCount =
+          action.payload?.count || action.payload?.data?.length || 0;
 
-          state.error = null;
-        }
-      )
+        state.error = null;
+      })
 
-      .addCase(
-        getJobApplicationsAdmin.rejected,
-        (state, action) => {
-          state.loading = false;
+      .addCase(getJobApplicationsAdmin.rejected, (state, action) => {
+        state.loading = false;
 
-          state.adminApplications = [];
-          state.adminApplicationsCount = 0;
+        state.adminApplications = [];
+        state.adminApplicationsCount = 0;
 
-          state.error =
-            action.payload ||
-            "Failed to fetch job applications";
-        }
-      )
+        state.error = action.payload || "Failed to fetch job applications";
+      })
 
       // ========================================================
       // GET ALL APPLICATIONS - ADMIN
@@ -435,36 +388,25 @@ const applicationSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(
-        getAllApplicationsAdmin.fulfilled,
-        (state, action) => {
-          state.loading = false;
+      .addCase(getAllApplicationsAdmin.fulfilled, (state, action) => {
+        state.loading = false;
 
-          state.adminApplications =
-            action.payload?.data || [];
+        state.adminApplications = action.payload?.data || [];
 
-          state.adminApplicationsCount =
-            action.payload?.count ||
-            action.payload?.data?.length ||
-            0;
+        state.adminApplicationsCount =
+          action.payload?.count || action.payload?.data?.length || 0;
 
-          state.error = null;
-        }
-      )
+        state.error = null;
+      })
 
-      .addCase(
-        getAllApplicationsAdmin.rejected,
-        (state, action) => {
-          state.loading = false;
+      .addCase(getAllApplicationsAdmin.rejected, (state, action) => {
+        state.loading = false;
 
-          state.adminApplications = [];
-          state.adminApplicationsCount = 0;
+        state.adminApplications = [];
+        state.adminApplicationsCount = 0;
 
-          state.error =
-            action.payload ||
-            "Failed to fetch applications";
-        }
-      )
+        state.error = action.payload || "Failed to fetch applications";
+      })
 
       // ========================================================
       // UPDATE APPLICATION STATUS
@@ -476,48 +418,37 @@ const applicationSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(
-        updateApplicationStatus.fulfilled,
-        (state, action) => {
-          state.updatingStatus = false;
-          state.success = true;
+      .addCase(updateApplicationStatus.fulfilled, (state, action) => {
+        state.updatingStatus = false;
+        state.success = true;
 
-          state.message =
-            action.payload?.message ||
-            "Application status updated successfully";
+        state.message =
+          action.payload?.message || "Application status updated successfully";
 
-          const updatedApplication =
-            action.payload?.data;
+        const updatedApplication = action.payload?.data;
 
-          if (updatedApplication?._id) {
-            const index = state.adminApplications.findIndex(
-              (application) =>
-                application._id === updatedApplication._id
-            );
+        if (updatedApplication?._id) {
+          const index = state.adminApplications.findIndex(
+            (application) => application._id === updatedApplication._id,
+          );
 
-            if (index !== -1) {
-              state.adminApplications[index] = {
-                ...state.adminApplications[index],
-                ...updatedApplication,
-              };
-            }
+          if (index !== -1) {
+            state.adminApplications[index] = {
+              ...state.adminApplications[index],
+              ...updatedApplication,
+            };
           }
-
-          state.error = null;
         }
-      )
 
-      .addCase(
-        updateApplicationStatus.rejected,
-        (state, action) => {
-          state.updatingStatus = false;
-          state.success = false;
+        state.error = null;
+      })
 
-          state.error =
-            action.payload ||
-            "Failed to update application status";
-        }
-      )
+      .addCase(updateApplicationStatus.rejected, (state, action) => {
+        state.updatingStatus = false;
+        state.success = false;
+
+        state.error = action.payload || "Failed to update application status";
+      })
 
       // ========================================================
       // DELETE APPLICATION
@@ -529,43 +460,30 @@ const applicationSlice = createSlice({
         state.error = null;
       })
 
-      .addCase(
-        deleteApplication.fulfilled,
-        (state, action) => {
-          state.deleting = false;
-          state.success = true;
+      .addCase(deleteApplication.fulfilled, (state, action) => {
+        state.deleting = false;
+        state.success = true;
 
-          state.message =
-            action.payload?.message ||
-            "Application deleted successfully";
+        state.message =
+          action.payload?.message || "Application deleted successfully";
 
-          const applicationId =
-            action.payload?.applicationId;
+        const applicationId = action.payload?.applicationId;
 
-          state.adminApplications =
-            state.adminApplications.filter(
-              (application) =>
-                application._id !== applicationId
-            );
+        state.adminApplications = state.adminApplications.filter(
+          (application) => application._id !== applicationId,
+        );
 
-          state.adminApplicationsCount =
-            state.adminApplications.length;
+        state.adminApplicationsCount = state.adminApplications.length;
 
-          state.error = null;
-        }
-      )
+        state.error = null;
+      })
 
-      .addCase(
-        deleteApplication.rejected,
-        (state, action) => {
-          state.deleting = false;
-          state.success = false;
+      .addCase(deleteApplication.rejected, (state, action) => {
+        state.deleting = false;
+        state.success = false;
 
-          state.error =
-            action.payload ||
-            "Failed to delete application";
-        }
-      )
+        state.error = action.payload || "Failed to delete application";
+      })
 
       // ========================================================
       // SAVE JOB
@@ -581,21 +499,18 @@ const applicationSlice = createSlice({
         state.saving = false;
         state.success = true;
 
-        state.message =
-          action.payload?.message ||
-          "Job saved successfully";
+        state.message = action.payload?.message || "Job saved successfully";
 
         const savedJob = action.payload?.data;
 
         if (savedJob) {
           const alreadyExists = state.savedJobs.some(
-            (item) => item._id === savedJob._id
+            (item) => item._id === savedJob._id,
           );
 
           if (!alreadyExists) {
             state.savedJobs.unshift(savedJob);
-            state.savedJobsCount =
-              state.savedJobs.length;
+            state.savedJobsCount = state.savedJobs.length;
           }
         }
 
@@ -606,9 +521,7 @@ const applicationSlice = createSlice({
         state.saving = false;
         state.success = false;
 
-        state.error =
-          action.payload ||
-          "Failed to save job";
+        state.error = action.payload || "Failed to save job";
       })
 
       // ========================================================
@@ -626,22 +539,17 @@ const applicationSlice = createSlice({
         state.success = true;
 
         state.message =
-          action.payload?.message ||
-          "Job removed from saved list";
+          action.payload?.message || "Job removed from saved list";
 
         const jobId = action.payload?.jobId;
 
-        state.savedJobs = state.savedJobs.filter(
-          (item) => {
-            const savedJobId =
-              item.job?._id || item.job;
+        state.savedJobs = state.savedJobs.filter((item) => {
+          const savedJobId = item.job?._id || item.job;
 
-            return savedJobId !== jobId;
-          }
-        );
+          return savedJobId !== jobId;
+        });
 
-        state.savedJobsCount =
-          state.savedJobs.length;
+        state.savedJobsCount = state.savedJobs.length;
 
         state.error = null;
       })
@@ -650,9 +558,7 @@ const applicationSlice = createSlice({
         state.saving = false;
         state.success = false;
 
-        state.error =
-          action.payload ||
-          "Failed to remove saved job";
+        state.error = action.payload || "Failed to remove saved job";
       })
 
       // ========================================================
@@ -667,13 +573,10 @@ const applicationSlice = createSlice({
       .addCase(getSavedJobs.fulfilled, (state, action) => {
         state.loading = false;
 
-        state.savedJobs =
-          action.payload?.data || [];
+        state.savedJobs = action.payload?.data || [];
 
         state.savedJobsCount =
-          action.payload?.count ||
-          action.payload?.data?.length ||
-          0;
+          action.payload?.count || action.payload?.data?.length || 0;
 
         state.error = null;
       })
@@ -684,9 +587,7 @@ const applicationSlice = createSlice({
         state.savedJobs = [];
         state.savedJobsCount = 0;
 
-        state.error =
-          action.payload ||
-          "Failed to fetch saved jobs";
+        state.error = action.payload || "Failed to fetch saved jobs";
       });
   },
 });
@@ -698,5 +599,9 @@ export const {
   clearApplications,
   clearSavedJobs,
 } = applicationSlice.actions;
+
+export const selectApplicationLoading = (state) => state.application.applying;
+export const selectApplicationError = (state) => state.application.error;
+export const selectApplicationSuccess = (state) => state.application.success;
 
 export default applicationSlice.reducer;

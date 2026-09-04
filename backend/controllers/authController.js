@@ -134,19 +134,99 @@ exports.getProfile = async (req, res) => {
 };
 
 // @desc    Update profile
-// @route   PUT /api/auth/profile
+// @route   PUT /api/auth/update/profile
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, mobile, email } = req.body;
+    console.log("========== UPDATE PROFILE ==========");
+    console.log("USER ID:", req.user?._id);
+    console.log("BODY:", req.body);
+    console.log("FILES:", req.files);
 
-    // Check if email or mobile already exists
-    if (email || mobile) {
-      const existing = await User.findOne({
-        $or: [{ email: email }, { mobile: mobile }],
+    // =====================================================
+    // CHECK AUTHENTICATION
+    // =====================================================
+
+    if (!req.user?._id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // =====================================================
+    // PREPARE UPDATE DATA
+    // =====================================================
+
+    const updateData = {};
+
+    // -----------------------------------------------------
+    // Update every field coming from req.body
+    // -----------------------------------------------------
+
+    Object.keys(req.body || {}).forEach((key) => {
+      const value = req.body[key];
+
+      // undefined ko ignore karo
+      // "" / null / 0 / false ko update hone do
+      if (value !== undefined) {
+        updateData[key] = value;
+      }
+    });
+
+    // =====================================================
+    // SKILLS
+    // =====================================================
+
+    if (updateData.skills !== undefined) {
+      if (Array.isArray(updateData.skills)) {
+        // Already array hai
+        updateData.skills = updateData.skills;
+      } else if (updateData.skills === "" || updateData.skills === null) {
+        // Empty skills
+        updateData.skills = [];
+      } else {
+        // "React, Node, MongoDB"
+        // convert into array
+        updateData.skills = String(updateData.skills)
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean);
+      }
+    }
+
+    // =====================================================
+    // EMAIL / MOBILE DUPLICATE CHECK
+    // =====================================================
+
+    const duplicateConditions = [];
+
+    if (
+      updateData.email !== undefined &&
+      updateData.email !== null &&
+      updateData.email !== ""
+    ) {
+      duplicateConditions.push({
+        email: updateData.email,
+      });
+    }
+
+    if (
+      updateData.mobile !== undefined &&
+      updateData.mobile !== null &&
+      updateData.mobile !== ""
+    ) {
+      duplicateConditions.push({
+        mobile: updateData.mobile,
+      });
+    }
+
+    if (duplicateConditions.length > 0) {
+      const existingUser = await User.findOne({
+        $or: duplicateConditions,
         _id: { $ne: req.user._id },
       });
 
-      if (existing) {
+      if (existingUser) {
         return res.status(400).json({
           success: false,
           message: "Email or mobile already in use",
@@ -154,25 +234,140 @@ exports.updateProfile = async (req, res) => {
       }
     }
 
+    // =====================================================
+    // FILES
+    // =====================================================
+
+    if (req.files) {
+      // ---------------------------------------------------
+      // PROFILE PHOTO
+      // ---------------------------------------------------
+
+      if (req.files.profilePhoto?.[0]) {
+        const file = req.files.profilePhoto[0];
+
+        updateData.profilePhoto = file.path || file.location || file.filename;
+      }
+
+      // ---------------------------------------------------
+      // RESUME
+      // ---------------------------------------------------
+
+      if (req.files.resume?.[0]) {
+        const file = req.files.resume[0];
+
+        updateData.resume = file.path || file.location || file.filename;
+      }
+
+      // ---------------------------------------------------
+      // GOVERNMENT DOCUMENT
+      // ---------------------------------------------------
+
+      if (req.files.governmentDocument?.[0]) {
+        const file = req.files.governmentDocument[0];
+
+        updateData.governmentDocument =
+          file.path || file.location || file.filename;
+
+        updateData.governmentDocumentName = file.originalname;
+      }
+    }
+
+    // =====================================================
+    // LOG FINAL DATA
+    // =====================================================
+
+    console.log("====================================");
+    console.log("FINAL UPDATE DATA:");
+    console.log(updateData);
+    console.log("====================================");
+
+    // =====================================================
+    // NOTHING TO UPDATE
+    // =====================================================
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide at least one field to update",
+      });
+    }
+
+    // =====================================================
+    // UPDATE USER
+    // =====================================================
+
     const user = await User.findByIdAndUpdate(
       req.user._id,
-      { name, mobile, email },
-      { new: true, runValidators: true },
-    );
+      {
+        $set: updateData,
+      },
+      {
+        new: true,
+        runValidators: true,
+      },
+    ).select("-password");
 
-    res.status(200).json({
+    // =====================================================
+    // USER NOT FOUND
+    // =====================================================
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // =====================================================
+    // SUCCESS
+    // =====================================================
+
+    console.log("USER UPDATED SUCCESSFULLY:");
+    console.log(user);
+
+    return res.status(200).json({
       success: true,
       message: "Profile updated successfully",
       data: user,
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("❌ Update profile error:", error);
+
+    // =====================================================
+    // MONGOOSE VALIDATION ERROR
+    // =====================================================
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+        errors: error.errors,
+      });
+    }
+
+    // =====================================================
+    // DUPLICATE KEY ERROR
+    // =====================================================
+
+    if (error.code === 11000) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or mobile already exists",
+        error: error.keyValue,
+      });
+    }
+
+    // =====================================================
+    // OTHER ERROR
+    // =====================================================
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });
   }
 };
-
 // @desc    Change password
 // @route   PUT /api/auth/change-password
 exports.changePassword = async (req, res) => {

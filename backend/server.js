@@ -45,8 +45,8 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/gallery", galleryRoutes);
-app.use("/api/admin", adminRoutes);
 app.use("/api/admin/subscriptions", adminSubscriptionRoutes);
+app.use("/api/admin", adminRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/admin/testimonials", adminTestimonialRoutes);
 

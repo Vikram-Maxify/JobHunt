@@ -1,37 +1,38 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { getJobByIdUser } from "../redux/slicer/jobSlice";
 
 import {
   applyToJob,
-  resetApplicationState,
   clearApplicationError,
+  resetApplicationState,
   saveJob,
   unsaveJob,
 } from "../redux/slicer/jobApplicationSlice";
+import { fetchMySubscription } from "../redux/slicer/userSubscriptionSlice";
 
 import {
-  ArrowLeft,
-  MapPin,
-  BriefcaseBusiness,
-  Clock3,
-  IndianRupee,
-  Users,
-  Bookmark,
-  Share2,
-  CheckCircle2,
-  X,
-  User,
-  Mail,
-  Phone,
-  Globe,
-  Send,
   AlertCircle,
+  ArrowLeft,
+  Bookmark,
+  BriefcaseBusiness,
   Building2,
-  Upload,
+  CheckCircle2,
+  Clock3,
   FileText,
+  Globe,
+  IndianRupee,
+  Mail,
+  MapPin,
+  Phone,
+  Send,
+  Share2,
+  Upload,
+  User,
+  Users,
+  X,
 } from "lucide-react";
 
 const JobDetail = () => {
@@ -44,7 +45,7 @@ const JobDetail = () => {
   // =========================================================
 
   const { selectedJob, jobLoading, jobError } = useSelector(
-    (state) => state.jobs
+    (state) => state.jobs,
   );
 
   // =========================================================
@@ -65,6 +66,8 @@ const JobDetail = () => {
   // =========================================================
 
   const [showApplyModal, setShowApplyModal] = useState(false);
+
+  const [applicationBlockMessage, setApplicationBlockMessage] = useState("");
 
   const [applicationStep, setApplicationStep] = useState("options");
 
@@ -250,9 +253,7 @@ const JobDetail = () => {
     }
 
     if (file.size > maxSize) {
-      alert(
-        `File size should not exceed ${maxSize / (1024 * 1024)} MB.`
-      );
+      alert(`File size should not exceed ${maxSize / (1024 * 1024)} MB.`);
       return false;
     }
 
@@ -268,12 +269,7 @@ const JobDetail = () => {
 
     if (!file) return;
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/jpg",
-      "image/webp",
-    ];
+    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
 
     if (!validateFile(file, allowedTypes, 5 * 1024 * 1024)) {
       return;
@@ -423,21 +419,13 @@ const JobDetail = () => {
       console.log("Submitting application for job:", job._id);
 
       // Backend currently accepts only jobId
-      const result = await dispatch(
-        applyToJob(job._id)
-      ).unwrap();
+      const result = await dispatch(applyToJob(job._id)).unwrap();
 
-      console.log(
-        "Application submitted successfully:",
-        result
-      );
+      console.log("Application submitted successfully:", result);
 
       setIsSubmitted(true);
     } catch (error) {
-      console.error(
-        "Application submission error:",
-        error
-      );
+      console.error("Application submission error:", error);
 
       setIsSubmitted(false);
     }
@@ -452,7 +440,23 @@ const JobDetail = () => {
 
     setIsSubmitted(false);
     setApplicationStep("options");
+    setApplicationBlockMessage("");
     setShowApplyModal(true);
+
+    dispatch(fetchMySubscription())
+      .unwrap()
+      .then((subscription) => {
+        if (!subscription) {
+          setApplicationBlockMessage(
+            "Please purchase an active plan before applying for jobs.",
+          );
+        }
+      })
+      .catch((error) => {
+        setApplicationBlockMessage(
+          error || "Unable to verify your active plan. Please try again.",
+        );
+      });
   };
 
   // =========================================================
@@ -465,6 +469,7 @@ const JobDetail = () => {
     setShowApplyModal(false);
     setApplicationStep("options");
     setIsSubmitted(false);
+    setApplicationBlockMessage("");
 
     dispatch(resetApplicationState());
   };
@@ -482,9 +487,7 @@ const JobDetail = () => {
           url: window.location.href,
         });
       } else {
-        await navigator.clipboard.writeText(
-          window.location.href
-        );
+        await navigator.clipboard.writeText(window.location.href);
 
         alert("Job link copied!");
       }
@@ -523,13 +526,10 @@ const JobDetail = () => {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Job not found
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900">Job not found</h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            {jobError ||
-              "This job may no longer be available."}
+            {jobError || "This job may no longer be available."}
           </p>
 
           <button
@@ -549,7 +549,6 @@ const JobDetail = () => {
 
   return (
     <main className="min-h-screen bg-slate-50">
-
       {/* =====================================================
           BACK BUTTON
       ===================================================== */}
@@ -569,23 +568,17 @@ const JobDetail = () => {
       ===================================================== */}
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-
           {/* =================================================
               LEFT CONTENT
           ================================================= */}
 
           <div className="lg:col-span-2">
-
             {/* JOB HEADER */}
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-
                 <div className="flex items-start gap-4">
-
                   <div
                     className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${job.logoClass}`}
                   >
@@ -593,13 +586,11 @@ const JobDetail = () => {
                   </div>
 
                   <div>
-
                     <h1 className="text-2xl font-bold leading-tight text-slate-900 sm:text-3xl">
                       {job.title}
                     </h1>
 
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
-
                       <span className="flex items-center gap-1.5">
                         <Building2 size={16} />
                         {job.company}
@@ -609,17 +600,13 @@ const JobDetail = () => {
                         <MapPin size={16} />
                         {job.location}
                       </span>
-
                     </div>
-
                   </div>
-
                 </div>
 
                 {/* ACTIONS */}
 
                 <div className="flex items-center gap-2">
-
                   {/* SAVE */}
 
                   <button
@@ -632,9 +619,7 @@ const JobDetail = () => {
                         ? "border-blue-200 bg-blue-50 text-blue-600"
                         : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600"
                     } ${
-                      saving || unsaving
-                        ? "cursor-not-allowed opacity-60"
-                        : ""
+                      saving || unsaving ? "cursor-not-allowed opacity-60" : ""
                     }`}
                   >
                     {saving || unsaving ? (
@@ -642,11 +627,7 @@ const JobDetail = () => {
                     ) : (
                       <Bookmark
                         size={19}
-                        fill={
-                          isSaved
-                            ? "currentColor"
-                            : "none"
-                        }
+                        fill={isSaved ? "currentColor" : "none"}
                       />
                     )}
                   </button>
@@ -661,73 +642,50 @@ const JobDetail = () => {
                   >
                     <Share2 size={19} />
                   </button>
-
                 </div>
-
               </div>
 
               {/* META */}
 
               <div className="mt-6 flex flex-wrap gap-3">
-
                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  <BriefcaseBusiness
-                    size={17}
-                    className="text-blue-600"
-                  />
+                  <BriefcaseBusiness size={17} className="text-blue-600" />
                   {job.experience}
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  <Clock3
-                    size={17}
-                    className="text-blue-600"
-                  />
+                  <Clock3 size={17} className="text-blue-600" />
                   {job.type}
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  <MapPin
-                    size={17}
-                    className="text-blue-600"
-                  />
+                  <MapPin size={17} className="text-blue-600" />
                   {job.location}
                 </div>
-
               </div>
 
               {/* STATS */}
 
               <div className="mt-6 grid grid-cols-1 divide-y divide-slate-200 border-t border-slate-200 pt-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-
                 <div className="pb-4 sm:px-4 sm:pb-0 sm:first:pl-0">
-
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     <IndianRupee size={15} />
                     Salary
                   </div>
 
-                  <p className="mt-1 font-bold text-slate-900">
-                    {job.salary}
-                  </p>
-
+                  <p className="mt-1 font-bold text-slate-900">{job.salary}</p>
                 </div>
 
                 <div className="py-4 sm:px-4 sm:py-0">
-
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     <Clock3 size={15} />
                     Posted
                   </div>
 
-                  <p className="mt-1 font-bold text-slate-900">
-                    {job.posted}
-                  </p>
-
+                  <p className="mt-1 font-bold text-slate-900">{job.posted}</p>
                 </div>
 
                 <div className="pt-4 sm:px-4 sm:pt-0">
-
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     <Users size={15} />
                     Applicants
@@ -736,17 +694,13 @@ const JobDetail = () => {
                   <p className="mt-1 font-bold text-slate-900">
                     {job.applicants}
                   </p>
-
                 </div>
-
               </div>
-
             </div>
 
             {/* DESCRIPTION */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
               <h2 className="text-xl font-bold text-slate-900">
                 Job Description
               </h2>
@@ -754,112 +708,86 @@ const JobDetail = () => {
               <p className="mt-4 whitespace-pre-line text-sm leading-7 text-slate-600 sm:text-base">
                 {job.description}
               </p>
-
             </div>
 
             {/* RESPONSIBILITIES */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
               <h2 className="text-xl font-bold text-slate-900">
                 Responsibilities
               </h2>
 
               <div className="mt-5 space-y-4">
-
                 {job.responsibilities?.length > 0 ? (
-                  job.responsibilities.map(
-                    (item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
-                      >
-                        <CheckCircle2
-                          size={19}
-                          className="mt-1 shrink-0 text-blue-600"
-                        />
+                  job.responsibilities.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
+                    >
+                      <CheckCircle2
+                        size={19}
+                        className="mt-1 shrink-0 text-blue-600"
+                      />
 
-                        <span>{item}</span>
-                      </div>
-                    )
-                  )
+                      <span>{item}</span>
+                    </div>
+                  ))
                 ) : (
                   <p className="text-sm text-slate-500">
                     No responsibilities specified.
                   </p>
                 )}
-
               </div>
-
             </div>
 
             {/* REQUIREMENTS */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-              <h2 className="text-xl font-bold text-slate-900">
-                Requirements
-              </h2>
+              <h2 className="text-xl font-bold text-slate-900">Requirements</h2>
 
               <div className="mt-5 space-y-4">
-
                 {job.requirements?.length > 0 ? (
-                  job.requirements.map(
-                    (item, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
-                      >
-                        <CheckCircle2
-                          size={19}
-                          className="mt-1 shrink-0 text-blue-600"
-                        />
+                  job.requirements.map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
+                    >
+                      <CheckCircle2
+                        size={19}
+                        className="mt-1 shrink-0 text-blue-600"
+                      />
 
-                        <span>{item}</span>
-                      </div>
-                    )
-                  )
+                      <span>{item}</span>
+                    </div>
+                  ))
                 ) : (
                   <p className="text-sm text-slate-500">
                     No requirements specified.
                   </p>
                 )}
-
               </div>
-
             </div>
 
             {/* SKILLS */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-
-              <h2 className="text-xl font-bold text-slate-900">
-                Skills
-              </h2>
+              <h2 className="text-xl font-bold text-slate-900">Skills</h2>
 
               <div className="mt-5 flex flex-wrap gap-2">
-
                 {job.skills?.length > 0 ? (
-                  job.skills.map(
-                    (skill, index) => (
-                      <span
-                        key={`${skill}-${index}`}
-                        className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
-                      >
-                        {skill}
-                      </span>
-                    )
-                  )
+                  job.skills.map((skill, index) => (
+                    <span
+                      key={`${skill}-${index}`}
+                      className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
+                    >
+                      {skill}
+                    </span>
+                  ))
                 ) : (
-                  <p className="text-sm text-slate-500">
-                    No skills specified.
-                  </p>
+                  <p className="text-sm text-slate-500">No skills specified.</p>
                 )}
-
               </div>
-
             </div>
-
           </div>
 
           {/* =================================================
@@ -867,9 +795,7 @@ const JobDetail = () => {
           ================================================= */}
 
           <div className="lg:col-span-1">
-
             <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-
               {/* APPLY */}
 
               <button
@@ -884,17 +810,14 @@ const JobDetail = () => {
               {/* OVERVIEW */}
 
               <div className="mt-7">
-
                 <h2 className="text-lg font-bold text-slate-900">
                   Job Overview
                 </h2>
 
                 <div className="mt-5 space-y-5">
-
                   {/* EXPERIENCE */}
 
                   <div className="flex items-start gap-3">
-
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <BriefcaseBusiness size={18} />
                     </div>
@@ -908,13 +831,11 @@ const JobDetail = () => {
                         {job.experience}
                       </p>
                     </div>
-
                   </div>
 
                   {/* LOCATION */}
 
                   <div className="flex items-start gap-3">
-
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <MapPin size={18} />
                     </div>
@@ -928,13 +849,11 @@ const JobDetail = () => {
                         {job.location}
                       </p>
                     </div>
-
                   </div>
 
                   {/* SALARY */}
 
                   <div className="flex items-start gap-3">
-
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <IndianRupee size={18} />
                     </div>
@@ -948,13 +867,11 @@ const JobDetail = () => {
                         {job.salary}
                       </p>
                     </div>
-
                   </div>
 
                   {/* POSTED */}
 
                   <div className="flex items-start gap-3">
-
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <Clock3 size={18} />
                     </div>
@@ -968,13 +885,11 @@ const JobDetail = () => {
                         {job.posted}
                       </p>
                     </div>
-
                   </div>
 
                   {/* COMPANY */}
 
                   <div className="flex items-start gap-3">
-
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <Building2 size={18} />
                     </div>
@@ -988,19 +903,12 @@ const JobDetail = () => {
                         {job.company}
                       </p>
                     </div>
-
                   </div>
-
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
 
       {/* =====================================================
@@ -1009,23 +917,16 @@ const JobDetail = () => {
 
       {showApplyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
-
           <div className="relative flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-
             {/* MODAL HEADER */}
 
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
-
               <div>
-
                 <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
                   Apply for {job.title}
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-500">
-                  {job.company}
-                </p>
-
+                <p className="mt-1 text-sm text-slate-500">{job.company}</p>
               </div>
 
               <button
@@ -1035,14 +936,31 @@ const JobDetail = () => {
               >
                 <X size={20} />
               </button>
-
             </div>
 
             {/* SUCCESS */}
 
-            {isSubmitted ? (
+            {applicationBlockMessage ? (
               <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
-
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                  <AlertCircle size={34} />
+                </div>
+                <h3 className="mt-5 text-2xl font-bold text-slate-900">
+                  Plan required
+                </h3>
+                <p className="mt-3 max-w-md text-sm leading-6 text-slate-500">
+                  {applicationBlockMessage}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate("/subscription")}
+                  className="mt-7 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
+                >
+                  View Plans
+                </button>
+              </div>
+            ) : isSubmitted ? (
+              <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
                   <CheckCircle2 size={34} />
                 </div>
@@ -1062,23 +980,19 @@ const JobDetail = () => {
                 >
                   Close
                 </button>
-
               </div>
             ) : (
               <>
-
                 {/* ERROR */}
 
                 {applicationError && (
                   <div className="mx-5 mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:mx-6">
-
                     <AlertCircle
                       size={19}
                       className="mt-0.5 shrink-0 text-red-600"
                     />
 
                     <div>
-
                       <p className="text-sm font-semibold text-red-800">
                         Application Failed
                       </p>
@@ -1086,9 +1000,7 @@ const JobDetail = () => {
                       <p className="mt-1 text-sm text-red-700">
                         {applicationError}
                       </p>
-
                     </div>
-
                   </div>
                 )}
 
@@ -1096,9 +1008,7 @@ const JobDetail = () => {
 
                 {applicationStep === "options" && (
                   <div className="overflow-y-auto px-5 py-6 sm:px-6">
-
                     <div className="grid gap-4 sm:grid-cols-2">
-
                       {/* MANUAL */}
 
                       <button
@@ -1109,7 +1019,6 @@ const JobDetail = () => {
                         }}
                         className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
                       >
-
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                           <User size={21} />
                         </div>
@@ -1121,7 +1030,6 @@ const JobDetail = () => {
                         <p className="mt-2 text-sm leading-6 text-slate-500">
                           Fill in your details and submit your application.
                         </p>
-
                       </button>
 
                       {/* SAVED DETAILS */}
@@ -1134,7 +1042,6 @@ const JobDetail = () => {
                         }}
                         className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
                       >
-
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                           <FileText size={21} />
                         </div>
@@ -1144,13 +1051,11 @@ const JobDetail = () => {
                         </h3>
 
                         <p className="mt-2 text-sm leading-6 text-slate-500">
-                          Continue with your previously saved application details.
+                          Continue with your previously saved application
+                          details.
                         </p>
-
                       </button>
-
                     </div>
-
                   </div>
                 )}
 
@@ -1161,27 +1066,22 @@ const JobDetail = () => {
                     onSubmit={submitApplication}
                     className="overflow-y-auto px-5 py-6 sm:px-6"
                   >
-
                     {/* PERSONAL INFORMATION */}
 
                     <div>
-
                       <h3 className="text-base font-bold text-slate-900">
                         Personal Information
                       </h3>
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-
                         {/* NAME */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Full Name *
                           </label>
 
                           <div className="relative">
-
                             <User
                               size={17}
                               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1196,21 +1096,17 @@ const JobDetail = () => {
                               placeholder="Enter your full name"
                               className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
-
                         </div>
 
                         {/* EMAIL */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Email *
                           </label>
 
                           <div className="relative">
-
                             <Mail
                               size={17}
                               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1225,21 +1121,17 @@ const JobDetail = () => {
                               placeholder="Enter your email"
                               className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
-
                         </div>
 
                         {/* PHONE */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Phone *
                           </label>
 
                           <div className="relative">
-
                             <Phone
                               size={17}
                               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1254,21 +1146,17 @@ const JobDetail = () => {
                               placeholder="Enter your phone number"
                               className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
-
                         </div>
 
                         {/* LOCATION */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Current Location *
                           </label>
 
                           <div className="relative">
-
                             <MapPin
                               size={17}
                               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1283,27 +1171,20 @@ const JobDetail = () => {
                               placeholder="City, State"
                               className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
-
                         </div>
-
                       </div>
-
                     </div>
 
                     {/* EXPERIENCE */}
 
                     <div className="mt-7">
-
                       <h3 className="text-base font-bold text-slate-900">
                         Experience
                       </h3>
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-2">
-
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Experience Type *
                           </label>
@@ -1315,25 +1196,15 @@ const JobDetail = () => {
                             required
                             className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           >
+                            <option value="">Select experience type</option>
 
-                            <option value="">
-                              Select experience type
-                            </option>
+                            <option value="Fresher">Fresher</option>
 
-                            <option value="Fresher">
-                              Fresher
-                            </option>
-
-                            <option value="Experienced">
-                              Experienced
-                            </option>
-
+                            <option value="Experienced">Experienced</option>
                           </select>
-
                         </div>
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Years of Experience
                           </label>
@@ -1346,37 +1217,27 @@ const JobDetail = () => {
                             placeholder="e.g. 2 years"
                             className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
-
                         </div>
-
                       </div>
-
                     </div>
 
                     {/* DOCUMENTS */}
 
                     <div className="mt-7">
-
                       <h3 className="text-base font-bold text-slate-900">
                         Documents
                       </h3>
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-3">
-
                         {/* PROFILE PHOTO */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Profile Photo
                           </label>
 
                           <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
-
-                            <Upload
-                              size={20}
-                              className="text-slate-400"
-                            />
+                            <Upload size={20} className="text-slate-400" />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
                               {formData.profilePhoto
@@ -1390,25 +1251,18 @@ const JobDetail = () => {
                               onChange={handleProfilePhoto}
                               className="hidden"
                             />
-
                           </label>
-
                         </div>
 
                         {/* GOVERNMENT DOCUMENT */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Government Document
                           </label>
 
                           <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
-
-                            <FileText
-                              size={20}
-                              className="text-slate-400"
-                            />
+                            <FileText size={20} className="text-slate-400" />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
                               {formData.governmentDocument
@@ -1422,25 +1276,18 @@ const JobDetail = () => {
                               onChange={handleGovernmentDocument}
                               className="hidden"
                             />
-
                           </label>
-
                         </div>
 
                         {/* RESUME */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Resume *
                           </label>
 
                           <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
-
-                            <FileText
-                              size={20}
-                              className="text-slate-400"
-                            />
+                            <FileText size={20} className="text-slate-400" />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
                               {formData.resume
@@ -1455,29 +1302,22 @@ const JobDetail = () => {
                               required
                               className="hidden"
                             />
-
                           </label>
-
                         </div>
-
                       </div>
-
                     </div>
 
                     {/* PROFESSIONAL INFORMATION */}
 
                     <div className="mt-7">
-
                       <h3 className="text-base font-bold text-slate-900">
                         Professional Information
                       </h3>
 
                       <div className="mt-4 space-y-4">
-
                         {/* SKILLS */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Skills *
                           </label>
@@ -1491,15 +1331,12 @@ const JobDetail = () => {
                             placeholder="React, JavaScript, Node.js..."
                             className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
-
                         </div>
 
                         {/* SALARY / NOTICE */}
 
                         <div className="grid gap-4 sm:grid-cols-2">
-
                           <div>
-
                             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                               Expected Salary
                             </label>
@@ -1512,11 +1349,9 @@ const JobDetail = () => {
                               placeholder="e.g. ₹6 LPA"
                               className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
 
                           <div>
-
                             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                               Notice Period
                             </label>
@@ -1529,17 +1364,13 @@ const JobDetail = () => {
                               placeholder="e.g. 30 days"
                               className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
-
                         </div>
 
                         {/* LINKEDIN / PORTFOLIO */}
 
                         <div className="grid gap-4 sm:grid-cols-2">
-
                           <div>
-
                             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                               LinkedIn
                             </label>
@@ -1552,17 +1383,14 @@ const JobDetail = () => {
                               placeholder="LinkedIn URL"
                               className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
-
                           </div>
 
                           <div>
-
                             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                               Portfolio
                             </label>
 
                             <div className="relative">
-
                               <Globe
                                 size={17}
                                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1576,17 +1404,13 @@ const JobDetail = () => {
                                 placeholder="Portfolio URL"
                                 className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                               />
-
                             </div>
-
                           </div>
-
                         </div>
 
                         {/* COVER LETTER */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Cover Letter
                           </label>
@@ -1599,13 +1423,11 @@ const JobDetail = () => {
                             placeholder="Write a short cover letter..."
                             className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
-
                         </div>
 
                         {/* ADDITIONAL INFO */}
 
                         <div>
-
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Additional Information
                           </label>
@@ -1618,38 +1440,31 @@ const JobDetail = () => {
                             placeholder="Anything else you want the employer to know..."
                             className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
-
                         </div>
-
                       </div>
-
                     </div>
 
                     {/* NOTICE */}
 
                     <div className="mt-6 flex items-start gap-3 rounded-lg bg-blue-50 p-4">
-
                       <AlertCircle
                         size={18}
                         className="mt-0.5 shrink-0 text-blue-600"
                       />
 
                       <p className="text-xs leading-5 text-blue-700 sm:text-sm">
-                        Please make sure all information provided is accurate before submitting your application.
+                        Please make sure all information provided is accurate
+                        before submitting your application.
                       </p>
-
                     </div>
 
                     {/* ACTIONS */}
 
                     <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
-
                       <button
                         type="button"
                         disabled={applying}
-                        onClick={() =>
-                          setApplicationStep("options")
-                        }
+                        onClick={() => setApplicationStep("options")}
                         className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Back
@@ -1660,7 +1475,6 @@ const JobDetail = () => {
                         disabled={applying}
                         className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-
                         {applying ? (
                           <>
                             <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -1672,22 +1486,15 @@ const JobDetail = () => {
                             <Send size={17} />
                           </>
                         )}
-
                       </button>
-
                     </div>
-
                   </form>
                 )}
-
               </>
             )}
-
           </div>
-
         </div>
       )}
-
     </main>
   );
 };

@@ -32,6 +32,120 @@ const UserSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    location: {
+      type: String,
+      default: "",
+    },
+
+    dateOfBirth: {
+      type: String,
+      default: "",
+    },
+
+    gender: {
+      type: String,
+      default: "",
+    },
+
+    qualification: {
+      type: String,
+      default: "",
+    },
+
+    university: {
+      type: String,
+      default: "",
+    },
+
+    graduationYear: {
+      type: String,
+      default: "",
+    },
+
+    experience: {
+      type: String,
+      default: "",
+    },
+
+    currentCompany: {
+      type: String,
+      default: "",
+    },
+
+    jobTitle: {
+      type: String,
+      default: "",
+    },
+
+    skills: {
+      type: [String],
+      default: [],
+    },
+
+    bio: {
+      type: String,
+      default: "",
+    },
+
+    linkedin: {
+      type: String,
+      default: "",
+    },
+
+    github: {
+      type: String,
+      default: "",
+    },
+
+    portfolio: {
+      type: String,
+      default: "",
+    },
+
+    preferredJobRole: {
+      type: String,
+      default: "",
+    },
+
+    preferredLocation: {
+      type: String,
+      default: "",
+    },
+
+    employmentType: {
+      type: String,
+      default: "",
+    },
+
+    salaryExpectation: {
+      type: String,
+      default: "",
+    },
+
+    governmentDocumentType: {
+      type: String,
+      default: "",
+    },
+
+    profilePhoto: {
+      type: String,
+      default: "",
+    },
+
+    resume: {
+      type: String,
+      default: "",
+    },
+
+    governmentDocument: {
+      type: String,
+      default: "",
+    },
+
+    governmentDocumentName: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

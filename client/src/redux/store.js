@@ -4,11 +4,11 @@ import adminUserReducer from "../redux/slicer/adminuserSlice";
 import authReducer from "../redux/slicer/authSlice";
 import categoryReducer from "../redux/slicer/categorySlice";
 import galleryReducer from "../redux/slicer/gallerySlice";
+import applicationReducer from "../redux/slicer/jobApplicationSlice";
 import jobsReducer from "../redux/slicer/jobSlice";
 import testimonialReducer from "../redux/slicer/testimonialSlice";
 import userSubscriptionReducer from "../redux/slicer/userSubscriptionSlice";
 import testimonialsReducer from "../redux/slicer/userTestimonialSlice";
-import applicationReducer from "../redux/slicer/jobApplicationSlice";
 
 export const store = configureStore({
   reducer: {
@@ -20,7 +20,6 @@ export const store = configureStore({
     testimonials: testimonialReducer,
     adminUser: adminUserReducer,
     usertestimonial: testimonialsReducer,
-    userSubscription: userSubscriptionReducer,
     userSubscription: userSubscriptionReducer,
     application: applicationReducer,
   },

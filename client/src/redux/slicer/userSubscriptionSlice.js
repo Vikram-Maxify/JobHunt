@@ -7,7 +7,7 @@ export const fetchAllSubscriptions = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const { data } = await api.get("/subscriptions/");
-      return data.data;
+      return data.data || [];
     } catch (error) {
       return rejectWithValue(
         error?.response?.data?.message || "Failed to fetch subscriptions",

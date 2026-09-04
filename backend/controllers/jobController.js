@@ -1,6 +1,7 @@
 const Job = require("../models/Job");
 const Category = require("../models/Category");
 const JobApplication = require("../models/JobApplication");
+const UserSubscription = require("../models/UserSubscription");
 const SavedJob = require("../models/SavedJob");
 const { uploadToImgBB, deleteFromImgBB } = require("../utils/imgbb");
 
@@ -1478,6 +1479,76 @@ exports.applyToJob = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Job not found or no longer active",
+      });
+    }
+
+    const activeSubscription = await UserSubscription.findOne({
+      user: req.user._id,
+      isActive: true,
+      paymentStatus: "completed",
+      endDate: { $gt: new Date() },
+    }).populate("subscription", "numberOfCountries countries");
+
+    if (!activeSubscription?.subscription) {
+      return res.status(403).json({
+        success: false,
+        code: "NO_ACTIVE_PLAN",
+        message: "Please purchase an active plan before applying for jobs.",
+      });
+    }
+
+    const jobCountry = String(job.location || "").trim();
+    if (!jobCountry) {
+      return res.status(400).json({
+        success: false,
+        message: "This job does not have a valid country location.",
+      });
+    }
+
+    const plan = activeSubscription.subscription;
+    const configuredCountries = (plan.countries || [])
+      .map((country) => String(country).trim().toLowerCase())
+      .filter(Boolean);
+    const normalizedJobCountry = jobCountry.toLowerCase();
+
+    if (
+      configuredCountries.length > 0 &&
+      !configuredCountries.includes(normalizedJobCountry)
+    ) {
+      return res.status(403).json({
+        success: false,
+        code: "COUNTRY_NOT_ALLOWED",
+        message: "This country is not included in your active plan.",
+      });
+    }
+
+    const previousApplications = await JobApplication.find({
+      applicant: req.user._id,
+      appliedAt: { $gte: activeSubscription.startDate },
+    }).populate("job", "location");
+
+    const usedCountries = new Set(
+      previousApplications
+        .map((application) =>
+          String(application.job?.location || "")
+            .trim()
+            .toLowerCase(),
+        )
+        .filter(Boolean),
+    );
+    const countryLimit = Number(
+      plan.numberOfCountries || configuredCountries.length || 1,
+    );
+
+    if (
+      !usedCountries.has(normalizedJobCountry) &&
+      usedCountries.size >= countryLimit
+    ) {
+      return res.status(403).json({
+        success: false,
+        code: "COUNTRY_LIMIT_REACHED",
+        message:
+          "Your plan's country limit has been reached. Please purchase another plan to apply for jobs in this country.",
       });
     }
 

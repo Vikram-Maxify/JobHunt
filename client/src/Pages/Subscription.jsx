@@ -213,11 +213,22 @@ const Subscription = () => {
                       ))}
                     </ul>
 
-                    <div className="mt-5 flex gap-4 text-xs text-slate-400">
+                    <div className="mt-5 flex flex-wrap gap-4 text-xs text-slate-400">
+                      <span>
+                        {plan.numberOfCountries || plan.countries?.length || 1}{" "}
+                        countries
+                      </span>
+                      <span>•</span>
                       <span>{plan.maxJobs} job posts</span>
                       <span>•</span>
                       <span>{plan.maxApplications} applications</span>
                     </div>
+
+                    {plan.countries?.length > 0 && (
+                      <p className="mt-3 text-xs text-slate-500">
+                        Available in: {plan.countries.join(", ")}
+                      </p>
+                    )}
                   </div>
                 </div>
               );

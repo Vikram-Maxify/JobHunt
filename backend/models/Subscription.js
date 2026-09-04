@@ -34,6 +34,10 @@ const SubscriptionSchema = new mongoose.Schema(
       min: [1, "At least 1 country must be selected"],
       default: 1,
     },
+    countries: {
+      type: [String],
+      default: [],
+    },
     // Waiting time in days (admin sets manually)
     waitingTime: {
       type: Number,

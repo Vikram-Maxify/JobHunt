@@ -51,6 +51,8 @@ exports.buySubscription = async (req, res) => {
         billingType: subscription.billingType,
         price: subscription.price,
         features: subscription.features,
+        numberOfCountries: subscription.numberOfCountries,
+        countries: subscription.countries,
       },
       paymentId: paymentId || `PAY-${Date.now()}`,
       paymentMethod: paymentMethod || "razorpay",
@@ -233,6 +235,8 @@ exports.verifySubscriptionPayment = async (req, res) => {
         billingType: subscription.billingType,
         price: subscription.price,
         features: subscription.features,
+        numberOfCountries: subscription.numberOfCountries,
+        countries: subscription.countries,
       },
       paymentId: razorpay_payment_id,
       paymentMethod: "razorpay",
@@ -276,10 +280,12 @@ exports.getMySubscription = async (req, res) => {
     const subscription = await UserSubscription.findOne({
       user: req.user._id,
       isActive: true,
+      paymentStatus: "completed",
+      endDate: { $gt: new Date() },
     })
       .populate(
         "subscription",
-        "planName billingType price features maxJobs maxApplications isPopular color",
+        "planName billingType price features numberOfCountries countries maxJobs maxApplications isPopular color",
       )
       .sort({ createdAt: -1 });
 
@@ -411,7 +417,7 @@ exports.checkSubscriptionStatus = async (req, res) => {
       isActive: true,
     }).populate(
       "subscription",
-      "planName billingType price maxJobs maxApplications",
+      "planName billingType price numberOfCountries countries maxJobs maxApplications",
     );
 
     if (!subscription) {

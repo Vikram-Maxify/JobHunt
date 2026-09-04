@@ -57,7 +57,8 @@ exports.createPlan = async (req, res) => {
       planName,
       price,
       features,
-      numberOfCountries, // Changed from countries to numberOfCountries
+      numberOfCountries,
+      countries,
       waitingTime,
       maxJobs,
       maxApplications,
@@ -70,22 +71,30 @@ exports.createPlan = async (req, res) => {
     } = req.body;
 
     // Validation
+    const parsedCountries = Array.isArray(countries)
+      ? countries.map((country) => String(country).trim()).filter(Boolean)
+      : [];
+    const countryLimit =
+      numberOfCountries === undefined
+        ? parsedCountries.length
+        : parseInt(numberOfCountries);
+
     if (
       !planName ||
       price === undefined ||
       !features ||
-      numberOfCountries === undefined ||
+      countryLimit < 1 ||
       waitingTime === undefined
     ) {
       return res.status(400).json({
         success: false,
         message:
-          "planName, price, features, numberOfCountries and waitingTime are required",
+          "planName, price, features, countries and waitingTime are required",
       });
     }
 
     // Check if number of countries is valid
-    if (parseInt(numberOfCountries) < 1) {
+    if (countryLimit < 1) {
       return res.status(400).json({
         success: false,
         message: "Number of countries must be at least 1",
@@ -110,13 +119,16 @@ exports.createPlan = async (req, res) => {
       features: Array.isArray(features)
         ? features.filter((f) => f && f.trim() !== "")
         : features,
-      numberOfCountries: parseInt(numberOfCountries), // Use numberOfCountries
+      numberOfCountries: countryLimit,
+      countries: parsedCountries,
       waitingTime: parseInt(waitingTime),
       maxJobs: maxJobs ? parseInt(maxJobs) : 10,
       maxApplications: maxApplications ? parseInt(maxApplications) : 50,
       isActive: isActive !== undefined ? isActive : true,
       isPopular: !!isPopular,
-      discountPercentage: discountPercentage ? parseFloat(discountPercentage) : 0,
+      discountPercentage: discountPercentage
+        ? parseFloat(discountPercentage)
+        : 0,
       description: description || "",
       badge: badge || "",
       color: color || "#3B82F6",
@@ -163,7 +175,8 @@ exports.updatePlan = async (req, res) => {
       planName,
       price,
       features,
-      numberOfCountries, // Changed from countries to numberOfCountries
+      numberOfCountries,
+      countries,
       waitingTime,
       maxJobs,
       maxApplications,
@@ -196,18 +209,28 @@ exports.updatePlan = async (req, res) => {
         ? features.filter((f) => f && f.trim() !== "")
         : plan.features;
     }
-    if (numberOfCountries !== undefined) {
-      if (parseInt(numberOfCountries) < 1) {
+    if (numberOfCountries !== undefined || countries !== undefined) {
+      const parsedCountries = Array.isArray(countries)
+        ? countries.map((country) => String(country).trim()).filter(Boolean)
+        : plan.countries || [];
+      const countryLimit =
+        numberOfCountries === undefined
+          ? parsedCountries.length
+          : parseInt(numberOfCountries);
+
+      if (countryLimit < 1) {
         return res.status(400).json({
           success: false,
           message: "Number of countries must be at least 1",
         });
       }
-      plan.numberOfCountries = parseInt(numberOfCountries);
+      plan.numberOfCountries = countryLimit;
+      plan.countries = parsedCountries;
     }
     if (waitingTime !== undefined) plan.waitingTime = parseInt(waitingTime);
     if (maxJobs !== undefined) plan.maxJobs = parseInt(maxJobs);
-    if (maxApplications !== undefined) plan.maxApplications = parseInt(maxApplications);
+    if (maxApplications !== undefined)
+      plan.maxApplications = parseInt(maxApplications);
     if (isActive !== undefined) plan.isActive = isActive;
     if (discountPercentage !== undefined)
       plan.discountPercentage = parseFloat(discountPercentage);

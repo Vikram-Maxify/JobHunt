@@ -1,6 +1,3 @@
-
-import React, { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import {
   Award,
   BriefcaseBusiness,
@@ -10,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   Code2,
+  ExternalLink,
   FileText,
   Globe,
   GraduationCap,
@@ -25,8 +23,9 @@ import {
   UserRound,
   VenusAndMars,
   X,
-  ExternalLink,
 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 import { getProfile, updateProfile } from "../redux/slicer/authSlice";
 
@@ -47,20 +46,17 @@ const Profile = () => {
   const [saveMessage, setSaveMessage] = useState("");
   const [messageType, setMessageType] = useState("");
 
-  /* =====================================================
-     FILE STATES
-  ===================================================== */
+  // =====================================================
+  // FILE STATES
+  // =====================================================
 
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
-
-  const [governmentDocumentFile, setGovernmentDocumentFile] =
-    useState(null);
-
+  const [governmentDocumentFile, setGovernmentDocumentFile] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
 
-  /* =====================================================
-     FORM DATA
-  ===================================================== */
+  // =====================================================
+  // FORM DATA
+  // =====================================================
 
   const [formData, setFormData] = useState({
     name: "",
@@ -69,24 +65,27 @@ const Profile = () => {
     location: "",
     dateOfBirth: "",
     gender: "",
+
     qualification: "",
     university: "",
     graduationYear: "",
+
     experience: "",
     currentCompany: "",
     jobTitle: "",
     skills: "",
     bio: "",
+
     linkedin: "",
     github: "",
     portfolio: "",
+
     preferredJobRole: "",
     preferredLocation: "",
     employmentType: "",
     salaryExpectation: "",
 
     resume: "",
-
     profilePhoto: "",
 
     governmentDocumentType: "",
@@ -94,9 +93,9 @@ const Profile = () => {
     governmentDocumentName: "",
   });
 
-  /* =====================================================
-     GET PROFILE
-  ===================================================== */
+  // =====================================================
+  // GET PROFILE
+  // =====================================================
 
   useEffect(() => {
     if (!reduxUser) {
@@ -104,9 +103,9 @@ const Profile = () => {
     }
   }, [dispatch, reduxUser]);
 
-  /* =====================================================
-     SET PROFILE DATA
-  ===================================================== */
+  // =====================================================
+  // SET PROFILE DATA
+  // =====================================================
 
   useEffect(() => {
     if (!reduxUser) return;
@@ -149,29 +148,22 @@ const Profile = () => {
       salaryExpectation: reduxUser.salaryExpectation || "",
 
       resume: reduxUser.resume || "",
-
       profilePhoto: reduxUser.profilePhoto || "",
 
-      governmentDocumentType:
-        reduxUser.governmentDocumentType || "",
+      governmentDocumentType: reduxUser.governmentDocumentType || "",
 
-      governmentDocument:
-        reduxUser.governmentDocument || "",
+      governmentDocument: reduxUser.governmentDocument || "",
 
-      governmentDocumentName:
-        reduxUser.governmentDocumentName || "",
+      governmentDocumentName: reduxUser.governmentDocumentName || "",
     });
   }, [reduxUser]);
 
-  /* =====================================================
-     HELPERS
-  ===================================================== */
+  // =====================================================
+  // HELPERS
+  // =====================================================
 
   const getInitials = (name = "") => {
-    const words = name
-      .trim()
-      .split(" ")
-      .filter(Boolean);
+    const words = name.trim().split(" ").filter(Boolean);
 
     if (!words.length) return "U";
 
@@ -199,10 +191,7 @@ const Profile = () => {
   const normalizeUrl = (url) => {
     if (!url) return "#";
 
-    if (
-      url.startsWith("http://") ||
-      url.startsWith("https://")
-    ) {
+    if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
 
@@ -216,11 +205,7 @@ const Profile = () => {
       return user.profilePhoto;
     }
 
-    return (
-      user.profilePhoto?.displayUrl ||
-      user.profilePhoto?.url ||
-      ""
-    );
+    return user.profilePhoto?.displayUrl || user.profilePhoto?.url || "";
   };
 
   const skillsArray = useMemo(() => {
@@ -236,9 +221,9 @@ const Profile = () => {
       .filter(Boolean);
   }, [user]);
 
-  /* =====================================================
-     PROFILE COMPLETION
-  ===================================================== */
+  // =====================================================
+  // PROFILE COMPLETION
+  // =====================================================
 
   const profileCompletion = useMemo(() => {
     if (!user) return 0;
@@ -267,17 +252,15 @@ const Profile = () => {
 
     const completed = fields.filter(
       (field) =>
-        field !== undefined &&
-        field !== null &&
-        String(field).trim() !== ""
+        field !== undefined && field !== null && String(field).trim() !== "",
     ).length;
 
     return Math.round((completed / fields.length) * 100);
   }, [user]);
 
-  /* =====================================================
-     CHANGE INPUT
-  ===================================================== */
+  // =====================================================
+  // CHANGE INPUT
+  // =====================================================
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -288,9 +271,9 @@ const Profile = () => {
     }));
   };
 
-  /* =====================================================
-     PROFILE PHOTO
-  ===================================================== */
+  // =====================================================
+  // PROFILE PHOTO
+  // =====================================================
 
   const handleProfilePhotoChange = (e) => {
     const file = e.target.files?.[0];
@@ -306,29 +289,21 @@ const Profile = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setSaveMessage(
-        "Please upload a valid JPG, PNG, WEBP or GIF image."
-      );
+      setSaveMessage("Please upload a valid JPG, PNG, WEBP or GIF image.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveMessage(
-        "Profile photo must be less than 5MB."
-      );
+      setSaveMessage("Profile photo must be less than 5MB.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
-    /* Store actual file */
     setProfilePhotoFile(file);
 
-    /*
-      Create local preview.
-      This preview is only for UI.
-      Actual file will be sent through FormData.
-    */
     const previewUrl = URL.createObjectURL(file);
 
     setFormData((prev) => ({
@@ -340,9 +315,9 @@ const Profile = () => {
     setMessageType("");
   };
 
-  /* =====================================================
-     RESUME PDF UPLOAD
-  ===================================================== */
+  // =====================================================
+  // RESUME
+  // =====================================================
 
   const handleResumeChange = (e) => {
     const file = e.target.files?.[0];
@@ -352,14 +327,14 @@ const Profile = () => {
     if (file.type !== "application/pdf") {
       setSaveMessage("Only PDF resume is allowed.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveMessage(
-        "Resume PDF must be less than 5MB."
-      );
+      setSaveMessage("Resume PDF must be less than 5MB.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
@@ -369,9 +344,9 @@ const Profile = () => {
     setMessageType("");
   };
 
-  /* =====================================================
-     GOVERNMENT DOCUMENT
-  ===================================================== */
+  // =====================================================
+  // GOVERNMENT DOCUMENT
+  // =====================================================
 
   const handleGovernmentDocumentChange = (e) => {
     const file = e.target.files?.[0];
@@ -379,10 +354,9 @@ const Profile = () => {
     if (!file) return;
 
     if (!formData.governmentDocumentType) {
-      setSaveMessage(
-        "Please select government document type first."
-      );
+      setSaveMessage("Please select government document type first.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
@@ -396,48 +370,38 @@ const Profile = () => {
     ];
 
     if (!allowedTypes.includes(file.type)) {
-      setSaveMessage(
-        "Government document must be JPG, PNG, WEBP, GIF or PDF."
-      );
+      setSaveMessage("Government document must be JPG, PNG, WEBP, GIF or PDF.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setSaveMessage(
-        "Government document must be less than 5MB."
-      );
+      setSaveMessage("Government document must be less than 5MB.");
       setMessageType("error");
+      e.target.value = "";
       return;
     }
 
     setGovernmentDocumentFile(file);
 
-    const reader = new FileReader();
+    setFormData((prev) => ({
+      ...prev,
+      governmentDocumentName: file.name,
+    }));
 
-    reader.onloadend = () => {
-      setFormData((prev) => ({
-        ...prev,
-        governmentDocument: reader.result,
-        governmentDocumentName: file.name,
-      }));
-    };
-
-    reader.readAsDataURL(file);
+    setSaveMessage("");
+    setMessageType("");
   };
 
-  /* =====================================================
-     OPEN EDIT MODAL
-  ===================================================== */
+  // =====================================================
+  // OPEN EDIT MODAL
+  // =====================================================
 
   const openEditModal = () => {
     setSaveMessage("");
     setMessageType("");
 
-    /*
-      Reset newly selected files whenever modal opens.
-      Existing backend data remains untouched.
-    */
     setProfilePhotoFile(null);
     setResumeFile(null);
     setGovernmentDocumentFile(null);
@@ -445,9 +409,9 @@ const Profile = () => {
     setShowEditModal(true);
   };
 
-  /* =====================================================
-     CLOSE EDIT MODAL
-  ===================================================== */
+  // =====================================================
+  // CLOSE EDIT MODAL
+  // =====================================================
 
   const closeEditModal = () => {
     if (updating) return;
@@ -462,106 +426,135 @@ const Profile = () => {
     setShowEditModal(false);
   };
 
-  /* =====================================================
-     SAVE PROFILE
-  ===================================================== */
+  // =====================================================
+  // SAVE PROFILE
+  // =====================================================
 
   const handleSave = async (e) => {
     e.preventDefault();
+
+    if (updating) return;
 
     setSaveMessage("");
     setMessageType("");
 
     try {
+      /*
+       * IMPORTANT:
+       * We intentionally use FormData because
+       * profilePhoto, resume and governmentDocument
+       * are files.
+       */
       const data = new FormData();
 
-      /*
-        Normal text fields
-      */
-      Object.entries(formData).forEach(([key, value]) => {
-        if (
-          key !== "profilePhoto" &&
-          key !== "governmentDocument" &&
-          key !== "resume" &&
-          key !== "skills"
-        ) {
-          data.append(key, value ?? "");
-        }
+      // =================================================
+      // TEXT FIELDS
+      // =================================================
+
+      const textFields = [
+        "name",
+        "email",
+        "mobile",
+        "location",
+        "dateOfBirth",
+        "gender",
+        "qualification",
+        "university",
+        "graduationYear",
+        "experience",
+        "currentCompany",
+        "jobTitle",
+        "bio",
+        "linkedin",
+        "github",
+        "portfolio",
+        "preferredJobRole",
+        "preferredLocation",
+        "employmentType",
+        "salaryExpectation",
+        "governmentDocumentType",
+      ];
+
+      textFields.forEach((key) => {
+        data.append(
+          key,
+          formData[key] !== undefined && formData[key] !== null
+            ? String(formData[key])
+            : "",
+        );
       });
 
-      /* =================================================
-         SKILLS
-      ================================================= */
+      // =================================================
+      // SKILLS
+      // =================================================
 
-      data.append(
-        "skills",
-        Array.isArray(formData.skills)
-          ? formData.skills.join(",")
-          : formData.skills || ""
-      );
+      const skills = Array.isArray(formData.skills)
+        ? formData.skills.join(",")
+        : String(formData.skills || "");
 
-      /* =================================================
-         PROFILE PHOTO
-      ================================================= */
+      data.append("skills", skills);
 
-      if (profilePhotoFile) {
-        data.append(
-          "profilePhoto",
-          profilePhotoFile
-        );
+      // =================================================
+      // PROFILE PHOTO
+      // =================================================
+
+      if (profilePhotoFile instanceof File) {
+        data.append("profilePhoto", profilePhotoFile, profilePhotoFile.name);
       }
 
-      /* =================================================
-         GOVERNMENT DOCUMENT
-      ================================================= */
+      // =================================================
+      // GOVERNMENT DOCUMENT
+      // =================================================
 
-      if (governmentDocumentFile) {
+      if (governmentDocumentFile instanceof File) {
         data.append(
           "governmentDocument",
-          governmentDocumentFile
+          governmentDocumentFile,
+          governmentDocumentFile.name,
         );
       }
 
-      /* =================================================
-         RESUME
-      ================================================= */
+      // =================================================
+      // RESUME
+      // =================================================
 
-      if (resumeFile) {
-        data.append("resume", resumeFile);
+      if (resumeFile instanceof File) {
+        data.append("resume", resumeFile, resumeFile.name);
       }
 
       /*
-        Redux updateProfile
-      */
-      const response = await dispatch(
-        updateProfile(data)
-      ).unwrap();
+       * DO NOT manually set:
+       *
+       * Content-Type: multipart/form-data
+       *
+       * Browser/Axios will automatically add the
+       * multipart boundary.
+       */
 
-      setSaveMessage(
-        response?.message ||
-          "Profile updated successfully."
-      );
+      const response = await dispatch(updateProfile(data)).unwrap();
+
+      setSaveMessage(response?.message || "Profile updated successfully.");
 
       setMessageType("success");
 
-      /*
-        Update local user immediately if backend
-        returned updated data.
-      */
+      // =================================================
+      // UPDATE LOCAL USER
+      // =================================================
+
       if (response?.data) {
         setUser(response.data);
       }
 
-      /*
-        IMPORTANT:
-        Fetch latest profile again so the updated
-        profile photo URL comes from backend.
-      */
+      // =================================================
+      // FETCH LATEST PROFILE
+      // =================================================
+
       await dispatch(getProfile());
 
-      /*
-        Close modal after short delay.
-      */
+      // =================================================
+      // CLOSE MODAL
+      // =================================================
+
       setTimeout(() => {
         setProfilePhotoFile(null);
         setResumeFile(null);
@@ -572,20 +565,23 @@ const Profile = () => {
         setMessageType("");
       }, 800);
     } catch (err) {
-      setSaveMessage(
+      console.error("Profile update error:", err);
+
+      const message =
         typeof err === "string"
           ? err
           : err?.message ||
-              "Failed to update profile."
-      );
+            err?.payload?.message ||
+            "Failed to update profile.";
 
+      setSaveMessage(message);
       setMessageType("error");
     }
   };
 
-  /* =====================================================
-     LOADING
-  ===================================================== */
+  // =====================================================
+  // LOADING
+  // =====================================================
 
   if (loading && !user) {
     return (
@@ -601,9 +597,9 @@ const Profile = () => {
     );
   }
 
-  /* =====================================================
-     NO USER
-  ===================================================== */
+  // =====================================================
+  // NO USER
+  // =====================================================
 
   if (!user) {
     return (
@@ -623,15 +619,10 @@ const Profile = () => {
     );
   }
 
-  /* =====================================================
-     PROFILE PHOTO URL
-  ===================================================== */
-
   const profilePhotoUrl = getProfilePhotoUrl();
 
   return (
     <div className="min-h-screen bg-slate-50 pb-10">
-
       {/* =====================================================
           MESSAGE
       ===================================================== */}
@@ -650,9 +641,7 @@ const Profile = () => {
             <X className="w-5 h-5 shrink-0" />
           )}
 
-          <span className="text-sm font-medium">
-            {saveMessage}
-          </span>
+          <span className="text-sm font-medium">{saveMessage}</span>
         </div>
       )}
 
@@ -661,15 +650,11 @@ const Profile = () => {
       ===================================================== */}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 sm:pt-7">
-
         {/* =====================================================
             PROFILE HEADER
         ===================================================== */}
 
         <section className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-
-          {/* COVER */}
-
           <div className="h-36 sm:h-48 bg-gradient-to-r from-blue-700 via-blue-600 to-indigo-700 relative overflow-hidden">
             <div className="absolute -right-16 -top-24 w-80 h-80 rounded-full border-[60px] border-white/10" />
 
@@ -682,24 +667,16 @@ const Profile = () => {
             </div>
           </div>
 
-          {/* PROFILE AREA */}
-
           <div className="px-5 sm:px-8 pb-7">
-
             <div className="-mt-14 sm:-mt-20 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
-
               {/* USER */}
 
               <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-
                 {/* AVATAR */}
 
                 <div className="relative shrink-0">
-
                   <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-3xl bg-white p-1.5 shadow-xl">
-
                     <div className="w-full h-full rounded-[20px] overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-
                       {profilePhotoUrl ? (
                         <img
                           src={profilePhotoUrl}
@@ -711,21 +688,14 @@ const Profile = () => {
                           {getInitials(user.name)}
                         </span>
                       )}
-
                     </div>
                   </div>
-
-                  {/* VERIFIED */}
 
                   {(user.isVerified || user.verified) && (
                     <div className="absolute -right-2 bottom-2 bg-white rounded-full p-1 shadow">
                       <CheckCircle2 className="w-7 h-7 text-blue-600 fill-blue-50" />
                     </div>
                   )}
-
-                  {/* =================================================
-                      QUICK PHOTO UPDATE BUTTON
-                  ================================================= */}
 
                   <label
                     title="Change profile photo"
@@ -749,7 +719,6 @@ const Profile = () => {
 
                 <div className="pb-1">
                   <div className="flex flex-wrap items-center gap-2">
-
                     <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
                       {user.name || "Your Name"}
                     </h1>
@@ -760,7 +729,6 @@ const Profile = () => {
                         Verified
                       </span>
                     )}
-
                   </div>
 
                   <p className="mt-1 text-base font-medium text-slate-600">
@@ -768,7 +736,6 @@ const Profile = () => {
                   </p>
 
                   <div className="flex flex-wrap gap-x-4 gap-y-2 mt-3 text-sm text-slate-500">
-
                     {user.location && (
                       <span className="inline-flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-blue-500" />
@@ -782,7 +749,6 @@ const Profile = () => {
                         {user.email}
                       </span>
                     )}
-
                   </div>
                 </div>
               </div>
@@ -790,19 +756,18 @@ const Profile = () => {
               {/* EDIT */}
 
               <button
+                type="button"
                 onClick={openEditModal}
                 className="w-full lg:w-auto inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-blue-600/20 transition"
               >
                 <Pencil className="w-4 h-4" />
                 Edit Profile
               </button>
-
             </div>
 
             {/* QUICK INFO */}
 
             <div className="mt-7 grid grid-cols-2 lg:grid-cols-4 gap-3">
-
               <QuickStat
                 icon={BriefcaseBusiness}
                 label="Experience"
@@ -826,7 +791,6 @@ const Profile = () => {
                 label="Preferred Location"
                 value={user.preferredLocation || "Not added"}
               />
-
             </div>
           </div>
         </section>
@@ -836,13 +800,9 @@ const Profile = () => {
         ===================================================== */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-
-          {/* =================================================
-              LEFT
-          ================================================= */}
+          {/* LEFT */}
 
           <div className="lg:col-span-2 space-y-6">
-
             {/* ABOUT */}
 
             <ProfileCard
@@ -864,7 +824,6 @@ const Profile = () => {
               subtitle="Your basic profile details"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
                 <InfoItem
                   icon={Mail}
                   label="Email Address"
@@ -900,7 +859,6 @@ const Profile = () => {
                   label="Profile Type"
                   value="Job Seeker"
                 />
-
               </div>
             </ProfileCard>
 
@@ -913,14 +871,8 @@ const Profile = () => {
             >
               <TimelineItem
                 icon={GraduationCap}
-                title={
-                  user.qualification ||
-                  "Qualification not added"
-                }
-                subtitle={
-                  user.university ||
-                  "University not added"
-                }
+                title={user.qualification || "Qualification not added"}
+                subtitle={user.university || "University not added"}
                 badge={user.graduationYear}
               />
             </ProfileCard>
@@ -934,14 +886,8 @@ const Profile = () => {
             >
               <TimelineItem
                 icon={BriefcaseBusiness}
-                title={
-                  user.jobTitle ||
-                  "Job title not added"
-                }
-                subtitle={
-                  user.currentCompany ||
-                  "Company not added"
-                }
+                title={user.jobTitle || "Job title not added"}
+                subtitle={user.currentCompany || "Company not added"}
                 badge={user.experience || "Fresher"}
               />
             </ProfileCard>
@@ -955,7 +901,6 @@ const Profile = () => {
             >
               {skillsArray.length > 0 ? (
                 <div className="flex flex-wrap gap-2.5">
-
                   {skillsArray.map((skill, index) => (
                     <span
                       key={`${skill}-${index}`}
@@ -965,30 +910,20 @@ const Profile = () => {
                       {skill}
                     </span>
                   ))}
-
                 </div>
               ) : (
-                <EmptyState
-                  icon={Code2}
-                  text="No skills added yet."
-                />
+                <EmptyState icon={Code2} text="No skills added yet." />
               )}
             </ProfileCard>
-
           </div>
 
-          {/* =================================================
-              RIGHT
-          ================================================= */}
+          {/* RIGHT */}
 
           <div className="space-y-6">
-
             {/* PROFILE STRENGTH */}
 
             <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-6 text-white shadow-lg shadow-blue-600/15">
-
               <div className="flex items-start justify-between">
-
                 <div>
                   <p className="text-blue-100 text-sm font-medium">
                     Profile Strength
@@ -1002,7 +937,6 @@ const Profile = () => {
                 <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center">
                   <Award className="w-5 h-5" />
                 </div>
-
               </div>
 
               <div className="mt-5 h-2 rounded-full bg-white/20 overflow-hidden">
@@ -1015,17 +949,16 @@ const Profile = () => {
               </div>
 
               <p className="text-xs text-blue-100 mt-3 leading-5">
-                Complete your profile to increase your visibility
-                to employers.
+                Complete your profile to increase your visibility to employers.
               </p>
 
               <button
+                type="button"
                 onClick={openEditModal}
                 className="mt-4 w-full bg-white text-blue-700 hover:bg-blue-50 py-2.5 rounded-xl text-sm font-bold transition"
               >
                 Improve Profile
               </button>
-
             </div>
 
             {/* CAREER PREFERENCES */}
@@ -1036,7 +969,6 @@ const Profile = () => {
               subtitle="What you're looking for"
             >
               <div className="space-y-4">
-
                 <PreferenceItem
                   icon={BriefcaseBusiness}
                   label="Preferred Role"
@@ -1060,7 +992,6 @@ const Profile = () => {
                   label="Salary Expectation"
                   value={user.salaryExpectation}
                 />
-
               </div>
             </ProfileCard>
 
@@ -1073,15 +1004,12 @@ const Profile = () => {
             >
               {user.resume ? (
                 <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-
                   <div className="flex items-center gap-3">
-
                     <div className="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
                       <FileText className="w-5 h-5" />
                     </div>
 
                     <div className="min-w-0 flex-1">
-
                       <p className="font-semibold text-slate-800 text-sm">
                         Resume.pdf
                       </p>
@@ -1089,9 +1017,7 @@ const Profile = () => {
                       <p className="text-xs text-slate-500 mt-0.5">
                         PDF resume available
                       </p>
-
                     </div>
-
                   </div>
 
                   <a
@@ -1103,13 +1029,9 @@ const Profile = () => {
                     View Resume
                     <ExternalLink className="w-4 h-4" />
                   </a>
-
                 </div>
               ) : (
-                <EmptyState
-                  icon={FileText}
-                  text="Resume PDF not uploaded."
-                />
+                <EmptyState icon={FileText} text="Resume PDF not uploaded." />
               )}
             </ProfileCard>
 
@@ -1122,15 +1044,12 @@ const Profile = () => {
             >
               {user.governmentDocument ? (
                 <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
-
                   <div className="flex items-center gap-3">
-
                     <div className="w-11 h-11 rounded-xl bg-white text-emerald-600 flex items-center justify-center shadow-sm">
                       <ShieldCheck className="w-5 h-5" />
                     </div>
 
                     <div className="min-w-0">
-
                       <p className="font-semibold text-emerald-800 text-sm">
                         Document Added
                       </p>
@@ -1140,34 +1059,24 @@ const Profile = () => {
                           user.governmentDocumentType ||
                           "Government document"}
                       </p>
-
                     </div>
-
                   </div>
-
                 </div>
               ) : (
                 <div className="rounded-xl bg-amber-50 border border-amber-100 p-4">
-
                   <div className="flex gap-3">
-
                     <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0" />
 
                     <div>
-
                       <p className="text-sm font-semibold text-amber-800">
                         Verification pending
                       </p>
 
                       <p className="text-xs text-amber-700 mt-1 leading-5">
-                        Add your government document from Edit
-                        Profile.
+                        Add your government document from Edit Profile.
                       </p>
-
                     </div>
-
                   </div>
-
                 </div>
               )}
             </ProfileCard>
@@ -1180,7 +1089,6 @@ const Profile = () => {
               subtitle="Professional links"
             >
               <div className="space-y-2.5">
-
                 {user.linkedin && (
                   <SocialLink
                     icon={Globe}
@@ -1190,11 +1098,7 @@ const Profile = () => {
                 )}
 
                 {user.github && (
-                  <SocialLink
-                    icon={Code2}
-                    label="GitHub"
-                    url={user.github}
-                  />
+                  <SocialLink icon={Code2} label="GitHub" url={user.github} />
                 )}
 
                 {user.portfolio && (
@@ -1205,18 +1109,14 @@ const Profile = () => {
                   />
                 )}
 
-                {!user.linkedin &&
-                  !user.github &&
-                  !user.portfolio && (
-                    <EmptyState
-                      icon={Globe}
-                      text="No professional links added."
-                    />
-                  )}
-
+                {!user.linkedin && !user.github && !user.portfolio && (
+                  <EmptyState
+                    icon={Globe}
+                    text="No professional links added."
+                  />
+                )}
               </div>
             </ProfileCard>
-
           </div>
         </div>
       </div>
@@ -1227,13 +1127,10 @@ const Profile = () => {
 
       {showEditModal && (
         <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5">
-
           <div className="bg-white w-full max-w-4xl max-h-[94vh] rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-
-            {/* MODAL HEADER */}
+            {/* HEADER */}
 
             <div className="px-5 sm:px-7 py-4 sm:py-5 border-b border-slate-200 flex items-center justify-between">
-
               <div>
                 <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
                   Edit Profile
@@ -1247,32 +1144,26 @@ const Profile = () => {
               <button
                 type="button"
                 onClick={closeEditModal}
-                className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition"
+                disabled={updating}
+                className="w-10 h-10 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-500 transition disabled:opacity-50"
               >
                 <X className="w-5 h-5" />
               </button>
-
             </div>
 
-            {/* MODAL BODY */}
+            {/* BODY */}
 
             <form
               onSubmit={handleSave}
+              encType="multipart/form-data"
               className="overflow-y-auto px-5 sm:px-7 py-6 space-y-7"
             >
-
-              {/* =================================================
-                  PROFILE PHOTO
-              ================================================= */}
+              {/* PROFILE PHOTO */}
 
               <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
-
                 <div className="flex flex-col sm:flex-row items-center gap-5">
-
                   <div className="relative shrink-0">
-
                     <div className="w-24 h-24 rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-
                       {formData.profilePhoto ? (
                         <img
                           src={formData.profilePhoto}
@@ -1284,10 +1175,7 @@ const Profile = () => {
                           {getInitials(formData.name)}
                         </span>
                       )}
-
                     </div>
-
-                    {/* CAMERA BUTTON */}
 
                     <label
                       title="Change profile photo"
@@ -1302,26 +1190,19 @@ const Profile = () => {
                         className="hidden"
                       />
                     </label>
-
                   </div>
 
                   <div className="text-center sm:text-left">
-
-                    <h3 className="font-bold text-slate-800">
-                      Profile Photo
-                    </h3>
+                    <h3 className="font-bold text-slate-800">Profile Photo</h3>
 
                     <p className="text-sm text-slate-500 mt-1">
                       JPG, PNG, WEBP or GIF. Maximum 5MB.
                     </p>
 
                     <label className="mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer transition">
-
                       <Camera className="w-4 h-4" />
 
-                      {profilePhotoFile
-                        ? "Change Photo"
-                        : "Choose Photo"}
+                      {profilePhotoFile ? "Change Photo" : "Choose Photo"}
 
                       <input
                         type="file"
@@ -1329,9 +1210,7 @@ const Profile = () => {
                         onChange={handleProfilePhotoChange}
                         className="hidden"
                       />
-
                     </label>
-
                   </div>
                 </div>
               </div>
@@ -1344,7 +1223,6 @@ const Profile = () => {
                 description="Basic information about you"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <InputField
                     label="Full Name"
                     name="name"
@@ -1393,14 +1271,8 @@ const Profile = () => {
                     value={formData.gender}
                     onChange={handleChange}
                     icon={VenusAndMars}
-                    options={[
-                      "Male",
-                      "Female",
-                      "Other",
-                      "Prefer not to say",
-                    ]}
+                    options={["Male", "Female", "Other", "Prefer not to say"]}
                   />
-
                 </div>
               </FormSection>
 
@@ -1412,7 +1284,6 @@ const Profile = () => {
                 description="Academic qualifications"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <InputField
                     label="Qualification"
                     name="qualification"
@@ -1436,7 +1307,6 @@ const Profile = () => {
                     onChange={handleChange}
                     icon={CalendarDays}
                   />
-
                 </div>
               </FormSection>
 
@@ -1448,7 +1318,6 @@ const Profile = () => {
                 description="Your current professional status"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <InputField
                     label="Experience"
                     name="experience"
@@ -1482,11 +1351,9 @@ const Profile = () => {
                     icon={Code2}
                     placeholder="React, Node.js, MongoDB"
                   />
-
                 </div>
 
                 <div className="mt-4">
-
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Professional Bio
                   </label>
@@ -1499,7 +1366,6 @@ const Profile = () => {
                     placeholder="Write a short professional summary..."
                     className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 outline-none resize-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition"
                   />
-
                 </div>
               </FormSection>
 
@@ -1511,7 +1377,6 @@ const Profile = () => {
                 description="Tell employers what kind of opportunity you want"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <InputField
                     label="Preferred Job Role"
                     name="preferredJobRole"
@@ -1550,7 +1415,6 @@ const Profile = () => {
                     onChange={handleChange}
                     icon={Award}
                   />
-
                 </div>
               </FormSection>
 
@@ -1562,7 +1426,6 @@ const Profile = () => {
                 description="Add your professional links"
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <InputField
                     label="LinkedIn"
                     name="linkedin"
@@ -1589,52 +1452,40 @@ const Profile = () => {
                     icon={Globe}
                     placeholder="https://yourportfolio.com"
                   />
-
                 </div>
               </FormSection>
 
-              {/* =================================================
-                  RESUME PDF UPLOAD
-              ================================================= */}
+              {/* RESUME */}
 
               <FormSection
                 icon={FileText}
                 title="Resume"
                 description="Upload your latest resume in PDF format"
               >
-
                 <div className="rounded-2xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/40 p-5 transition">
-
                   <div className="flex flex-col sm:flex-row items-center gap-4">
-
                     <div className="w-14 h-14 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
                       <FileText className="w-7 h-7" />
                     </div>
 
                     <div className="flex-1 min-w-0 text-center sm:text-left">
-
                       <h4 className="font-bold text-slate-800">
                         {resumeFile
                           ? resumeFile.name
                           : user.resume
-                          ? "Current Resume"
-                          : "Upload Resume PDF"}
+                            ? "Current Resume"
+                            : "Upload Resume PDF"}
                       </h4>
 
                       <p className="text-xs text-slate-500 mt-1">
-                        Only PDF files are allowed. Maximum size
-                        5MB.
+                        Only PDF files are allowed. Maximum size 5MB.
                       </p>
-
                     </div>
 
                     <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold cursor-pointer transition shrink-0">
-
                       <Upload className="w-4 h-4" />
 
-                      {resumeFile
-                        ? "Change PDF"
-                        : "Choose PDF"}
+                      {resumeFile ? "Change PDF" : "Choose PDF"}
 
                       <input
                         type="file"
@@ -1642,14 +1493,11 @@ const Profile = () => {
                         onChange={handleResumeChange}
                         className="hidden"
                       />
-
                     </label>
-
                   </div>
 
                   {user.resume && !resumeFile && (
                     <div className="mt-4 pt-4 border-t border-slate-200">
-
                       <a
                         href={normalizeUrl(user.resume)}
                         target="_blank"
@@ -1660,10 +1508,8 @@ const Profile = () => {
                         View current resume
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
-
                     </div>
                   )}
-
                 </div>
               </FormSection>
 
@@ -1674,9 +1520,7 @@ const Profile = () => {
                 title="Government Document"
                 description="Upload your verification document"
               >
-
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <SelectField
                     label="Document Type"
                     name="governmentDocumentType"
@@ -1693,26 +1537,21 @@ const Profile = () => {
                   />
 
                   <div>
-
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Upload Document
                     </label>
 
                     <label className="min-h-[50px] px-4 rounded-xl border-2 border-dashed border-slate-200 hover:border-blue-400 bg-slate-50 hover:bg-blue-50/50 flex items-center gap-3 cursor-pointer transition">
-
                       <Upload className="w-5 h-5 text-blue-600 shrink-0" />
 
                       <div className="min-w-0">
-
                         <p className="text-sm font-semibold text-slate-700 truncate">
-                          {formData.governmentDocumentName ||
-                            "Choose document"}
+                          {formData.governmentDocumentName || "Choose document"}
                         </p>
 
                         <p className="text-xs text-slate-400">
                           JPG, PNG, WEBP, GIF or PDF • Max 5MB
                         </p>
-
                       </div>
 
                       <input
@@ -1721,11 +1560,8 @@ const Profile = () => {
                         onChange={handleGovernmentDocumentChange}
                         className="hidden"
                       />
-
                     </label>
-
                   </div>
-
                 </div>
               </FormSection>
 
@@ -1735,15 +1571,13 @@ const Profile = () => {
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {typeof error === "string"
                     ? error
-                    : error?.message ||
-                      "Something went wrong."}
+                    : error?.message || "Something went wrong."}
                 </div>
               )}
 
               {/* SAVE BUTTON */}
 
               <div className="sticky bottom-0 bg-white border-t border-slate-200 -mx-5 sm:-mx-7 px-5 sm:px-7 py-4 flex flex-col sm:flex-row gap-3 justify-end">
-
                 <button
                   type="button"
                   onClick={closeEditModal}
@@ -1770,9 +1604,7 @@ const Profile = () => {
                     </>
                   )}
                 </button>
-
               </div>
-
             </form>
           </div>
         </div>
@@ -1781,304 +1613,204 @@ const Profile = () => {
   );
 };
 
-/* =====================================================
-   PROFILE CARD
-===================================================== */
+// =====================================================
+// PROFILE CARD
+// =====================================================
 
-const ProfileCard = ({
-  icon: Icon,
-  title,
-  subtitle,
-  children,
-}) => {
+const ProfileCard = ({ icon: Icon, title, subtitle, children }) => {
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
       <div className="px-5 sm:px-6 py-5 border-b border-slate-100">
-
         <div className="flex items-center gap-3">
-
           <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
             <Icon className="w-5 h-5" />
           </div>
 
           <div>
-
-            <h2 className="font-bold text-slate-900">
-              {title}
-            </h2>
+            <h2 className="font-bold text-slate-900">{title}</h2>
 
             {subtitle && (
-              <p className="text-xs text-slate-500 mt-0.5">
-                {subtitle}
-              </p>
+              <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>
             )}
-
           </div>
-
         </div>
       </div>
 
-      <div className="p-5 sm:p-6">
-        {children}
-      </div>
-
+      <div className="p-5 sm:p-6">{children}</div>
     </section>
   );
 };
 
-/* =====================================================
-   QUICK STAT
-===================================================== */
+// =====================================================
+// QUICK STAT
+// =====================================================
 
-const QuickStat = ({
-  icon: Icon,
-  label,
-  value,
-}) => {
+const QuickStat = ({ icon: Icon, label, value }) => {
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50/70 p-4 hover:bg-white hover:border-blue-100 transition">
-
       <div className="flex items-center gap-2 text-slate-400">
-
         <Icon className="w-4 h-4" />
 
-        <span className="text-xs font-medium">
-          {label}
-        </span>
-
+        <span className="text-xs font-medium">{label}</span>
       </div>
 
       <p className="mt-2 text-sm font-bold text-slate-800 line-clamp-2">
         {value || "Not added"}
       </p>
-
     </div>
   );
 };
 
-/* =====================================================
-   INFO ITEM
-===================================================== */
+// =====================================================
+// INFO ITEM
+// =====================================================
 
-const InfoItem = ({
-  icon: Icon,
-  label,
-  value,
-}) => {
+const InfoItem = ({ icon: Icon, label, value }) => {
   return (
     <div className="flex items-start gap-3">
-
       <div className="w-9 h-9 rounded-lg bg-slate-50 text-blue-600 flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" />
       </div>
 
       <div className="min-w-0">
-
-        <p className="text-xs font-medium text-slate-400">
-          {label}
-        </p>
+        <p className="text-xs font-medium text-slate-400">{label}</p>
 
         <p className="text-sm font-semibold text-slate-700 mt-1 break-words">
           {value || "Not provided"}
         </p>
-
       </div>
-
     </div>
   );
 };
 
-/* =====================================================
-   PREFERENCE ITEM
-===================================================== */
+// =====================================================
+// PREFERENCE ITEM
+// =====================================================
 
-const PreferenceItem = ({
-  icon: Icon,
-  label,
-  value,
-}) => {
+const PreferenceItem = ({ icon: Icon, label, value }) => {
   return (
     <div className="flex items-center gap-3">
-
       <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
         <Icon className="w-4 h-4" />
       </div>
 
       <div className="min-w-0 flex-1">
-
-        <p className="text-xs text-slate-400 font-medium">
-          {label}
-        </p>
+        <p className="text-xs text-slate-400 font-medium">{label}</p>
 
         <p className="text-sm text-slate-700 font-semibold mt-0.5 truncate">
           {value || "Not added"}
         </p>
-
       </div>
-
     </div>
   );
 };
 
-/* =====================================================
-   TIMELINE ITEM
-===================================================== */
+// =====================================================
+// TIMELINE ITEM
+// =====================================================
 
-const TimelineItem = ({
-  icon: Icon,
-  title,
-  subtitle,
-  badge,
-}) => {
+const TimelineItem = ({ icon: Icon, title, subtitle, badge }) => {
   return (
     <div className="relative pl-8">
-
       <div className="absolute left-2 top-2 bottom-0 w-px bg-blue-100" />
 
       <div className="relative">
-
         <div className="absolute -left-[25px] top-1.5 w-4 h-4 rounded-full bg-blue-600 border-4 border-blue-50" />
 
         <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
-
           <div>
+            <h3 className="font-bold text-slate-800">{title}</h3>
 
-            <h3 className="font-bold text-slate-800">
-              {title}
-            </h3>
-
-            <p className="text-sm text-slate-500 mt-1">
-              {subtitle}
-            </p>
-
+            <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
           </div>
 
           {badge && (
             <span className="inline-flex self-start items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 text-xs font-semibold">
-
               <CalendarDays className="w-3.5 h-3.5" />
-
               {badge}
-
             </span>
           )}
-
         </div>
       </div>
     </div>
   );
 };
 
-/* =====================================================
-   SOCIAL LINK
-===================================================== */
+// =====================================================
+// SOCIAL LINK
+// =====================================================
 
-const SocialLink = ({
-  icon: Icon,
-  label,
-  url,
-}) => {
+const SocialLink = ({ icon: Icon, label, url }) => {
+  const safeUrl =
+    url.startsWith("http://") || url.startsWith("https://")
+      ? url
+      : `https://${url}`;
+
   return (
     <a
-      href={
-        url.startsWith("http://") ||
-        url.startsWith("https://")
-          ? url
-          : `https://${url}`
-      }
+      href={safeUrl}
       target="_blank"
       rel="noopener noreferrer"
       className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-200 hover:bg-blue-50/50 transition group"
     >
-
       <div className="w-9 h-9 rounded-lg bg-slate-100 group-hover:bg-blue-100 text-slate-600 group-hover:text-blue-600 flex items-center justify-center transition">
         <Icon className="w-4 h-4" />
       </div>
 
       <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold text-slate-700">{label}</p>
 
-        <p className="text-sm font-semibold text-slate-700">
-          {label}
-        </p>
-
-        <p className="text-xs text-slate-400 truncate">
-          {url}
-        </p>
-
+        <p className="text-xs text-slate-400 truncate">{url}</p>
       </div>
 
       <ExternalLink className="w-4 h-4 text-slate-300 group-hover:text-blue-500" />
-
     </a>
   );
 };
 
-/* =====================================================
-   EMPTY STATE
-===================================================== */
+// =====================================================
+// EMPTY STATE
+// =====================================================
 
-const EmptyState = ({
-  icon: Icon,
-  text,
-}) => {
+const EmptyState = ({ icon: Icon, text }) => {
   return (
     <div className="py-5 text-center">
-
       <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-300 flex items-center justify-center mx-auto">
         <Icon className="w-5 h-5" />
       </div>
 
-      <p className="text-sm text-slate-400 mt-2">
-        {text}
-      </p>
-
+      <p className="text-sm text-slate-400 mt-2">{text}</p>
     </div>
   );
 };
 
-/* =====================================================
-   FORM SECTION
-===================================================== */
+// =====================================================
+// FORM SECTION
+// =====================================================
 
-const FormSection = ({
-  icon: Icon,
-  title,
-  description,
-  children,
-}) => {
+const FormSection = ({ icon: Icon, title, description, children }) => {
   return (
     <section>
-
       <div className="flex items-start gap-3 mb-4">
-
         <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
           <Icon className="w-4 h-4" />
         </div>
 
         <div>
+          <h3 className="font-bold text-slate-800">{title}</h3>
 
-          <h3 className="font-bold text-slate-800">
-            {title}
-          </h3>
-
-          <p className="text-xs text-slate-500 mt-0.5">
-            {description}
-          </p>
-
+          <p className="text-xs text-slate-500 mt-0.5">{description}</p>
         </div>
-
       </div>
 
       {children}
-
     </section>
   );
 };
 
-/* =====================================================
-   INPUT FIELD
-===================================================== */
+// =====================================================
+// INPUT FIELD
+// =====================================================
 
 const InputField = ({
   label,
@@ -2091,13 +1823,11 @@ const InputField = ({
 }) => {
   return (
     <div>
-
       <label className="block text-sm font-semibold text-slate-700 mb-2">
         {label}
       </label>
 
       <div className="relative">
-
         {Icon && (
           <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         )}
@@ -2112,15 +1842,14 @@ const InputField = ({
             Icon ? "pl-10 pr-4" : "px-4"
           }`}
         />
-
       </div>
     </div>
   );
 };
 
-/* =====================================================
-   SELECT FIELD
-===================================================== */
+// =====================================================
+// SELECT FIELD
+// =====================================================
 
 const SelectField = ({
   label,
@@ -2132,13 +1861,11 @@ const SelectField = ({
 }) => {
   return (
     <div>
-
       <label className="block text-sm font-semibold text-slate-700 mb-2">
         {label}
       </label>
 
       <div className="relative">
-
         {Icon && (
           <Icon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
         )}
@@ -2151,26 +1878,17 @@ const SelectField = ({
             Icon ? "pl-10 pr-4" : "px-4"
           }`}
         >
-
-          <option value="">
-            Select {label}
-          </option>
+          <option value="">Select {label}</option>
 
           {options.map((option) => (
-            <option
-              key={option}
-              value={option}
-            >
+            <option key={option} value={option}>
               {option}
             </option>
           ))}
-
         </select>
-
       </div>
     </div>
   );
 };
 
 export default Profile;
-

@@ -69,7 +69,8 @@ export const updateProfile = createAsyncThunk(
 
   async (formData, { rejectWithValue }) => {
     try {
-      const response = await api.put("/auth/profile", formData);
+      console.log("Updating profile with data:", formData); // Debugging log
+      const response = await api.put("/auth/update/profile", formData);
 
       return response.data;
     } catch (error) {

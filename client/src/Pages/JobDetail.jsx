@@ -11,7 +11,10 @@ import {
   saveJob,
   unsaveJob,
 } from "../redux/slicer/jobApplicationSlice";
+
 import { fetchMySubscription } from "../redux/slicer/userSubscriptionSlice";
+
+import { getProfile } from "../redux/slicer/authSlice";
 
 import {
   AlertCircle,
@@ -33,6 +36,7 @@ import {
   User,
   Users,
   X,
+  IdCard,
 } from "lucide-react";
 
 const JobDetail = () => {
@@ -45,8 +49,18 @@ const JobDetail = () => {
   // =========================================================
 
   const { selectedJob, jobLoading, jobError } = useSelector(
-    (state) => state.jobs,
+    (state) => state.jobs
   );
+
+  // =========================================================
+  // AUTH / PROFILE STATE
+  // =========================================================
+
+  const {
+    profile,
+    profileLoading,
+    profileError,
+  } = useSelector((state) => state.auth || {});
 
   // =========================================================
   // APPLICATION STATE
@@ -75,6 +89,8 @@ const JobDetail = () => {
 
   const [isSaved, setIsSaved] = useState(false);
 
+  const [loadingSavedDetails, setLoadingSavedDetails] = useState(false);
+
   // =========================================================
   // FORM DATA
   // =========================================================
@@ -83,19 +99,32 @@ const JobDetail = () => {
     name: "",
     email: "",
     phone: "",
+
     experienceType: "",
     experience: "",
+
     profilePhoto: null,
     governmentDocument: null,
     resume: null,
+
     skills: "",
+
     currentLocation: "",
+
     expectedSalary: "",
+
     noticePeriod: "",
+
     linkedin: "",
+
     portfolio: "",
+
     coverLetter: "",
+
     additionalInfo: "",
+
+    // NEW
+    passport: "",
   });
 
   // =========================================================
@@ -143,48 +172,18 @@ const JobDetail = () => {
     : null;
 
   // =========================================================
-  // LOAD SAVED APPLICATION DETAILS
+  // CHECK BACKEND SAVED STATUS
   // =========================================================
 
   useEffect(() => {
-    const savedApplication = localStorage.getItem("jobApplication");
+    if (!backendJob) return;
 
-    if (!savedApplication) return;
-
-    try {
-      const parsedData = JSON.parse(savedApplication);
-
-      setFormData((prev) => ({
-        ...prev,
-
-        name: parsedData.name || "",
-        email: parsedData.email || "",
-        phone: parsedData.phone || "",
-
-        experienceType: parsedData.experienceType || "",
-
-        experience: parsedData.experience || "",
-
-        skills: parsedData.skills || "",
-
-        currentLocation: parsedData.currentLocation || "",
-
-        expectedSalary: parsedData.expectedSalary || "",
-
-        noticePeriod: parsedData.noticePeriod || "",
-
-        linkedin: parsedData.linkedin || "",
-
-        portfolio: parsedData.portfolio || "",
-
-        coverLetter: parsedData.coverLetter || "",
-
-        additionalInfo: parsedData.additionalInfo || "",
-      }));
-    } catch (error) {
-      console.error("Error loading saved application:", error);
+    if (typeof backendJob.isSaved === "boolean") {
+      setIsSaved(backendJob.isSaved);
+    } else if (typeof backendJob.saved === "boolean") {
+      setIsSaved(backendJob.saved);
     }
-  }, []);
+  }, [backendJob]);
 
   // =========================================================
   // SCROLL LOCK
@@ -201,27 +200,6 @@ const JobDetail = () => {
       document.body.style.overflow = "auto";
     };
   }, [showApplyModal]);
-
-  // =========================================================
-  // CHECK BACKEND SAVED STATUS
-  // =========================================================
-  //
-  // If your getJobByIdUser API returns isSaved, this will
-  // automatically show the correct bookmark state.
-  //
-  // If backend does not return isSaved, it stays false.
-  //
-  // =========================================================
-
-  useEffect(() => {
-    if (!backendJob) return;
-
-    if (typeof backendJob.isSaved === "boolean") {
-      setIsSaved(backendJob.isSaved);
-    } else if (typeof backendJob.saved === "boolean") {
-      setIsSaved(backendJob.saved);
-    }
-  }, [backendJob]);
 
   // =========================================================
   // HANDLE INPUT
@@ -253,7 +231,11 @@ const JobDetail = () => {
     }
 
     if (file.size > maxSize) {
-      alert(`File size should not exceed ${maxSize / (1024 * 1024)} MB.`);
+      alert(
+        `File size should not exceed ${
+          maxSize / (1024 * 1024)
+        } MB.`
+      );
       return false;
     }
 
@@ -269,7 +251,12 @@ const JobDetail = () => {
 
     if (!file) return;
 
-    const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+    const allowedTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/jpg",
+      "image/webp",
+    ];
 
     if (!validateFile(file, allowedTypes, 5 * 1024 * 1024)) {
       return;
@@ -346,27 +333,183 @@ const JobDetail = () => {
   };
 
   // =========================================================
-  // SAVE APPLICATION DETAILS LOCALLY
+  // PROFILE VALUE HELPER
   // =========================================================
 
-  const saveApplication = () => {
-    const dataToSave = {
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      experienceType: formData.experienceType,
-      experience: formData.experience,
-      skills: formData.skills,
-      currentLocation: formData.currentLocation,
-      expectedSalary: formData.expectedSalary,
-      noticePeriod: formData.noticePeriod,
-      linkedin: formData.linkedin,
-      portfolio: formData.portfolio,
-      coverLetter: formData.coverLetter,
-      additionalInfo: formData.additionalInfo,
-    };
+  const getProfileValue = (profileData, ...keys) => {
+    for (const key of keys) {
+      const value = profileData?.[key];
 
-    localStorage.setItem("jobApplication", JSON.stringify(dataToSave));
+      if (value !== undefined && value !== null && value !== "") {
+        return value;
+      }
+    }
+
+    return "";
+  };
+
+  // =========================================================
+  // LOAD PROFILE FROM BACKEND
+  // =========================================================
+
+  const handleUseSavedDetails = async () => {
+    dispatch(clearApplicationError());
+
+    setLoadingSavedDetails(true);
+
+    try {
+      const result = await dispatch(getProfile()).unwrap();
+
+      console.log("Profile fetched from backend:", result);
+
+      /*
+        Depending on your API response, profile may be:
+
+        result.data
+        OR
+        result.data.user
+        OR
+        result.user
+
+        This handles common structures.
+      */
+
+      const profileData =
+        result?.data?.user ||
+        result?.data ||
+        result?.user ||
+        result;
+
+      if (!profileData) {
+        throw new Error("Profile data not found.");
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+
+        // PERSONAL
+        name: getProfileValue(
+          profileData,
+          "name",
+          "fullName",
+          "firstName"
+        ),
+
+        email: getProfileValue(
+          profileData,
+          "email"
+        ),
+
+        phone: getProfileValue(
+          profileData,
+          "phone",
+          "mobile",
+          "phoneNumber"
+        ),
+
+        // LOCATION
+        currentLocation: getProfileValue(
+          profileData,
+          "currentLocation",
+          "location",
+          "city"
+        ),
+
+        // EXPERIENCE
+        experienceType: getProfileValue(
+          profileData,
+          "experienceType"
+        ),
+
+        experience: getProfileValue(
+          profileData,
+          "experience",
+          "yearsOfExperience"
+        ),
+
+        // PROFESSIONAL
+        skills: Array.isArray(profileData?.skills)
+          ? profileData.skills.join(", ")
+          : getProfileValue(profileData, "skills"),
+
+        expectedSalary: getProfileValue(
+          profileData,
+          "expectedSalary",
+          "salary"
+        ),
+
+        noticePeriod: getProfileValue(
+          profileData,
+          "noticePeriod"
+        ),
+
+        linkedin: getProfileValue(
+          profileData,
+          "linkedin",
+          "linkedinUrl"
+        ),
+
+        portfolio: getProfileValue(
+          profileData,
+          "portfolio",
+          "portfolioUrl"
+        ),
+
+        // PASSPORT
+        passport:
+          profileData?.passport !== undefined &&
+          profileData?.passport !== null
+            ? String(profileData.passport)
+            : "",
+      }));
+
+      setApplicationStep("manual");
+    } catch (error) {
+      console.error("Failed to load profile:", error);
+
+      dispatch(
+        clearApplicationError()
+      );
+
+      alert(
+        error ||
+          profileError ||
+          "Unable to load your profile. Please try again."
+      );
+    } finally {
+      setLoadingSavedDetails(false);
+    }
+  };
+
+  // =========================================================
+  // APPLY MANUALLY
+  // =========================================================
+
+  const handleApplyManually = () => {
+    dispatch(clearApplicationError());
+
+    // Start with blank form
+    setFormData({
+      name: "",
+      email: "",
+      phone: "",
+      experienceType: "",
+      experience: "",
+      profilePhoto: null,
+      governmentDocument: null,
+      resume: null,
+      skills: "",
+      currentLocation: "",
+      expectedSalary: "",
+      noticePeriod: "",
+      linkedin: "",
+      portfolio: "",
+      coverLetter: "",
+      additionalInfo: "",
+      passport: "",
+    });
+
+    setApplicationStep("manual");
   };
 
   // =========================================================
@@ -413,19 +556,39 @@ const JobDetail = () => {
     dispatch(clearApplicationError());
 
     try {
-      // Save user's form details locally
-      saveApplication();
+      console.log(
+        "Submitting application for job:",
+        job._id
+      );
 
-      console.log("Submitting application for job:", job._id);
+      /*
+        Current backend thunk accepts only jobId.
 
-      // Backend currently accepts only jobId
-      const result = await dispatch(applyToJob(job._id)).unwrap();
+        So application data is currently NOT being
+        sent to backend from this component.
 
-      console.log("Application submitted successfully:", result);
+        Your current:
+        applyToJob(job._id)
+
+        will remain as it is until backend supports
+        the complete application payload.
+      */
+
+      const result = await dispatch(
+        applyToJob(job._id)
+      ).unwrap();
+
+      console.log(
+        "Application submitted successfully:",
+        result
+      );
 
       setIsSubmitted(true);
     } catch (error) {
-      console.error("Application submission error:", error);
+      console.error(
+        "Application submission error:",
+        error
+      );
 
       setIsSubmitted(false);
     }
@@ -448,13 +611,14 @@ const JobDetail = () => {
       .then((subscription) => {
         if (!subscription) {
           setApplicationBlockMessage(
-            "Please purchase an active plan before applying for jobs.",
+            "Please purchase an active plan before applying for jobs."
           );
         }
       })
       .catch((error) => {
         setApplicationBlockMessage(
-          error || "Unable to verify your active plan. Please try again.",
+          error ||
+            "Unable to verify your active plan. Please try again."
         );
       });
   };
@@ -467,9 +631,14 @@ const JobDetail = () => {
     if (applying) return;
 
     setShowApplyModal(false);
+
     setApplicationStep("options");
+
     setIsSubmitted(false);
+
     setApplicationBlockMessage("");
+
+    setLoadingSavedDetails(false);
 
     dispatch(resetApplicationState());
   };
@@ -487,7 +656,9 @@ const JobDetail = () => {
           url: window.location.href,
         });
       } else {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(
+          window.location.href
+        );
 
         alert("Job link copied!");
       }
@@ -526,10 +697,13 @@ const JobDetail = () => {
     return (
       <main className="min-h-screen bg-slate-50 px-4 py-10">
         <div className="mx-auto max-w-2xl rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-          <h1 className="text-2xl font-bold text-slate-900">Job not found</h1>
+          <h1 className="text-2xl font-bold text-slate-900">
+            Job not found
+          </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            {jobError || "This job may no longer be available."}
+            {jobError ||
+              "This job may no longer be available."}
           </p>
 
           <button
@@ -549,9 +723,7 @@ const JobDetail = () => {
 
   return (
     <main className="min-h-screen bg-slate-50">
-      {/* =====================================================
-          BACK BUTTON
-      ===================================================== */}
+      {/* BACK BUTTON */}
 
       <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
         <button
@@ -563,22 +735,22 @@ const JobDetail = () => {
         </button>
       </div>
 
-      {/* =====================================================
-          MAIN CONTENT
-      ===================================================== */}
+      {/* MAIN CONTENT */}
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* =================================================
-              LEFT CONTENT
-          ================================================= */}
+
+          {/* LEFT CONTENT */}
 
           <div className="lg:col-span-2">
+
             {/* JOB HEADER */}
 
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+
                 <div className="flex items-start gap-4">
+
                   <div
                     className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-2xl font-bold ${job.logoClass}`}
                   >
@@ -591,6 +763,7 @@ const JobDetail = () => {
                     </h1>
 
                     <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-500">
+
                       <span className="flex items-center gap-1.5">
                         <Building2 size={16} />
                         {job.company}
@@ -600,6 +773,7 @@ const JobDetail = () => {
                         <MapPin size={16} />
                         {job.location}
                       </span>
+
                     </div>
                   </div>
                 </div>
@@ -607,19 +781,24 @@ const JobDetail = () => {
                 {/* ACTIONS */}
 
                 <div className="flex items-center gap-2">
-                  {/* SAVE */}
 
                   <button
                     type="button"
                     onClick={handleSaveToggle}
                     disabled={saving || unsaving}
-                    title={isSaved ? "Unsave Job" : "Save Job"}
+                    title={
+                      isSaved
+                        ? "Unsave Job"
+                        : "Save Job"
+                    }
                     className={`flex h-10 w-10 items-center justify-center rounded-lg border transition ${
                       isSaved
                         ? "border-blue-200 bg-blue-50 text-blue-600"
                         : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600"
                     } ${
-                      saving || unsaving ? "cursor-not-allowed opacity-60" : ""
+                      saving || unsaving
+                        ? "cursor-not-allowed opacity-60"
+                        : ""
                     }`}
                   >
                     {saving || unsaving ? (
@@ -627,12 +806,14 @@ const JobDetail = () => {
                     ) : (
                       <Bookmark
                         size={19}
-                        fill={isSaved ? "currentColor" : "none"}
+                        fill={
+                          isSaved
+                            ? "currentColor"
+                            : "none"
+                        }
                       />
                     )}
                   </button>
-
-                  {/* SHARE */}
 
                   <button
                     type="button"
@@ -642,38 +823,53 @@ const JobDetail = () => {
                   >
                     <Share2 size={19} />
                   </button>
+
                 </div>
               </div>
 
               {/* META */}
 
               <div className="mt-6 flex flex-wrap gap-3">
+
                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  <BriefcaseBusiness size={17} className="text-blue-600" />
+                  <BriefcaseBusiness
+                    size={17}
+                    className="text-blue-600"
+                  />
                   {job.experience}
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  <Clock3 size={17} className="text-blue-600" />
+                  <Clock3
+                    size={17}
+                    className="text-blue-600"
+                  />
                   {job.type}
                 </div>
 
                 <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                  <MapPin size={17} className="text-blue-600" />
+                  <MapPin
+                    size={17}
+                    className="text-blue-600"
+                  />
                   {job.location}
                 </div>
+
               </div>
 
               {/* STATS */}
 
               <div className="mt-6 grid grid-cols-1 divide-y divide-slate-200 border-t border-slate-200 pt-6 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+
                 <div className="pb-4 sm:px-4 sm:pb-0 sm:first:pl-0">
                   <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     <IndianRupee size={15} />
                     Salary
                   </div>
 
-                  <p className="mt-1 font-bold text-slate-900">{job.salary}</p>
+                  <p className="mt-1 font-bold text-slate-900">
+                    {job.salary}
+                  </p>
                 </div>
 
                 <div className="py-4 sm:px-4 sm:py-0">
@@ -682,7 +878,9 @@ const JobDetail = () => {
                     Posted
                   </div>
 
-                  <p className="mt-1 font-bold text-slate-900">{job.posted}</p>
+                  <p className="mt-1 font-bold text-slate-900">
+                    {job.posted}
+                  </p>
                 </div>
 
                 <div className="pt-4 sm:px-4 sm:pt-0">
@@ -695,6 +893,7 @@ const JobDetail = () => {
                     {job.applicants}
                   </p>
                 </div>
+
               </div>
             </div>
 
@@ -719,19 +918,21 @@ const JobDetail = () => {
 
               <div className="mt-5 space-y-4">
                 {job.responsibilities?.length > 0 ? (
-                  job.responsibilities.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
-                    >
-                      <CheckCircle2
-                        size={19}
-                        className="mt-1 shrink-0 text-blue-600"
-                      />
+                  job.responsibilities.map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
+                      >
+                        <CheckCircle2
+                          size={19}
+                          className="mt-1 shrink-0 text-blue-600"
+                        />
 
-                      <span>{item}</span>
-                    </div>
-                  ))
+                        <span>{item}</span>
+                      </div>
+                    )
+                  )
                 ) : (
                   <p className="text-sm text-slate-500">
                     No responsibilities specified.
@@ -743,23 +944,27 @@ const JobDetail = () => {
             {/* REQUIREMENTS */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-              <h2 className="text-xl font-bold text-slate-900">Requirements</h2>
+              <h2 className="text-xl font-bold text-slate-900">
+                Requirements
+              </h2>
 
               <div className="mt-5 space-y-4">
                 {job.requirements?.length > 0 ? (
-                  job.requirements.map((item, index) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
-                    >
-                      <CheckCircle2
-                        size={19}
-                        className="mt-1 shrink-0 text-blue-600"
-                      />
+                  job.requirements.map(
+                    (item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-start gap-3 text-sm leading-6 text-slate-600 sm:text-base"
+                      >
+                        <CheckCircle2
+                          size={19}
+                          className="mt-1 shrink-0 text-blue-600"
+                        />
 
-                      <span>{item}</span>
-                    </div>
-                  ))
+                        <span>{item}</span>
+                      </div>
+                    )
+                  )
                 ) : (
                   <p className="text-sm text-slate-500">
                     No requirements specified.
@@ -771,31 +976,37 @@ const JobDetail = () => {
             {/* SKILLS */}
 
             <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-              <h2 className="text-xl font-bold text-slate-900">Skills</h2>
+              <h2 className="text-xl font-bold text-slate-900">
+                Skills
+              </h2>
 
               <div className="mt-5 flex flex-wrap gap-2">
                 {job.skills?.length > 0 ? (
-                  job.skills.map((skill, index) => (
-                    <span
-                      key={`${skill}-${index}`}
-                      className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
-                    >
-                      {skill}
-                    </span>
-                  ))
+                  job.skills.map(
+                    (skill, index) => (
+                      <span
+                        key={`${skill}-${index}`}
+                        className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-700"
+                      >
+                        {skill}
+                      </span>
+                    )
+                  )
                 ) : (
-                  <p className="text-sm text-slate-500">No skills specified.</p>
+                  <p className="text-sm text-slate-500">
+                    No skills specified.
+                  </p>
                 )}
               </div>
             </div>
+
           </div>
 
-          {/* =================================================
-              RIGHT SIDEBAR
-          ================================================= */}
+          {/* RIGHT SIDEBAR */}
 
           <div className="lg:col-span-1">
             <div className="sticky top-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+
               {/* APPLY */}
 
               <button
@@ -815,7 +1026,6 @@ const JobDetail = () => {
                 </h2>
 
                 <div className="mt-5 space-y-5">
-                  {/* EXPERIENCE */}
 
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -833,8 +1043,6 @@ const JobDetail = () => {
                     </div>
                   </div>
 
-                  {/* LOCATION */}
-
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <MapPin size={18} />
@@ -850,8 +1058,6 @@ const JobDetail = () => {
                       </p>
                     </div>
                   </div>
-
-                  {/* SALARY */}
 
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
@@ -869,8 +1075,6 @@ const JobDetail = () => {
                     </div>
                   </div>
 
-                  {/* POSTED */}
-
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <Clock3 size={18} />
@@ -887,8 +1091,6 @@ const JobDetail = () => {
                     </div>
                   </div>
 
-                  {/* COMPANY */}
-
                   <div className="flex items-start gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                       <Building2 size={18} />
@@ -904,10 +1106,12 @@ const JobDetail = () => {
                       </p>
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
           </div>
+
         </div>
       </div>
 
@@ -917,50 +1121,69 @@ const JobDetail = () => {
 
       {showApplyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+
           <div className="relative flex max-h-[95vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
-            {/* MODAL HEADER */}
+
+            {/* HEADER */}
 
             <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 sm:px-6">
+
               <div>
                 <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
                   Apply for {job.title}
                 </h2>
 
-                <p className="mt-1 text-sm text-slate-500">{job.company}</p>
+                <p className="mt-1 text-sm text-slate-500">
+                  {job.company}
+                </p>
               </div>
 
               <button
                 onClick={closeModal}
-                disabled={applying}
+                disabled={
+                  applying || loadingSavedDetails
+                }
                 className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <X size={20} />
               </button>
+
             </div>
 
-            {/* SUCCESS */}
+            {/* PLAN REQUIRED */}
 
             {applicationBlockMessage ? (
               <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                   <AlertCircle size={34} />
                 </div>
+
                 <h3 className="mt-5 text-2xl font-bold text-slate-900">
                   Plan required
                 </h3>
+
                 <p className="mt-3 max-w-md text-sm leading-6 text-slate-500">
                   {applicationBlockMessage}
                 </p>
+
                 <button
                   type="button"
-                  onClick={() => navigate("/subscription")}
+                  onClick={() =>
+                    navigate("/subscription")
+                  }
                   className="mt-7 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white transition hover:bg-blue-700"
                 >
                   View Plans
                 </button>
+
               </div>
             ) : isSubmitted ? (
+
+              /* SUCCESS */
+
               <div className="flex flex-1 flex-col items-center justify-center px-6 py-14 text-center">
+
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
                   <CheckCircle2 size={34} />
                 </div>
@@ -980,13 +1203,17 @@ const JobDetail = () => {
                 >
                   Close
                 </button>
+
               </div>
+
             ) : (
+
               <>
                 {/* ERROR */}
 
                 {applicationError && (
                   <div className="mx-5 mt-4 flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 sm:mx-6">
+
                     <AlertCircle
                       size={19}
                       className="mt-0.5 shrink-0 text-red-600"
@@ -1001,24 +1228,27 @@ const JobDetail = () => {
                         {applicationError}
                       </p>
                     </div>
+
                   </div>
                 )}
 
-                {/* OPTIONS */}
+                {/* =================================================
+                    OPTIONS
+                ================================================= */}
 
                 {applicationStep === "options" && (
                   <div className="overflow-y-auto px-5 py-6 sm:px-6">
+
                     <div className="grid gap-4 sm:grid-cols-2">
+
                       {/* MANUAL */}
 
                       <button
                         type="button"
-                        onClick={() => {
-                          dispatch(clearApplicationError());
-                          setApplicationStep("manual");
-                        }}
+                        onClick={handleApplyManually}
                         className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
                       >
+
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
                           <User size={21} />
                         </div>
@@ -1030,42 +1260,54 @@ const JobDetail = () => {
                         <p className="mt-2 text-sm leading-6 text-slate-500">
                           Fill in your details and submit your application.
                         </p>
+
                       </button>
 
                       {/* SAVED DETAILS */}
 
                       <button
                         type="button"
-                        onClick={() => {
-                          dispatch(clearApplicationError());
-                          setApplicationStep("manual");
-                        }}
-                        className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50"
+                        onClick={handleUseSavedDetails}
+                        disabled={loadingSavedDetails}
+                        className="rounded-xl border border-slate-200 p-5 text-left transition hover:border-blue-300 hover:bg-blue-50/50 disabled:cursor-not-allowed disabled:opacity-60"
                       >
+
                         <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                          <FileText size={21} />
+
+                          {loadingSavedDetails ? (
+                            <span className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+                          ) : (
+                            <FileText size={21} />
+                          )}
+
                         </div>
 
                         <h3 className="mt-4 font-bold text-slate-900">
-                          Use Saved Details
+                          {loadingSavedDetails
+                            ? "Loading Profile..."
+                            : "Use Saved Details"}
                         </h3>
 
                         <p className="mt-2 text-sm leading-6 text-slate-500">
-                          Continue with your previously saved application
-                          details.
+                          Continue with your profile information from your account.
                         </p>
+
                       </button>
+
                     </div>
                   </div>
                 )}
 
-                {/* MANUAL FORM */}
+                {/* =================================================
+                    MANUAL FORM
+                ================================================= */}
 
                 {applicationStep === "manual" && (
                   <form
                     onSubmit={submitApplication}
                     className="overflow-y-auto px-5 py-6 sm:px-6"
                   >
+
                     {/* PERSONAL INFORMATION */}
 
                     <div>
@@ -1074,6 +1316,7 @@ const JobDetail = () => {
                       </h3>
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
                         {/* NAME */}
 
                         <div>
@@ -1173,17 +1416,20 @@ const JobDetail = () => {
                             />
                           </div>
                         </div>
+
                       </div>
                     </div>
 
                     {/* EXPERIENCE */}
 
                     <div className="mt-7">
+
                       <h3 className="text-base font-bold text-slate-900">
                         Experience
                       </h3>
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-2">
+
                         <div>
                           <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                             Experience Type *
@@ -1196,11 +1442,17 @@ const JobDetail = () => {
                             required
                             className="w-full rounded-lg border border-slate-200 bg-white px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           >
-                            <option value="">Select experience type</option>
+                            <option value="">
+                              Select experience type
+                            </option>
 
-                            <option value="Fresher">Fresher</option>
+                            <option value="Fresher">
+                              Fresher
+                            </option>
 
-                            <option value="Experienced">Experienced</option>
+                            <option value="Experienced">
+                              Experienced
+                            </option>
                           </select>
                         </div>
 
@@ -1218,17 +1470,104 @@ const JobDetail = () => {
                             className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
                         </div>
+
+                      </div>
+                    </div>
+
+                    {/* =================================================
+                        PASSPORT
+                    ================================================= */}
+
+                    <div className="mt-7">
+
+                      <h3 className="text-base font-bold text-slate-900">
+                        Passport Information
+                      </h3>
+
+                      <div className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+
+                        <div className="flex items-start gap-3">
+
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                            <IdCard size={19} />
+                          </div>
+
+                          <div>
+                            <p className="text-sm font-semibold text-slate-800">
+                              Do you have a passport? *
+                            </p>
+
+                            <p className="mt-1 text-xs text-slate-500">
+                              Please select Yes or No.
+                            </p>
+                          </div>
+
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-3">
+
+                          {/* YES */}
+
+                          <label
+                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition ${
+                              formData.passport === "Yes"
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="passport"
+                              value="Yes"
+                              checked={
+                                formData.passport === "Yes"
+                              }
+                              onChange={handleInputChange}
+                              required
+                              className="h-4 w-4 accent-blue-600"
+                            />
+
+                            Yes
+                          </label>
+
+                          {/* NO */}
+
+                          <label
+                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition ${
+                              formData.passport === "No"
+                                ? "border-blue-500 bg-blue-50 text-blue-700"
+                                : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="passport"
+                              value="No"
+                              checked={
+                                formData.passport === "No"
+                              }
+                              onChange={handleInputChange}
+                              required
+                              className="h-4 w-4 accent-blue-600"
+                            />
+
+                            No
+                          </label>
+
+                        </div>
                       </div>
                     </div>
 
                     {/* DOCUMENTS */}
 
                     <div className="mt-7">
+
                       <h3 className="text-base font-bold text-slate-900">
                         Documents
                       </h3>
 
                       <div className="mt-4 grid gap-4 sm:grid-cols-3">
+
                         {/* PROFILE PHOTO */}
 
                         <div>
@@ -1237,7 +1576,11 @@ const JobDetail = () => {
                           </label>
 
                           <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
-                            <Upload size={20} className="text-slate-400" />
+
+                            <Upload
+                              size={20}
+                              className="text-slate-400"
+                            />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
                               {formData.profilePhoto
@@ -1251,6 +1594,7 @@ const JobDetail = () => {
                               onChange={handleProfilePhoto}
                               className="hidden"
                             />
+
                           </label>
                         </div>
 
@@ -1262,7 +1606,11 @@ const JobDetail = () => {
                           </label>
 
                           <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
-                            <FileText size={20} className="text-slate-400" />
+
+                            <FileText
+                              size={20}
+                              className="text-slate-400"
+                            />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
                               {formData.governmentDocument
@@ -1273,9 +1621,12 @@ const JobDetail = () => {
                             <input
                               type="file"
                               accept=".pdf,image/jpeg,image/png,image/jpg,image/webp"
-                              onChange={handleGovernmentDocument}
+                              onChange={
+                                handleGovernmentDocument
+                              }
                               className="hidden"
                             />
+
                           </label>
                         </div>
 
@@ -1287,7 +1638,11 @@ const JobDetail = () => {
                           </label>
 
                           <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 p-4 text-center transition hover:border-blue-400 hover:bg-blue-50/40">
-                            <FileText size={20} className="text-slate-400" />
+
+                            <FileText
+                              size={20}
+                              className="text-slate-400"
+                            />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
                               {formData.resume
@@ -1302,19 +1657,23 @@ const JobDetail = () => {
                               required
                               className="hidden"
                             />
+
                           </label>
                         </div>
+
                       </div>
                     </div>
 
                     {/* PROFESSIONAL INFORMATION */}
 
                     <div className="mt-7">
+
                       <h3 className="text-base font-bold text-slate-900">
                         Professional Information
                       </h3>
 
                       <div className="mt-4 space-y-4">
+
                         {/* SKILLS */}
 
                         <div>
@@ -1336,6 +1695,7 @@ const JobDetail = () => {
                         {/* SALARY / NOTICE */}
 
                         <div className="grid gap-4 sm:grid-cols-2">
+
                           <div>
                             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                               Expected Salary
@@ -1365,11 +1725,13 @@ const JobDetail = () => {
                               className="w-full rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
                           </div>
+
                         </div>
 
                         {/* LINKEDIN / PORTFOLIO */}
 
                         <div className="grid gap-4 sm:grid-cols-2">
+
                           <div>
                             <label className="mb-1.5 block text-sm font-semibold text-slate-700">
                               LinkedIn
@@ -1391,6 +1753,7 @@ const JobDetail = () => {
                             </label>
 
                             <div className="relative">
+
                               <Globe
                                 size={17}
                                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -1404,8 +1767,10 @@ const JobDetail = () => {
                                 placeholder="Portfolio URL"
                                 className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                               />
+
                             </div>
                           </div>
+
                         </div>
 
                         {/* COVER LETTER */}
@@ -1441,12 +1806,14 @@ const JobDetail = () => {
                             className="w-full resize-none rounded-lg border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                           />
                         </div>
+
                       </div>
                     </div>
 
                     {/* NOTICE */}
 
                     <div className="mt-6 flex items-start gap-3 rounded-lg bg-blue-50 p-4">
+
                       <AlertCircle
                         size={18}
                         className="mt-0.5 shrink-0 text-blue-600"
@@ -1456,15 +1823,19 @@ const JobDetail = () => {
                         Please make sure all information provided is accurate
                         before submitting your application.
                       </p>
+
                     </div>
 
                     {/* ACTIONS */}
 
                     <div className="mt-6 flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
+
                       <button
                         type="button"
                         disabled={applying}
-                        onClick={() => setApplicationStep("options")}
+                        onClick={() =>
+                          setApplicationStep("options")
+                        }
                         className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         Back
@@ -1487,11 +1858,15 @@ const JobDetail = () => {
                           </>
                         )}
                       </button>
+
                     </div>
+
                   </form>
                 )}
+
               </>
             )}
+
           </div>
         </div>
       )}

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
+const { sendWelcomeEmail } = require("../utils/mailer");
 
 // Generate JWT
 const generateToken = (id) => {
@@ -14,7 +15,10 @@ exports.register = async (req, res) => {
   try {
     const { name, mobile, email, password } = req.body;
 
-    // Check if user exists
+    // =================================================
+    // CHECK USER
+    // =================================================
+
     const userExists = await User.findOne({
       $or: [{ email }, { mobile }],
     });
@@ -26,7 +30,10 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create user
+    // =================================================
+    // CREATE USER
+    // =================================================
+
     const user = await User.create({
       name,
       mobile,
@@ -34,16 +41,40 @@ exports.register = async (req, res) => {
       password,
     });
 
-    // Generate token
+    // =================================================
+    // SEND WELCOME EMAIL
+    // =================================================
+
+    try {
+      await sendWelcomeEmail({
+        name: user.name,
+        email: user.email,
+      });
+    } catch (emailError) {
+      // Email fail hone par registration fail nahi hoga
+      console.error("Welcome email failed:", emailError);
+    }
+
+    // =================================================
+    // GENERATE TOKEN
+    // =================================================
+
     const token = generateToken(user._id);
 
-    // Set cookie
+    // =================================================
+    // SET COOKIE
+    // =================================================
+
     res.cookie("token", token, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.status(201).json({
+    // =================================================
+    // RESPONSE
+    // =================================================
+
+    return res.status(201).json({
       success: true,
       message: "User registered successfully",
       data: {
@@ -55,7 +86,9 @@ exports.register = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    console.error("Register error:", error);
+
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

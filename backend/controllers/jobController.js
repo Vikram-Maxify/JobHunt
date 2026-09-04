@@ -4,6 +4,7 @@ const JobApplication = require("../models/JobApplication");
 const UserSubscription = require("../models/UserSubscription");
 const SavedJob = require("../models/SavedJob");
 const { uploadToImgBB, deleteFromImgBB } = require("../utils/imgbb");
+const { sendApplicationConfirmation } = require("../utils/mailer");
 
 // ============================================================
 // HELPERS
@@ -1462,6 +1463,11 @@ exports.getJobStats = async (req, res) => {
 exports.applyToJob = async (req, res) => {
   try {
     const jobId = req.params.id;
+    const userId = req.user._id;
+
+    // =================================================
+    // 1. VALIDATE JOB ID
+    // =================================================
 
     if (!isValidObjectId(jobId)) {
       return res.status(400).json({
@@ -1469,6 +1475,10 @@ exports.applyToJob = async (req, res) => {
         message: "Invalid job ID",
       });
     }
+
+    // =================================================
+    // 2. FIND ACTIVE JOB
+    // =================================================
 
     const job = await Job.findOne({
       _id: jobId,
@@ -1482,11 +1492,17 @@ exports.applyToJob = async (req, res) => {
       });
     }
 
+    // =================================================
+    // 3. CHECK ACTIVE SUBSCRIPTION
+    // =================================================
+
     const activeSubscription = await UserSubscription.findOne({
-      user: req.user._id,
+      user: userId,
       isActive: true,
       paymentStatus: "completed",
-      endDate: { $gt: new Date() },
+      endDate: {
+        $gt: new Date(),
+      },
     }).populate("subscription", "numberOfCountries countries");
 
     if (!activeSubscription?.subscription) {
@@ -1497,7 +1513,12 @@ exports.applyToJob = async (req, res) => {
       });
     }
 
+    // =================================================
+    // 4. CHECK JOB COUNTRY
+    // =================================================
+
     const jobCountry = String(job.location || "").trim();
+
     if (!jobCountry) {
       return res.status(400).json({
         success: false,
@@ -1506,10 +1527,16 @@ exports.applyToJob = async (req, res) => {
     }
 
     const plan = activeSubscription.subscription;
+
     const configuredCountries = (plan.countries || [])
       .map((country) => String(country).trim().toLowerCase())
       .filter(Boolean);
+
     const normalizedJobCountry = jobCountry.toLowerCase();
+
+    // =================================================
+    // 5. CHECK COUNTRY ALLOWED IN PLAN
+    // =================================================
 
     if (
       configuredCountries.length > 0 &&
@@ -1522,9 +1549,15 @@ exports.applyToJob = async (req, res) => {
       });
     }
 
+    // =================================================
+    // 6. CHECK COUNTRY LIMIT
+    // =================================================
+
     const previousApplications = await JobApplication.find({
-      applicant: req.user._id,
-      appliedAt: { $gte: activeSubscription.startDate },
+      applicant: userId,
+      appliedAt: {
+        $gte: activeSubscription.startDate,
+      },
     }).populate("job", "location");
 
     const usedCountries = new Set(
@@ -1536,6 +1569,7 @@ exports.applyToJob = async (req, res) => {
         )
         .filter(Boolean),
     );
+
     const countryLimit = Number(
       plan.numberOfCountries || configuredCountries.length || 1,
     );
@@ -1552,6 +1586,10 @@ exports.applyToJob = async (req, res) => {
       });
     }
 
+    // =================================================
+    // 7. CHECK APPLICATION DEADLINE
+    // =================================================
+
     if (
       job.applicationDeadline &&
       new Date() > new Date(job.applicationDeadline)
@@ -1562,26 +1600,92 @@ exports.applyToJob = async (req, res) => {
       });
     }
 
+    // =================================================
+    // 8. CREATE APPLICATION
+    // =================================================
+
     let application;
 
     try {
       application = await JobApplication.create({
         job: jobId,
-        applicant: req.user._id,
+        applicant: userId,
+        status: "pending",
+        appliedAt: new Date(),
       });
     } catch (error) {
-      // Duplicate key error -> user already applied (unique index on job+applicant)
+      // -----------------------------------------------
+      // DUPLICATE APPLICATION
+      // -----------------------------------------------
+
       if (error.code === 11000) {
         return res.status(400).json({
           success: false,
           message: "You have already applied to this job",
         });
       }
+
       throw error;
     }
 
+    // =================================================
+    // 9. INCREASE APPLICANT COUNT
+    // =================================================
+
     job.applicantCount = (job.applicantCount || 0) + 1;
+
     await job.save();
+
+    // =================================================
+    // 10. SEND EMAIL AFTER 5 MINUTES
+    // =================================================
+
+    setTimeout(
+      async () => {
+        try {
+          // Get fresh user data
+          const user = await User.findById(userId).select("name email");
+
+          if (!user) {
+            console.log(
+              `User not found. Application email not sent. User ID: ${userId}`,
+            );
+
+            return;
+          }
+
+          // Get fresh job data
+          const freshJob = await Job.findById(jobId).select(
+            "title location company",
+          );
+
+          if (!freshJob) {
+            console.log(
+              `Job not found. Application email not sent. Job ID: ${jobId}`,
+            );
+
+            return;
+          }
+
+          // Send email
+          await sendApplicationConfirmation({
+            user,
+            job: freshJob,
+          });
+
+          console.log(
+            `Application confirmation email sent successfully to ${user.email}`,
+          );
+        } catch (error) {
+          console.error("Application confirmation email error:", error);
+        }
+      },
+      5 * 60 * 1000,
+    );
+
+    // =================================================
+    // 11. RESPONSE
+    // =================================================
 
     return res.status(201).json({
       success: true,

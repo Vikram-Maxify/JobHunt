@@ -768,324 +768,313 @@ const Applications = () => {
                   DESKTOP TABLE
               =================================================== */}
 
-              <div className="hidden lg:block overflow-x-auto">
-                <div className="min-w-[1200px]">
-                  <table className="w-full border-collapse">
 
-                    <thead>
-                      <tr className="border-b border-slate-100 bg-slate-50/70">
+<div className="hidden lg:block overflow-x-auto">
+  <div className="min-w-[1100px]">
+    <table className="w-full border-collapse">
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Applicant
-                        </th>
+      <thead>
+        <tr className="border-b border-slate-100 bg-slate-50/70">
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Mobile
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[22%]">
+            Applicant
+          </th>
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Job
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[10%]">
+            Mobile
+          </th>
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Company
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[15%]">
+            Job
+          </th>
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Location
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[13%]">
+            Company
+          </th>
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Status
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[10%]">
+            Location
+          </th>
 
-                        <th className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Applied
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[13%]">
+            Status
+          </th>
 
-                        <th className="text-right px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                          Actions
-                        </th>
+          <th className="text-left px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[10%]">
+            Applied
+          </th>
 
-                      </tr>
-                    </thead>
+          <th className="text-right px-3 py-2.5 text-xs font-semibold text-slate-500 uppercase tracking-wider w-[7%]">
+            Actions
+          </th>
 
-                    <tbody className="divide-y divide-slate-50">
+        </tr>
+      </thead>
 
-                      {filteredApplications.map(
-                        (application) => {
+      <tbody className="divide-y divide-slate-50">
 
-                          const applicationId =
-                            application._id;
+        {filteredApplications.map(
+          (application) => {
 
-                          const applicantName =
-                            application.applicant?.name ||
-                            "Unknown Applicant";
+            const applicationId =
+              application._id;
 
-                          const applicantEmail =
-                            application.applicant?.email ||
-                            "No email";
+            const applicantName =
+              application.applicant?.name ||
+              "Unknown Applicant";
 
-                          const applicantMobile =
-                            application.applicant?.mobile ||
-                            "N/A";
+            const applicantEmail =
+              application.applicant?.email ||
+              "No email";
 
-                          const jobTitle =
-                            application.job?.title ||
-                            "Unknown Job";
+            const applicantMobile =
+              application.applicant?.mobile ||
+              "N/A";
 
-                          const company =
-                            application.job?.company ||
-                            "Unknown Company";
+            const jobTitle =
+              application.job?.title ||
+              "Unknown Job";
 
-                          const location =
-                            application.job?.location ||
-                            "N/A";
+            const company =
+              application.job?.company ||
+              "Unknown Company";
 
-                          const status =
-                            application.status ||
-                            "pending";
+            const location =
+              application.job?.location ||
+              "N/A";
 
-                          const isUpdating =
-                            updatingApplicationId ===
-                            applicationId;
+            const status =
+              application.status ||
+              "pending";
 
-                          return (
-                            <tr
-                              key={applicationId}
-                              className="hover:bg-slate-50/60 transition-colors"
-                            >
+            const isUpdating =
+              updatingApplicationId ===
+              applicationId;
 
-                              {/* Applicant */}
+            return (
+              <tr
+                key={applicationId}
+                className="hover:bg-slate-50/60 transition-colors"
+              >
 
-                              <td className="px-4 py-3">
+                {/* Applicant */}
+                <td className="px-3 py-2.5">
 
-                                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
 
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                                    {getInitials(
-                                      applicantName
-                                    )}
-                                  </div>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                      {getInitials(
+                        applicantName
+                      )}
+                    </div>
 
-                                  <div className="min-w-0">
+                    <div className="min-w-0">
 
-                                    <p className="text-sm font-semibold text-slate-800 truncate max-w-[180px]">
-                                      {applicantName}
-                                    </p>
+                      <p className="text-sm font-semibold text-slate-800 truncate max-w-[140px]">
+                        {applicantName}
+                      </p>
 
-                                    <p className="text-xs text-slate-500 truncate max-w-[180px]">
-                                      {applicantEmail}
-                                    </p>
+                      <p className="text-xs text-slate-500 truncate max-w-[140px]">
+                        {applicantEmail}
+                      </p>
 
-                                  </div>
+                    </div>
 
-                                </div>
+                  </div>
 
-                              </td>
+                </td>
 
-                              {/* Mobile */}
+                {/* Mobile */}
+                <td className="px-3 py-2.5">
 
-                              <td className="px-4 py-3">
+                  <p className="text-sm text-slate-700 whitespace-nowrap">
+                    {applicantMobile}
+                  </p>
 
-                                <p className="text-sm text-slate-700 whitespace-nowrap">
-                                  {applicantMobile}
-                                </p>
+                </td>
 
-                              </td>
+                {/* Job */}
+                <td className="px-3 py-2.5">
 
-                              {/* Job */}
+                  <div className="flex items-start gap-1.5">
 
-                              <td className="px-4 py-3">
+                    <BriefcaseBusiness className="w-3.5 h-3.5 text-blue-500 mt-0.5 flex-shrink-0" />
 
-                                <div className="flex items-start gap-2">
+                    <p className="text-sm font-medium text-slate-700 truncate max-w-[130px]">
+                      {jobTitle}
+                    </p>
 
-                                  <BriefcaseBusiness className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                  </div>
 
-                                  <p className="text-sm font-medium text-slate-700 max-w-[160px] truncate">
-                                    {jobTitle}
-                                  </p>
+                </td>
 
-                                </div>
+                {/* Company */}
+                <td className="px-3 py-2.5">
 
-                              </td>
+                  <div className="flex items-center gap-1.5">
 
-                              {/* Company */}
+                    <Building2 className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
 
-                              <td className="px-4 py-3">
+                    <p className="text-sm text-slate-700 truncate max-w-[120px]">
+                      {company}
+                    </p>
 
-                                <div className="flex items-center gap-2">
+                  </div>
 
-                                  <Building2 className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                </td>
 
-                                  <p className="text-sm text-slate-700 max-w-[150px] truncate">
-                                    {company}
-                                  </p>
+                {/* Location */}
+                <td className="px-3 py-2.5">
 
-                                </div>
+                  <div className="flex items-center gap-1">
 
-                              </td>
+                    <MapPin className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
 
-                              {/* Location */}
+                    <p className="text-sm text-slate-700 truncate max-w-[100px]">
+                      {location}
+                    </p>
 
-                              <td className="px-4 py-3">
+                  </div>
 
-                                <div className="flex items-center gap-1.5">
+                </td>
 
-                                  <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                {/* Status + Update */}
+                <td className="px-3 py-2.5">
 
-                                  <p className="text-sm text-slate-700 whitespace-nowrap">
-                                    {location}
-                                  </p>
+                  <div className="flex flex-col gap-1.5">
 
-                                </div>
+                    {/* Current status badge */}
+                    <span
+                      className={`inline-flex w-fit items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(
+                        status
+                      )}`}
+                    >
 
-                              </td>
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${getStatusDot(
+                          status
+                        )}`}
+                      />
 
-                              {/* Status + Update */}
-
-                              <td className="px-4 py-3">
-
-                                <div className="flex flex-col gap-2">
-
-                                  {/* Current status badge */}
-
-                                  <span
-                                    className={`inline-flex w-fit items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${getStatusBadge(
-                                      status
-                                    )}`}
-                                  >
-
-                                    <span
-                                      className={`w-1.5 h-1.5 rounded-full ${getStatusDot(
-                                        status
-                                      )}`}
-                                    />
-
-                                    {getStatusLabel(
-                                      status
-                                    )}
-
-                                  </span>
-
-                                  {/* Status update dropdown */}
-
-                                  <div className="relative">
-
-                                    <select
-                                      value={String(
-                                        status
-                                      ).toLowerCase()}
-                                      disabled={
-                                        isUpdating
-                                      }
-                                      onChange={(e) =>
-                                        handleStatusChange(
-                                          applicationId,
-                                          e.target.value
-                                        )
-                                      }
-                                      className="w-full min-w-[120px] px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-
-                                      <option value="pending">
-                                        Pending
-                                      </option>
-
-                                      <option value="shortlisted">
-                                        Shortlisted
-                                      </option>
-
-                                      <option value="rejected">
-                                        Rejected
-                                      </option>
-
-                                    </select>
-
-                                    {isUpdating && (
-                                      <RefreshCw className="absolute right-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-blue-500 animate-spin pointer-events-none" />
-                                    )}
-
-                                  </div>
-
-                                </div>
-
-                              </td>
-
-                              {/* Applied */}
-
-                              <td className="px-4 py-3">
-
-                                <div>
-
-                                  <p className="text-sm text-slate-700 whitespace-nowrap">
-                                    {formatDate(
-                                      application.appliedAt
-                                    )}
-                                  </p>
-
-                                  <p className="text-xs text-slate-400 whitespace-nowrap">
-                                    {formatTime(
-                                      application.appliedAt
-                                    )}
-                                  </p>
-
-                                </div>
-
-                              </td>
-
-                              {/* Actions */}
-
-                              <td className="px-4 py-3">
-
-                                <div className="flex items-center justify-end gap-1">
-
-                                  {/* View */}
-
-                                  <button
-                                    onClick={() =>
-                                      handleViewApplication(
-                                        applicationId
-                                      )
-                                    }
-                                    className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                                    title="View application"
-                                  >
-
-                                    <Eye className="w-4 h-4" />
-
-                                  </button>
-
-                                  {/* Delete */}
-
-                                  <button
-                                    onClick={() =>
-                                      handleDeleteApplication(
-                                        application
-                                      )
-                                    }
-                                    className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                                    title="Delete application"
-                                  >
-
-                                    <Trash2 className="w-4 h-4" />
-
-                                  </button>
-
-                                </div>
-
-                              </td>
-
-                            </tr>
-                          );
-                        }
+                      {getStatusLabel(
+                        status
                       )}
 
-                    </tbody>
+                    </span>
 
-                  </table>
-                </div>
-              </div>
+                    {/* Status update dropdown */}
+                    <div className="relative">
+
+                      <select
+                        value={String(
+                          status
+                        ).toLowerCase()}
+                        disabled={
+                          isUpdating
+                        }
+                        onChange={(e) =>
+                          handleStatusChange(
+                            applicationId,
+                            e.target.value
+                          )
+                        }
+                        className="w-full min-w-[100px] px-2 py-1 text-xs rounded-lg border border-slate-200 bg-white text-slate-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+
+                        <option value="pending">
+                          Pending
+                        </option>
+
+                        <option value="shortlisted">
+                          Shortlisted
+                        </option>
+
+                        <option value="rejected">
+                          Rejected
+                        </option>
+
+                      </select>
+
+                      {isUpdating && (
+                        <RefreshCw className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-blue-500 animate-spin pointer-events-none" />
+                      )}
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+                {/* Applied */}
+                <td className="px-3 py-2.5">
+
+                  <div>
+
+                    <p className="text-sm text-slate-700 whitespace-nowrap">
+                      {formatDate(
+                        application.appliedAt
+                      )}
+                    </p>
+
+                    <p className="text-xs text-slate-400 whitespace-nowrap">
+                      {formatTime(
+                        application.appliedAt
+                      )}
+                    </p>
+
+                  </div>
+
+                </td>
+
+                {/* Actions */}
+                <td className="px-3 py-2.5">
+
+                  <div className="flex items-center justify-end gap-0.5">
+
+                    {/* View */}
+                    <button
+                      onClick={() =>
+                        handleViewApplication(
+                          applicationId
+                        )
+                      }
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                      title="View application"
+                    >
+
+                      <Eye className="w-4 h-4" />
+
+                    </button>
+
+                    {/* Delete */}
+                    <button
+                      onClick={() =>
+                        handleDeleteApplication(
+                          application
+                        )
+                      }
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      title="Delete application"
+                    >
+
+                      <Trash2 className="w-4 h-4" />
+
+                    </button>
+
+                  </div>
+
+                </td>
+
+              </tr>
+            );
+          }
+        )}
+
+      </tbody>
+
+    </table>
+  </div>
+</div>
 
               {/* ==================================================
                   MOBILE / TABLET CARDS

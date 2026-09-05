@@ -53,6 +53,7 @@ import AdminDashboard from "./admin/pages/Dashboard";
 import TestimonialManagement from "./admin/pages/TestimonialManagement";
 import MySubscription from "./Pages/MySubscription";
 import { getProfile } from "./redux/slicer/authSlice";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   const dispatch = useDispatch();
@@ -62,9 +63,11 @@ function App() {
   }, [dispatch]);
 
   return (
+    
     <JobCategoryProvider>
       <ApplicationProvider>
         <SubscriptionProvider>
+        <ScrollToTop /> 
           <Routes>
             {/* =====================================================
                 USER SIDE

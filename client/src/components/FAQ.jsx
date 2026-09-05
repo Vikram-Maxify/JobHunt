@@ -120,12 +120,14 @@ const FAQ = () => {
                     is here to help you with your questions.
                   </p>
 
-                  <button
+                  <Link to='/contact'>
+                    <button
                     type="button"
                     className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-blue-600 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-md"
                   >
                     Contact Support
                   </button>
+                  </Link>
                 </div>
               </div>
 

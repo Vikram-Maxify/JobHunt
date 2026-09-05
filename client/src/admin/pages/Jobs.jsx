@@ -1,36 +1,33 @@
 // src/admin/pages/Jobs.jsx
-import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
 import {
-  Search,
-  Plus,
-  Pencil,
-  Trash2,
-  X,
-  CheckCircle2,
   AlertCircle,
   AlertTriangle,
+  Briefcase,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  MapPin,
+  Pencil,
+  Plus,
+  PlusCircle,
   RefreshCw,
   Save,
-  Briefcase,
-  Calendar,
-  MapPin,
-  Building2,
+  Search,
+  Trash2,
   Users,
-  IndianRupee,
-  PlusCircle,
+  X,
 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  deleteJob,
+  getAllJobsAdmin,
+  toggleJobStatus,
+  updateJob,
+} from "../../redux/slicer/jobSlice";
 import StateCard from "../components/StateCard";
 import { useJobCategories } from "../context/JobCategoryContext";
-import {
-  getAllJobsAdmin,
-  deleteJob,
-  updateJob,
-  toggleJobStatus,
-  toggleFeatured,
-  toggleUrgent,
-} from "../../redux/slicer/jobSlice";
 
 const Jobs = () => {
   const navigate = useNavigate();
@@ -40,12 +37,18 @@ const Jobs = () => {
   const jobs = useSelector((state) => state.jobs?.adminJobs || []);
   const loading = useSelector((state) => state.jobs?.loading || false);
   const error = useSelector((state) => state.jobs?.error || null);
-  const deleteLoading = useSelector((state) => state.jobs?.deleteLoading || false);
-  const updateLoading = useSelector((state) => state.jobs?.updateLoading || false);
-  const successMessage = useSelector((state) => state.jobs?.successMessage || null);
+  const deleteLoading = useSelector(
+    (state) => state.jobs?.deleteLoading || false,
+  );
+  const updateLoading = useSelector(
+    (state) => state.jobs?.updateLoading || false,
+  );
+  const successMessage = useSelector(
+    (state) => state.jobs?.successMessage || null,
+  );
 
   const { categories, activeCategories } = useJobCategories();
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState("newest");
@@ -110,7 +113,7 @@ const Jobs = () => {
       // Try to get category name from categories list
       const catName = categoryNameById[job.categoryId];
       if (catName) return catName;
-      
+
       // If not found, try to get from job's categoryName or category field
       return job.categoryName || job.category?.name || "Deleted Category";
     },
@@ -153,7 +156,9 @@ const Jobs = () => {
         result.sort((a, b) => (a.company || "").localeCompare(b.company || ""));
         break;
       case "applicants":
-        result.sort((a, b) => (b.applicantCount || 0) - (a.applicantCount || 0));
+        result.sort(
+          (a, b) => (b.applicantCount || 0) - (a.applicantCount || 0),
+        );
         break;
       default:
         break;
@@ -173,7 +178,7 @@ const Jobs = () => {
     try {
       // Get the job ID
       const jobId = updatedJob.id || updatedJob._id;
-      
+
       if (!jobId) {
         showNotification("Job ID is missing", "error");
         return;
@@ -187,23 +192,31 @@ const Jobs = () => {
         ...jobData,
         categoryId: jobData.category || jobData.categoryId,
       };
-      
+
       // Remove the category field if it exists (use categoryId instead)
       delete submitData.category;
 
-      const result = await dispatch(updateJob({
-        id: jobId,
-        jobData: submitData
-      })).unwrap();
+      const result = await dispatch(
+        updateJob({
+          id: jobId,
+          jobData: submitData,
+        }),
+      ).unwrap();
 
       if (result?.success) {
-        showNotification(result?.message || "Job updated successfully", "success");
+        showNotification(
+          result?.message || "Job updated successfully",
+          "success",
+        );
         setIsEditModalOpen(false);
         setEditingJob(null);
         await fetchJobs(); // Refresh the list
       }
     } catch (err) {
-      showNotification(typeof err === 'string' ? err : "Failed to update job", "error");
+      showNotification(
+        typeof err === "string" ? err : "Failed to update job",
+        "error",
+      );
     }
   };
 
@@ -218,33 +231,46 @@ const Jobs = () => {
     if (!deletingJob) return;
 
     try {
-      const result = await dispatch(deleteJob(deletingJob.id || deletingJob._id)).unwrap();
+      const result = await dispatch(
+        deleteJob(deletingJob.id || deletingJob._id),
+      ).unwrap();
 
       if (result?.success) {
-        showNotification(result?.message || "Job deleted successfully", "success");
+        showNotification(
+          result?.message || "Job deleted successfully",
+          "success",
+        );
         setIsDeleteModalOpen(false);
         setDeletingJob(null);
         await fetchJobs(); // Refresh the list
       }
     } catch (err) {
-      showNotification(typeof err === 'string' ? err : "Failed to delete job", "error");
+      showNotification(
+        typeof err === "string" ? err : "Failed to delete job",
+        "error",
+      );
     }
   };
 
   // Toggle job status
   const handleToggleStatus = async (job, newStatus) => {
     try {
-      const result = await dispatch(toggleJobStatus({
-        id: job.id || job._id,
-        status: newStatus
-      })).unwrap();
+      const result = await dispatch(
+        toggleJobStatus({
+          id: job.id || job._id,
+          status: newStatus,
+        }),
+      ).unwrap();
 
       if (result?.success) {
         showNotification(result?.message || "Job status updated", "success");
         await fetchJobs();
       }
     } catch (err) {
-      showNotification(typeof err === 'string' ? err : "Failed to update status", "error");
+      showNotification(
+        typeof err === "string" ? err : "Failed to update status",
+        "error",
+      );
     }
   };
 
@@ -503,7 +529,7 @@ const Jobs = () => {
                       {/* Salary */}
                       <td className="px-4 py-4 min-w-[110px]">
                         <p className="text-sm text-slate-700 flex items-center gap-1 whitespace-nowrap">
-                          <IndianRupee className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                          {/* <IndianRupee className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" /> */}
                           {job.salary}
                         </p>
                       </td>
@@ -602,7 +628,7 @@ const Jobs = () => {
                       {formatApplicants(job.applicantCount)} applicants
                     </span>
                     <span className="text-xs text-slate-600 flex items-center gap-1">
-                      <IndianRupee className="w-3 h-3" />
+                      {/* <IndianRupee className="w-3 h-3" /> */}
                       {job.salary}
                     </span>
                   </div>
@@ -675,7 +701,7 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
     categoryId: job?.categoryId || job?.category || "",
     location: job?.location || "",
     jobType: job?.jobType || "Full Time",
-    experience: job?.experience || "0-3 Yrs",
+    experience: job?.experience || "Select Experience",
     salary: job?.salary || "",
     description: job?.description || "",
     responsibilities: job?.responsibilities || [""],
@@ -686,9 +712,11 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
   const [newSkill, setNewSkill] = useState("");
   const [errors, setErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
-  
+
   const hasSelectedCategory = categories.some(
-    (category) => category.id === formData.categoryId || category._id === formData.categoryId,
+    (category) =>
+      category.id === formData.categoryId ||
+      category._id === formData.categoryId,
   );
 
   const validate = () => {
@@ -732,13 +760,15 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
       );
 
       // Get the actual category ID
-      const categoryObjectId = selectedCategory?._id || selectedCategory?.id || formData.categoryId;
+      const categoryObjectId =
+        selectedCategory?._id || selectedCategory?.id || formData.categoryId;
 
       const jobData = {
         title: formData.title.trim(),
         company: formData.company.trim(),
         categoryId: categoryObjectId, // Use categoryId (not category)
-        categoryName: selectedCategory?.name || job?.categoryName || "Deleted Category",
+        categoryName:
+          selectedCategory?.name || job?.categoryName || "Deleted Category",
         location: formData.location.trim(),
         jobType: formData.jobType,
         experience: formData.experience,
@@ -863,7 +893,6 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
                   <p className="text-xs text-red-600 mt-1">{errors.title}</p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Company Name *
@@ -883,7 +912,6 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
                   <p className="text-xs text-red-600 mt-1">{errors.company}</p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Category *
@@ -917,7 +945,6 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
                   </p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Location *
@@ -937,7 +964,6 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
                   <p className="text-xs text-red-600 mt-1">{errors.location}</p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Job Type *
@@ -953,18 +979,25 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
                   <option value="Part Time">Part Time</option>
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Experience *
                 </label>
+
                 <select
-                  value={formData.experience}
+                  value={formData.experience || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, experience: e.target.value })
+                    setFormData({
+                      ...formData,
+                      experience: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                 >
+                  <option value="">Select Experience</option>
+                  <option value="No Experience required">
+                    No Experience required
+                  </option>
                   <option value="0-3 Yrs">0-3 Yrs</option>
                   <option value="1-3 Yrs">1-3 Yrs</option>
                   <option value="3-5 Yrs">3-5 Yrs</option>
@@ -991,7 +1024,6 @@ const JobModal = ({ mode, job, categories, onClose, onSave, existingJobs }) => {
                   <p className="text-xs text-red-600 mt-1">{errors.salary}</p>
                 )}
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Status

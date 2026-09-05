@@ -6,7 +6,6 @@ import {
   Images,
   LayoutDashboard,
   LogOut,
-  Settings,
   ShieldCheck,
   UserRound,
   Users,
@@ -67,11 +66,11 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
       path: "/admin/profile",
       icon: UserRound,
     },
-    {
-      name: "Settings",
-      path: "/admin/settings",
-      icon: Settings,
-    },
+    // {
+    //   name: "Settings",
+    //   path: "/admin/settings",
+    //   icon: Settings,
+    // },
   ];
 
   const handleLogout = () => {

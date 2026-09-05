@@ -719,7 +719,7 @@ const Profile = () => {
 
                 <div className="pb-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-white z-10">
                       {user.name || "Your Name"}
                     </h1>
 

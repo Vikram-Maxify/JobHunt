@@ -44,6 +44,8 @@ const AdminDashboard = () => {
   const {
     adminSubscriptions,
     adminSubscriptionsCount,
+    revenue = 0,
+    completedPurchases = 0,
     loading: subscriptionsLoading,
   } = useSelector((state) => state.subscription);
 
@@ -688,8 +690,10 @@ const AdminDashboard = () => {
 
     {
       title: "Revenue",
-      value: "₹4.82L",
-      description: "This month's revenue",
+      value: subscriptionsLoading
+        ? "..."
+        : `₹${Number(revenue).toLocaleString("en-IN")}`,
+      description: `${completedPurchases} completed subscription purchase${completedPurchases === 1 ? "" : "s"}`,
       icon: CreditCard,
       iconClass:
         "bg-green-50 text-green-600",

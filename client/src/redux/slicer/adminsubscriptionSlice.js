@@ -120,6 +120,8 @@ const initialState = {
     // Admin states
     adminSubscriptions: [],
     adminSubscriptionsCount: 0,
+    revenue: 0,
+    completedPurchases: 0,
     currentSubscription: null,
     
     // UI states
@@ -161,6 +163,8 @@ const subscriptionSlice = createSlice({
                 state.loading = false;
                 state.adminSubscriptions = action.payload?.data || [];
                 state.adminSubscriptionsCount = action.payload?.count || state.adminSubscriptions.length;
+                state.revenue = action.payload?.metrics?.revenue || 0;
+                state.completedPurchases = action.payload?.metrics?.completedPurchases || 0;
                 console.log("Admin Subscriptions updated:", state.adminSubscriptions);
             })
             .addCase(getAllSubscriptionsAdmin.rejected, (state, action) => {

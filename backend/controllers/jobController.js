@@ -1869,6 +1869,51 @@ exports.getAllApplicationsAdmin = async (req, res) => {
   }
 };
 
+// @desc    Get one application with its complete submitted details (Admin)
+// @route   GET /api/admin/applications/:id
+exports.getApplicationByIdAdmin = async (req, res) => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      return res.status(400).json({ success: false, message: "Invalid application ID" });
+    }
+
+    const application = await JobApplication.findById(req.params.id)
+      .populate("applicant", "name email mobile")
+      .populate("job", "title company location categoryName");
+
+    if (!application) {
+      return res.status(404).json({ success: false, message: "Application not found" });
+    }
+
+    const data = application.toObject();
+    const submitted = data.applicationData || {};
+    // Preserve the detail page's established field names while using the
+    // persisted application payload as the source of truth.
+    data.fullName = submitted.name || data.applicant?.name || "Unknown Applicant";
+    data.email = submitted.email || data.applicant?.email || "";
+    data.phoneNumber = submitted.phone || data.applicant?.mobile || "";
+    data.experienceType = submitted.experienceType || "Not provided";
+    data.totalExperience = submitted.experience || "";
+    data.currentLocation = submitted.currentLocation || data.job?.location || "";
+    data.expectedSalary = submitted.expectedSalary || "";
+    data.noticePeriod = submitted.noticePeriod || "";
+    data.professionalDetails = submitted.additionalInfo || "";
+    data.categoryName = data.job?.categoryName || "Not provided";
+    data.linkedInProfile = submitted.linkedin || "";
+    data.portfolioWebsite = submitted.portfolio || "";
+    data.coverLetter = submitted.coverLetter || "";
+    data.additionalInformation = submitted.additionalInfo || "";
+    data.profilePhoto = submitted.profilePhoto?.url || "";
+    data.governmentIdDocument = submitted.governmentDocument?.filename || "";
+    data.resume = submitted.resume?.filename || "";
+
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error("Get application by id error:", error);
+    return res.status(500).json({ success: false, message: error.message || "Failed to fetch application" });
+  }
+};
+
 // @desc    Update application status - shortlist / reject (Admin)
 // @route   PATCH /api/admin/applications/:id/status
 exports.updateApplicationStatus = async (req, res) => {

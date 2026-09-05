@@ -1,6 +1,7 @@
 // src/admin/pages/ApplicationDetails.jsx
 import React, { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowLeft,
   Mail,
@@ -10,7 +11,6 @@ import {
   FileText,
   Link2,
   Globe,
-  User,
   Calendar,
   IndianRupee,
   Clock,
@@ -24,62 +24,52 @@ import {
   FileText as FileTextIcon,
   Image,
 } from "lucide-react";
-import { useJobCategories } from "../context/JobCategoryContext";
-import { useApplications } from "../context/ApplicationContext";
+import {
+  getApplicationByIdAdmin,
+  updateApplicationStatus,
+} from "../../redux/slicer/jobApplicationSlice";
+import Toast from "../components/Toast";
 
 const ApplicationDetails = () => {
   const { applicationId } = useParams();
   const navigate = useNavigate();
-  const { categories } = useJobCategories();
-  const { getApplicationById, updateApplicationStatus } = useApplications();
+  const dispatch = useDispatch();
+  const { currentApplication, loading, error, updatingStatus } = useSelector(
+    (state) => state.application,
+  );
 
-  const [application, setApplication] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const application = currentApplication;
   const [notification, setNotification] = useState(null);
   const [previewDocument, setPreviewDocument] = useState(null);
 
-  // Load application from context
+  // Load the selected persisted application, rather than the legacy mock context.
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const found = getApplicationById(applicationId);
-      if (found) {
-        setApplication(found);
-        setError(null);
-      } else {
-        setError("Application not found");
-      }
-      setLoading(false);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [applicationId, getApplicationById]);
+    dispatch(getApplicationByIdAdmin(applicationId));
+  }, [applicationId, dispatch]);
 
   // Get category name dynamically
   const getCategoryName = useCallback(() => {
     if (!application) return "";
-    const category = categories.find((c) => c.id === application.categoryId);
-    return category?.name || application.categoryName || "Deleted Category";
-  }, [application, categories]);
+    return application.categoryName || "Not provided";
+  }, [application]);
 
   // Handle status update
   const handleStatusUpdate = async (newStatus) => {
     if (!application) return;
 
-    setIsUpdating(true);
-    const result = await updateApplicationStatus(application.id, newStatus);
-    setIsUpdating(false);
-
-    if (result.success) {
-      setApplication((prev) => ({ ...prev, status: newStatus }));
+    try {
+      await dispatch(
+        updateApplicationStatus({ applicationId: application._id, status: newStatus }),
+      ).unwrap();
       showNotification(
-        `Application ${newStatus} successfully`,
-        newStatus === "rejected" ? "error" : "success",
+        `Application ${newStatus} successfully.`,
+        "success",
       );
-    } else {
-      showNotification("Failed to update status", "error");
+    } catch (updateError) {
+      showNotification(
+        typeof updateError === "string" ? updateError : "Failed to update application status.",
+        "error",
+      );
     }
   };
 
@@ -254,21 +244,21 @@ const ApplicationDetails = () => {
             {application.status !== "shortlisted" && (
               <button
                 onClick={() => handleStatusUpdate("shortlisted")}
-                disabled={isUpdating}
+                disabled={updatingStatus}
                 className="flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-colors disabled:opacity-50"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                {isUpdating ? "Updating..." : "Shortlist"}
+                {updatingStatus ? "Updating..." : "Shortlist"}
               </button>
             )}
             {application.status !== "rejected" && (
               <button
                 onClick={() => handleStatusUpdate("rejected")}
-                disabled={isUpdating}
+                disabled={updatingStatus}
                 className="flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 <XCircle className="w-4 h-4" />
-                {isUpdating ? "Updating..." : "Reject"}
+                {updatingStatus ? "Updating..." : "Reject"}
               </button>
             )}
           </div>
@@ -477,17 +467,11 @@ const ApplicationDetails = () => {
       )}
 
       {/* Notification */}
-      {notification && (
-        <div
-          className={`fixed bottom-4 right-4 px-4 py-3 rounded-xl shadow-lg text-sm font-medium z-50 ${
-            notification.type === "success"
-              ? "bg-green-50 text-green-700 border border-green-200"
-              : "bg-red-50 text-red-700 border border-red-200"
-          }`}
-        >
-          {notification.message}
-        </div>
-      )}
+      <Toast
+        message={notification?.message}
+        type={notification?.type}
+        onClose={() => setNotification(null)}
+      />
     </div>
   );
 };

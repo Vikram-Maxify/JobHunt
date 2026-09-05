@@ -30,7 +30,6 @@ import StatCard from "../components/StateCard";
 
 import {
   getAllApplicationsAdmin,
-  updateApplicationStatus,
   deleteApplication,
 } from "../../redux/slicer/jobApplicationSlice";
 
@@ -139,45 +138,45 @@ const Applications = () => {
   // UPDATE APPLICATION STATUS
   // ============================================================
 
-  const handleStatusChange = async (
-    applicationId,
-    status,
-    confirmed = false,
-  ) => {
-    if (!applicationId || !status) return;
+  // const handleStatusChange = async (
+  //   applicationId,
+  //   status,
+  //   confirmed = false,
+  // ) => {
+  //   if (!applicationId || !status) return;
 
-    if (status === "rejected" && !confirmed) {
-      setStatusChangeToConfirm({ applicationId, status });
-      return;
-    }
+  //   if (status === "rejected" && !confirmed) {
+  //     setStatusChangeToConfirm({ applicationId, status });
+  //     return;
+  //   }
 
-    try {
-      setUpdatingApplicationId(applicationId);
+  //   try {
+  //     setUpdatingApplicationId(applicationId);
 
-      await dispatch(
-        updateApplicationStatus({
-          applicationId,
-          status,
-        })
-      ).unwrap();
+  //     await dispatch(
+  //       updateApplicationStatus({
+  //         applicationId,
+  //         status,
+  //       })
+  //     ).unwrap();
 
-      showNotification(
-        `Application status changed to ${getStatusLabel(
-          status
-        )}`,
-        "success"
-      );
-    } catch (err) {
-      showNotification(
-        typeof err === "string"
-          ? err
-          : "Failed to update application status",
-        "error"
-      );
-    } finally {
-      setUpdatingApplicationId(null);
-    }
-  };
+  //     showNotification(
+  //       `Application status changed to ${getStatusLabel(
+  //         status
+  //       )}`,
+  //       "success"
+  //     );
+  //   } catch (err) {
+  //     showNotification(
+  //       typeof err === "string"
+  //         ? err
+  //         : "Failed to update application status",
+  //       "error"
+  //     );
+  //   } finally {
+  //     setUpdatingApplicationId(null);
+  //   }
+  // };
 
   // ============================================================
   // STATISTICS
@@ -970,7 +969,7 @@ const Applications = () => {
                     </span>
 
                     {/* Status update dropdown */}
-                    <div className="relative">
+                    {/* <div className="relative">
 
                       <select
                         value={String(
@@ -1006,7 +1005,7 @@ const Applications = () => {
                         <RefreshCw className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-blue-500 animate-spin pointer-events-none" />
                       )}
 
-                    </div>
+                    </div> */}
 
                   </div>
 

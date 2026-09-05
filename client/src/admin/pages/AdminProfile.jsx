@@ -136,10 +136,10 @@ const AdminProfile = () => {
               </div>
 
               {/* Edit Button */}
-              <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto">
+              {/* <button className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 sm:w-auto">
                 <Edit3 size={17} />
                 Edit Profile
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

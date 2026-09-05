@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -10,53 +10,183 @@ import {
   LogIn,
   Loader2,
 } from "lucide-react";
-import { loginUser } from "../../redux/slicer/authSlice";
+
+import {
+  loginUser,
+  getProfile,
+  clearAuthError,
+  clearAuthSuccess,
+} from "../../redux/slicer/authSlice";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
 
-  const { loading, error, success, user } = useSelector(
+  const { loading, error } = useSelector(
     (state) => state.auth
   );
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [adminError, setAdminError] = useState("");
 
-const handleLogin = async (e) => {
-  e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
 
-  if (!email.trim() || !password) {
-    return;
-  }
+    setAdminError("");
 
-  const result = await dispatch(
-    loginUser({
-      email: email.trim(),
-      password,
-    })
-  );
-
-  console.log("LOGIN RESULT:", result);
-
-  if (loginUser.fulfilled.match(result)) {
-    const loggedInUser = result.payload?.data;
-
-  
-
-    // Admin check
-    if (loggedInUser?.role !== "admin") {
-      console.log("Not an admin");
+    if (!email.trim() || !password) {
+      setAdminError("Please enter email and password.");
       return;
     }
 
-    navigate("/admin", {
-      replace: true,
-    });
-  }
-};
+    try {
+      dispatch(clearAuthError());
+      dispatch(clearAuthSuccess());
+
+      // =========================================
+      // STEP 1: LOGIN
+      // =========================================
+      const loginResult = await dispatch(
+        loginUser({
+          email: email.trim(),
+          password,
+        })
+      );
+
+      console.log("========== LOGIN RESULT ==========");
+      console.log("LOGIN RESULT:", loginResult);
+      console.log("LOGIN PAYLOAD:", loginResult.payload);
+      console.log("LOGIN DATA:", loginResult.payload?.data);
+      console.log("==================================");
+
+      // Login failed
+      if (!loginUser.fulfilled.match(loginResult)) {
+        setAdminError(
+          loginResult.payload || "Login failed."
+        );
+        return;
+      }
+
+      // =========================================
+      // STEP 2: GET PROFILE FROM BACKEND
+      // =========================================
+      const profileResult = await dispatch(getProfile());
+
+      console.log("========== PROFILE RESULT ==========");
+      console.log("PROFILE RESULT:", profileResult);
+      console.log("PROFILE PAYLOAD:", profileResult.payload);
+      console.log(
+        "PROFILE DATA:",
+        profileResult.payload?.data
+      );
+      console.log("====================================");
+
+      // Profile failed
+      if (!getProfile.fulfilled.match(profileResult)) {
+        setAdminError(
+          profileResult.payload ||
+            "Unable to fetch user profile."
+        );
+        return;
+      }
+
+      // =========================================
+      // STEP 3: GET USER FROM PROFILE RESPONSE
+      // =========================================
+      const profileData = profileResult.payload?.data;
+
+      const loggedInUser =
+        profileData?.user ||
+        profileData;
+
+      console.log("========== ADMIN USER ==========");
+      console.log("USER:", loggedInUser);
+      console.log(
+        "USER ID:",
+        loggedInUser?._id || loggedInUser?.id
+      );
+      console.log(
+        "USER NAME:",
+        loggedInUser?.name
+      );
+      console.log(
+        "USER EMAIL:",
+        loggedInUser?.email
+      );
+      console.log(
+        "USER ROLE:",
+        loggedInUser?.role
+      );
+      console.log(
+        "IS ADMIN:",
+        loggedInUser?.isAdmin
+      );
+      console.log("================================");
+
+      // =========================================
+      // STEP 4: NORMALIZE ROLE
+      // =========================================
+      const role = String(
+        loggedInUser?.role || ""
+      )
+        .trim()
+        .toLowerCase();
+
+      console.log("NORMALIZED ROLE:", role);
+
+      // =========================================
+      // STEP 5: ADMIN CHECK
+      // =========================================
+      if (
+        role !== "admin" &&
+        loggedInUser?.isAdmin !== true
+      ) {
+        console.log(
+          "Not an admin. Role received:",
+          role
+        );
+
+        setAdminError(
+          "You are not authorized to access the admin panel."
+        );
+
+        return;
+      }
+
+      // =========================================
+      // STEP 6: ADMIN LOGIN SUCCESS
+      // =========================================
+      console.log("==============================");
+      console.log("ADMIN LOGIN SUCCESS");
+      console.log("REDIRECTING TO /admin");
+      console.log("==============================");
+
+      const redirectPath =
+        location.state?.from?.pathname ||
+        "/admin";
+
+      navigate(redirectPath, {
+        replace: true,
+      });
+    } catch (err) {
+      console.error(
+        "ADMIN LOGIN ERROR:",
+        err
+      );
+
+      setAdminError(
+        err?.message ||
+          "Something went wrong during login."
+      );
+    }
+  };
+
+  const displayError =
+    adminError || error;
+
   return (
     <main className="flex min-h-[calc(100vh-68px)] items-center justify-center bg-slate-50 px-4 py-10">
       <div className="w-full max-w-md">
@@ -77,7 +207,10 @@ const handleLogin = async (e) => {
 
         {/* Card */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xl sm:p-7">
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form
+            onSubmit={handleLogin}
+            className="space-y-5"
+          >
             {/* Email */}
             <div>
               <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -93,7 +226,10 @@ const handleLogin = async (e) => {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setAdminError("");
+                  }}
                   placeholder="admin@careersphere.com"
                   required
                   disabled={loading}
@@ -115,9 +251,16 @@ const handleLogin = async (e) => {
                 />
 
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setAdminError("");
+                  }}
                   placeholder="Enter admin password"
                   required
                   disabled={loading}
@@ -128,7 +271,9 @@ const handleLogin = async (e) => {
                   type="button"
                   disabled={loading}
                   onClick={() =>
-                    setShowPassword((prev) => !prev)
+                    setShowPassword(
+                      (prev) => !prev
+                    )
                   }
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700 disabled:cursor-not-allowed"
                 >
@@ -142,21 +287,11 @@ const handleLogin = async (e) => {
             </div>
 
             {/* Error */}
-            {error && (
+            {displayError && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-                {error}
+                {displayError}
               </div>
             )}
-
-            {/* Non-admin */}
-            {success &&
-              user &&
-              user.role !== "admin" &&
-              user.isAdmin !== true && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
-                  You are not authorized to access the admin panel.
-                </div>
-              )}
 
             {/* Login */}
             <button

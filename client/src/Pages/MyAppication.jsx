@@ -18,9 +18,11 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { getMyApplications } from "../redux/slicer/jobApplicationSlice";
+import { useNavigate } from "react-router-dom";
 
 const MyAppication = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -30,10 +32,10 @@ const MyAppication = () => {
   // =========================================================
 
   const {
-  applications = [],
-  loading,
-  error,
-} = useSelector((state) => state.application);
+    applications = [],
+    loading,
+    error,
+  } = useSelector((state) => state.application);
 
   // =========================================================
   // FETCH MY APPLICATIONS
@@ -110,7 +112,7 @@ const MyAppication = () => {
 
       const displayStatus =
         statusMap[
-          String(rawStatus).toLowerCase()
+        String(rawStatus).toLowerCase()
         ] || rawStatus;
 
       return {
@@ -136,12 +138,12 @@ const MyAppication = () => {
 
         appliedDate: application.appliedAt
           ? new Date(
-              application.appliedAt
-            ).toLocaleDateString("en-IN", {
-              day: "2-digit",
-              month: "short",
-              year: "numeric",
-            })
+            application.appliedAt
+          ).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
           : "Date not available",
 
         status: displayStatus,
@@ -601,13 +603,14 @@ const MyAppication = () => {
 
                           </div>
 
-                          <button
-                            type="button"
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-600 transition hover:bg-blue-600 hover:text-white sm:w-auto"
-                          >
-                            View Details
-                            <ArrowUpRight size={14} />
-                          </button>
+                         <button
+  type="button"
+  onClick={() => navigate(`/jobs/${application.jobId}`)}
+  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-600 transition hover:bg-blue-600 hover:text-white sm:w-auto"
+>
+  View Details
+  <ArrowUpRight size={14} />
+</button>
 
                         </div>
 

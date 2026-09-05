@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -10,7 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   X,
-  Heart,
+  Bookmark,
   Users,
   Building2,
   IndianRupee,
@@ -21,6 +22,11 @@ import {
 } from "lucide-react";
 
 import { getAllJobsUser } from "../redux/slicer/jobSlice";
+
+import {
+  saveJob,
+  unsaveJob,
+} from "../redux/slicer/jobApplicationSlice";
 
 const Jobs = () => {
   const dispatch = useDispatch();
@@ -39,6 +45,13 @@ const Jobs = () => {
     total = 0,
   } = useSelector((state) => state.jobs);
 
+  const {
+    saving = false,
+    unsaving = false,
+  } = useSelector(
+    (state) => state.application || {}
+  );
+
   // ============================================================
   // LOCAL STATES
   // ============================================================
@@ -46,40 +59,49 @@ const Jobs = () => {
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
 
-  // Mobile search state
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] =
+    useState(false);
 
-  const [mobileFilters, setMobileFilters] = useState(false);
+  const [mobileFilters, setMobileFilters] =
+    useState(false);
+
   const [sortOpen, setSortOpen] = useState(false);
   const [sortBy, setSortBy] = useState("relevance");
 
+  // Saved jobs
   const [savedJobs, setSavedJobs] = useState([]);
 
-  // IMPORTANT:
-  // Every filter has its own independent array.
-  const [selectedFilters, setSelectedFilters] = useState({
-    department: [],
-    workMode: [],
-    experience: [],
-    location: [],
-    salary: [],
-    company: [],
-    role: [],
-  });
+  // Job currently being saved/unsaved
+  const [savingJobId, setSavingJobId] = useState(null);
 
-  const [openFilters, setOpenFilters] = useState({
-    department: true,
-    workMode: true,
-    experience: true,
-    location: true,
-    salary: true,
-    company: true,
-    role: true,
-  });
+  // ============================================================
+  // FILTER STATES
+  // ============================================================
+
+  const [selectedFilters, setSelectedFilters] =
+    useState({
+      department: [],
+      workMode: [],
+      experience: [],
+      location: [],
+      salary: [],
+      company: [],
+      role: [],
+    });
+
+  const [openFilters, setOpenFilters] =
+    useState({
+      department: true,
+      workMode: true,
+      experience: true,
+      location: true,
+      salary: true,
+      company: true,
+      role: true,
+    });
 
   // ============================================================
   // FETCH JOBS
-  // 6 JOBS PER PAGE
   // ============================================================
 
   useEffect(() => {
@@ -96,7 +118,10 @@ const Jobs = () => {
   // ============================================================
 
   const normalizeValue = (value) => {
-    if (value === null || value === undefined) {
+    if (
+      value === null ||
+      value === undefined
+    ) {
       return "";
     }
 
@@ -182,63 +207,105 @@ const Jobs = () => {
   // ============================================================
 
   const mapJob = (job) => {
-    const companyName = getCompanyName(job);
-    const jobLocation = getLocationName(job);
-    const departmentName = getCategoryName(job);
-    const roleName = getRoleName(job);
+    const companyName =
+      getCompanyName(job);
+
+    const jobLocation =
+      getLocationName(job);
+
+    const departmentName =
+      getCategoryName(job);
+
+    const roleName =
+      getRoleName(job);
 
     const logoUrl =
-      normalizeValue(job?.companyLogo?.displayUrl) ||
-      normalizeValue(job?.companyLogo?.url) ||
-      normalizeValue(job?.companyLogo?.thumb) ||
-      normalizeValue(job?.companyLogo);
+      normalizeValue(
+        job?.companyLogo?.displayUrl
+      ) ||
+      normalizeValue(
+        job?.companyLogo?.url
+      ) ||
+      normalizeValue(
+        job?.companyLogo?.thumb
+      ) ||
+      normalizeValue(
+        job?.companyLogo
+      );
 
     return {
       id: job?._id,
 
-      title: normalizeValue(job?.title) || "Untitled Job",
+      title:
+        normalizeValue(job?.title) ||
+        "Untitled Job",
 
       company: companyName,
 
       location: jobLocation,
 
-      experience: normalizeValue(job?.experience) || "0-3 Yrs",
+      experience:
+        normalizeValue(job?.experience) ||
+        "0-3 Yrs",
 
-      salary: normalizeValue(job?.salary) || "Salary not disclosed",
+      salary:
+        normalizeValue(job?.salary) ||
+        "Salary not disclosed",
 
-      type: normalizeValue(job?.jobType) || "Full Time",
+      type:
+        normalizeValue(job?.jobType) ||
+        "Full Time",
 
-      workMode: normalizeValue(job?.jobType) || "Full Time",
+      workMode:
+        normalizeValue(job?.jobType) ||
+        "Full Time",
 
-      // Department
       department: departmentName,
 
-      // Role
       role: roleName,
 
-      posted: normalizeValue(job?.daysAgo) || "Recently",
+      posted:
+        normalizeValue(job?.daysAgo) ||
+        "Recently",
 
-      applicants: `${job?.applicantCount || 0} applicants`,
+      applicants: `${
+        job?.applicantCount || 0
+      } applicants`,
 
       description:
-        normalizeValue(job?.description) ||
+        normalizeValue(
+          job?.description
+        ) ||
         "No description available for this job.",
 
-      skills: Array.isArray(job?.skills) ? job.skills : [],
+      skills: Array.isArray(job?.skills)
+        ? job.skills
+        : [],
 
-      featured: Boolean(job?.isFeatured),
+      featured: Boolean(
+        job?.isFeatured
+      ),
 
-      urgent: Boolean(job?.isUrgent),
+      urgent: Boolean(
+        job?.isUrgent
+      ),
 
       logoUrl,
 
-      logo: companyName?.charAt(0)?.toUpperCase() || "C",
+      logo:
+        companyName
+          ?.charAt(0)
+          ?.toUpperCase() || "C",
 
-      logoClass: "bg-blue-50 text-blue-600",
+      logoClass:
+        "bg-blue-50 text-blue-600",
 
-      tags: Array.isArray(job?.tags) ? job.tags : [],
+      tags: Array.isArray(job?.tags)
+        ? job.tags
+        : [],
 
-      createdAt: job?.createdAt || null,
+      createdAt:
+        job?.createdAt || null,
 
       rawJob: job,
     };
@@ -264,20 +331,37 @@ const Jobs = () => {
     const uniqueValues = new Map();
 
     jobs.forEach((job) => {
-      const value = normalizeValue(job?.[key]);
+      const value = normalizeValue(
+        job?.[key]
+      );
 
       if (!value) return;
 
-      const normalizedKey = value.toLowerCase();
+      const normalizedKey =
+        value.toLowerCase();
 
-      if (!uniqueValues.has(normalizedKey)) {
-        uniqueValues.set(normalizedKey, value);
+      if (
+        !uniqueValues.has(
+          normalizedKey
+        )
+      ) {
+        uniqueValues.set(
+          normalizedKey,
+          value
+        );
       }
     });
 
-    return Array.from(uniqueValues.values())
-      .sort((a, b) => a.localeCompare(b))
-      .map((value) => [value, value]);
+    return Array.from(
+      uniqueValues.values()
+    )
+      .sort((a, b) =>
+        a.localeCompare(b)
+      )
+      .map((value) => [
+        value,
+        value,
+      ]);
   };
 
   // ============================================================
@@ -286,9 +370,15 @@ const Jobs = () => {
 
   const filters = useMemo(() => {
     return {
-      department: getDynamicFilter("department"),
+      department:
+        getDynamicFilter(
+          "department"
+        ),
 
-      workMode: getDynamicFilter("workMode"),
+      workMode:
+        getDynamicFilter(
+          "workMode"
+        ),
 
       experience: [
         ["0-3 Yrs", "0-3 Yrs"],
@@ -297,19 +387,43 @@ const Jobs = () => {
         ["5+ Yrs", "5+ Yrs"],
       ],
 
-      location: getDynamicFilter("location"),
+      location:
+        getDynamicFilter(
+          "location"
+        ),
 
       salary: [
-        ["₹0 - ₹3 LPA", "0-3"],
-        ["₹3 - ₹6 LPA", "3-6"],
-        ["₹6 - ₹10 LPA", "6-10"],
-        ["₹10 - ₹20 LPA", "10-20"],
-        ["₹20+ LPA", "20+"],
+        [
+          "₹0 - ₹3 LPA",
+          "0-3",
+        ],
+        [
+          "₹3 - ₹6 LPA",
+          "3-6",
+        ],
+        [
+          "₹6 - ₹10 LPA",
+          "6-10",
+        ],
+        [
+          "₹10 - ₹20 LPA",
+          "10-20",
+        ],
+        [
+          "₹20+ LPA",
+          "20+",
+        ],
       ],
 
-      company: getDynamicFilter("company"),
+      company:
+        getDynamicFilter(
+          "company"
+        ),
 
-      role: getDynamicFilter("role"),
+      role:
+        getDynamicFilter(
+          "role"
+        ),
     };
   }, [jobs]);
 
@@ -317,10 +431,13 @@ const Jobs = () => {
   // TOGGLE FILTER SECTION
   // ============================================================
 
-  const toggleFilter = (filterName) => {
+  const toggleFilter = (
+    filterName
+  ) => {
     setOpenFilters((prev) => ({
       ...prev,
-      [filterName]: !prev[filterName],
+      [filterName]:
+        !prev[filterName],
     }));
   };
 
@@ -328,35 +445,52 @@ const Jobs = () => {
   // HANDLE FILTER CHANGE
   // ============================================================
 
-  const handleFilterChange = (filterName, value) => {
-    const cleanValue = normalizeValue(value);
+  const handleFilterChange = (
+    filterName,
+    value
+  ) => {
+    const cleanValue =
+      normalizeValue(value);
 
     if (!cleanValue) return;
 
-    setSelectedFilters((prev) => {
-      const currentValues = Array.isArray(prev[filterName])
-        ? prev[filterName]
-        : [];
+    setSelectedFilters(
+      (prev) => {
+        const currentValues =
+          Array.isArray(
+            prev[filterName]
+          )
+            ? prev[filterName]
+            : [];
 
-      const alreadySelected = currentValues.some(
-        (item) =>
-          normalizeValue(item).toLowerCase() ===
-          cleanValue.toLowerCase()
-      );
+        const alreadySelected =
+          currentValues.some(
+            (item) =>
+              normalizeValue(
+                item
+              ).toLowerCase() ===
+              cleanValue.toLowerCase()
+          );
 
-      // Only THIS filter changes.
-      return {
-        ...prev,
+        return {
+          ...prev,
 
-        [filterName]: alreadySelected
-          ? currentValues.filter(
-              (item) =>
-                normalizeValue(item).toLowerCase() !==
-                cleanValue.toLowerCase()
-            )
-          : [...currentValues, cleanValue],
-      };
-    });
+          [filterName]:
+            alreadySelected
+              ? currentValues.filter(
+                  (item) =>
+                    normalizeValue(
+                      item
+                    ).toLowerCase() !==
+                    cleanValue.toLowerCase()
+                )
+              : [
+                  ...currentValues,
+                  cleanValue,
+                ],
+        };
+      }
+    );
   };
 
   // ============================================================
@@ -379,74 +513,169 @@ const Jobs = () => {
   };
 
   // ============================================================
-  // CHECK IF FILTER VALUE IS SELECTED
+  // CHECK FILTER
   // ============================================================
 
-  const isFilterSelected = (filterName, value) => {
-    const selectedValues = selectedFilters[filterName] || [];
+  const isFilterSelected = (
+    filterName,
+    value
+  ) => {
+    const selectedValues =
+      selectedFilters[
+        filterName
+      ] || [];
 
     return selectedValues.some(
       (item) =>
-        normalizeValue(item).toLowerCase() ===
-        normalizeValue(value).toLowerCase()
+        normalizeValue(
+          item
+        ).toLowerCase() ===
+        normalizeValue(
+          value
+        ).toLowerCase()
     );
   };
 
   // ============================================================
-  // SAVE JOB
+  // SAVE / UNSAVE JOB
   // ============================================================
 
-  const toggleSaveJob = (jobId) => {
-    setSavedJobs((prev) => {
-      if (prev.includes(jobId)) {
-        return prev.filter((id) => id !== jobId);
-      }
+  const toggleSaveJob = async (
+    jobId
+  ) => {
+    if (!jobId) {
+      console.error(
+        "Job ID is missing"
+      );
+      return;
+    }
 
-      return [...prev, jobId];
-    });
+    const isCurrentlySaved =
+      savedJobs.includes(jobId);
+
+    try {
+      setSavingJobId(jobId);
+
+      if (isCurrentlySaved) {
+        // ==========================================
+        // REMOVE BOOKMARK FROM BACKEND
+        // ==========================================
+
+        await dispatch(
+          unsaveJob(jobId)
+        ).unwrap();
+
+        // Update UI only after backend success
+        setSavedJobs((prev) =>
+          prev.filter(
+            (id) => id !== jobId
+          )
+        );
+      } else {
+        // ==========================================
+        // SAVE BOOKMARK TO BACKEND
+        // ==========================================
+
+        await dispatch(
+          saveJob(jobId)
+        ).unwrap();
+
+        // Update UI only after backend success
+        setSavedJobs((prev) => [
+          ...prev,
+          jobId,
+        ]);
+      }
+    } catch (error) {
+      console.error(
+        "Bookmark API error:",
+        error
+      );
+    } finally {
+      setSavingJobId(null);
+    }
   };
 
   // ============================================================
   // SALARY RANGE
   // ============================================================
 
-  const getSalaryRange = (salary) => {
+  const getSalaryRange = (
+    salary
+  ) => {
     if (!salary) return null;
 
-    const text = String(salary).toLowerCase().replace(/,/g, "");
+    const text = String(
+      salary
+    )
+      .toLowerCase()
+      .replace(/,/g, "");
 
-    const numbers = text.match(/\d+(\.\d+)?/g);
+    const numbers =
+      text.match(
+        /\d+(\.\d+)?/g
+      );
 
     if (!numbers?.length) {
       return null;
     }
 
-    const nums = numbers.map(Number);
+    const nums =
+      numbers.map(Number);
 
-    if (text.includes("lpa")) {
+    if (
+      text.includes("lpa")
+    ) {
       return {
-        min: Math.min(...nums),
-        max: Math.max(...nums),
+        min: Math.min(
+          ...nums
+        ),
+        max: Math.max(
+          ...nums
+        ),
       };
     }
 
-    if (text.includes("k")) {
+    if (
+      text.includes("k")
+    ) {
       return {
-        min: Math.min(...nums) / 100,
-        max: Math.max(...nums) / 100,
+        min:
+          Math.min(
+            ...nums
+          ) / 100,
+        max:
+          Math.max(
+            ...nums
+          ) / 100,
       };
     }
 
-    if (text.includes("cr") || text.includes("crore")) {
+    if (
+      text.includes("cr") ||
+      text.includes(
+        "crore"
+      )
+    ) {
       return {
-        min: Math.min(...nums) * 100,
-        max: Math.max(...nums) * 100,
+        min:
+          Math.min(
+            ...nums
+          ) * 100,
+        max:
+          Math.max(
+            ...nums
+          ) * 100,
       };
     }
 
     return {
-      min: Math.min(...nums),
-      max: Math.max(...nums),
+      min: Math.min(
+        ...nums
+      ),
+      max: Math.max(
+        ...nums
+      ),
     };
   };
 
@@ -454,23 +683,40 @@ const Jobs = () => {
   // SALARY MATCH
   // ============================================================
 
-  const matchesSalary = (salary, selectedRange) => {
-    const range = getSalaryRange(salary);
+  const matchesSalary = (
+    salary,
+    selectedRange
+  ) => {
+    const range =
+      getSalaryRange(
+        salary
+      );
 
     if (!range) return false;
 
-    switch (selectedRange) {
+    switch (
+      selectedRange
+    ) {
       case "0-3":
         return range.min <= 3;
 
       case "3-6":
-        return range.max >= 3 && range.min <= 6;
+        return (
+          range.max >= 3 &&
+          range.min <= 6
+        );
 
       case "6-10":
-        return range.max >= 6 && range.min <= 10;
+        return (
+          range.max >= 6 &&
+          range.min <= 10
+        );
 
       case "10-20":
-        return range.max >= 10 && range.min <= 20;
+        return (
+          range.max >= 10 &&
+          range.min <= 20
+        );
 
       case "20+":
         return range.max >= 20;
@@ -484,10 +730,17 @@ const Jobs = () => {
   // EXPERIENCE
   // ============================================================
 
-  const getExperienceStart = (experience) => {
-    const match = String(experience || "").match(/\d+/);
+  const getExperienceStart = (
+    experience
+  ) => {
+    const match =
+      String(
+        experience || ""
+      ).match(/\d+/);
 
-    return match ? Number(match[0]) : 0;
+    return match
+      ? Number(match[0])
+      : 0;
   };
 
   const matchesExperience = (
@@ -495,26 +748,41 @@ const Jobs = () => {
     selectedExperience
   ) => {
     if (
-      normalizeValue(jobExperience).toLowerCase() ===
-      normalizeValue(selectedExperience).toLowerCase()
+      normalizeValue(
+        jobExperience
+      ).toLowerCase() ===
+      normalizeValue(
+        selectedExperience
+      ).toLowerCase()
     ) {
       return true;
     }
 
     return (
-      getExperienceStart(jobExperience) ===
-      getExperienceStart(selectedExperience)
+      getExperienceStart(
+        jobExperience
+      ) ===
+      getExperienceStart(
+        selectedExperience
+      )
     );
   };
 
   // ============================================================
-  // EXACT TEXT MATCH
+  // EXACT MATCH
   // ============================================================
 
-  const exactMatch = (jobValue, selectedValue) => {
+  const exactMatch = (
+    jobValue,
+    selectedValue
+  ) => {
     return (
-      normalizeValue(jobValue).toLowerCase() ===
-      normalizeValue(selectedValue).toLowerCase()
+      normalizeValue(
+        jobValue
+      ).toLowerCase() ===
+      normalizeValue(
+        selectedValue
+      ).toLowerCase()
     );
   };
 
@@ -522,188 +790,303 @@ const Jobs = () => {
   // FILTER JOBS
   // ============================================================
 
-  const filteredJobs = useMemo(() => {
-    let result = [...jobs];
+  const filteredJobs =
+    useMemo(() => {
+      let result = [...jobs];
 
-    // ==========================================================
-    // SEARCH
-    // ==========================================================
+      // SEARCH
+      if (search.trim()) {
+        const searchText =
+          search
+            .toLowerCase()
+            .trim();
 
-    if (search.trim()) {
-      const searchText = search.toLowerCase().trim();
+        result =
+          result.filter(
+            (job) => {
+              return (
+                job.title
+                  ?.toLowerCase()
+                  .includes(
+                    searchText
+                  ) ||
+                job.company
+                  ?.toLowerCase()
+                  .includes(
+                    searchText
+                  ) ||
+                job.department
+                  ?.toLowerCase()
+                  .includes(
+                    searchText
+                  ) ||
+                job.role
+                  ?.toLowerCase()
+                  .includes(
+                    searchText
+                  ) ||
+                job.description
+                  ?.toLowerCase()
+                  .includes(
+                    searchText
+                  ) ||
+                job.skills?.some(
+                  (skill) =>
+                    normalizeValue(
+                      skill
+                    )
+                      .toLowerCase()
+                      .includes(
+                        searchText
+                      )
+                )
+              );
+            }
+          );
+      }
 
-      result = result.filter((job) => {
-        return (
-          job.title?.toLowerCase().includes(searchText) ||
-          job.company?.toLowerCase().includes(searchText) ||
-          job.department?.toLowerCase().includes(searchText) ||
-          job.role?.toLowerCase().includes(searchText) ||
-          job.description?.toLowerCase().includes(searchText) ||
-          job.skills?.some((skill) =>
-            normalizeValue(skill)
-              .toLowerCase()
-              .includes(searchText)
-          )
+      // LOCATION SEARCH
+      if (location.trim()) {
+        const locationText =
+          location
+            .toLowerCase()
+            .trim();
+
+        result =
+          result.filter(
+            (job) =>
+              job.location
+                ?.toLowerCase()
+                .includes(
+                  locationText
+                )
+          );
+      }
+
+      // DEPARTMENT
+      if (
+        selectedFilters
+          .department.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.department.some(
+                (selectedValue) =>
+                  exactMatch(
+                    job.department,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // WORK MODE
+      if (
+        selectedFilters
+          .workMode.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.workMode.some(
+                (selectedValue) =>
+                  exactMatch(
+                    job.workMode,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // EXPERIENCE
+      if (
+        selectedFilters
+          .experience.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.experience.some(
+                (selectedValue) =>
+                  matchesExperience(
+                    job.experience,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // LOCATION FILTER
+      if (
+        selectedFilters
+          .location.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.location.some(
+                (selectedValue) =>
+                  exactMatch(
+                    job.location,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // SALARY FILTER
+      if (
+        selectedFilters
+          .salary.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.salary.some(
+                (selectedValue) =>
+                  matchesSalary(
+                    job.salary,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // COMPANY FILTER
+      if (
+        selectedFilters
+          .company.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.company.some(
+                (selectedValue) =>
+                  exactMatch(
+                    job.company,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // ROLE FILTER
+      if (
+        selectedFilters
+          .role.length >
+        0
+      ) {
+        result =
+          result.filter(
+            (job) =>
+              selectedFilters.role.some(
+                (selectedValue) =>
+                  exactMatch(
+                    job.role,
+                    selectedValue
+                  )
+              )
+          );
+      }
+
+      // SORT
+      if (
+        sortBy === "latest"
+      ) {
+        result.sort(
+          (a, b) =>
+            new Date(
+              b.createdAt || 0
+            ) -
+            new Date(
+              a.createdAt || 0
+            )
         );
-      });
-    }
+      }
 
-    // ==========================================================
-    // LOCATION SEARCH
-    // ==========================================================
+      if (
+        sortBy ===
+        "salary-high"
+      ) {
+        result.sort(
+          (a, b) => {
+            const salaryA =
+              getSalaryRange(
+                a.salary
+              )?.max || 0;
 
-    if (location.trim()) {
-      const locationText = location.toLowerCase().trim();
+            const salaryB =
+              getSalaryRange(
+                b.salary
+              )?.max || 0;
 
-      result = result.filter((job) =>
-        job.location?.toLowerCase().includes(locationText)
-      );
-    }
+            return (
+              salaryB -
+              salaryA
+            );
+          }
+        );
+      }
 
-    // ==========================================================
-    // DEPARTMENT
-    // ==========================================================
+      if (
+        sortBy ===
+        "salary-low"
+      ) {
+        result.sort(
+          (a, b) => {
+            const salaryA =
+              getSalaryRange(
+                a.salary
+              )?.min || 0;
 
-    if (selectedFilters.department.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.department.some((selectedValue) =>
-          exactMatch(job.department, selectedValue)
-        )
-      );
-    }
+            const salaryB =
+              getSalaryRange(
+                b.salary
+              )?.min || 0;
 
-    // ==========================================================
-    // WORK MODE
-    // ==========================================================
-
-    if (selectedFilters.workMode.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.workMode.some((selectedValue) =>
-          exactMatch(job.workMode, selectedValue)
-        )
-      );
-    }
-
-    // ==========================================================
-    // EXPERIENCE
-    // ==========================================================
-
-    if (selectedFilters.experience.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.experience.some((selectedValue) =>
-          matchesExperience(job.experience, selectedValue)
-        )
-      );
-    }
-
-    // ==========================================================
-    // LOCATION FILTER
-    // ==========================================================
-
-    if (selectedFilters.location.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.location.some((selectedValue) =>
-          exactMatch(job.location, selectedValue)
-        )
-      );
-    }
-
-    // ==========================================================
-    // SALARY FILTER
-    // ==========================================================
-
-    if (selectedFilters.salary.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.salary.some((selectedValue) =>
-          matchesSalary(job.salary, selectedValue)
-        )
-      );
-    }
-
-    // ==========================================================
-    // COMPANY FILTER
-    // ==========================================================
-
-    if (selectedFilters.company.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.company.some((selectedValue) =>
-          exactMatch(job.company, selectedValue)
-        )
-      );
-    }
-
-    // ==========================================================
-    // ROLE
-    // ==========================================================
-
-    if (selectedFilters.role.length > 0) {
-      result = result.filter((job) =>
-        selectedFilters.role.some((selectedValue) =>
-          exactMatch(job.role, selectedValue)
-        )
-      );
-    }
-
-    // ==========================================================
-    // SORT
-    // ==========================================================
-
-    if (sortBy === "latest") {
-      result.sort(
-        (a, b) =>
-          new Date(b.createdAt || 0) -
-          new Date(a.createdAt || 0)
-      );
-    }
-
-    if (sortBy === "salary-high") {
-      result.sort((a, b) => {
-        const salaryA =
-          getSalaryRange(a.salary)?.max || 0;
-
-        const salaryB =
-          getSalaryRange(b.salary)?.max || 0;
-
-        return salaryB - salaryA;
-      });
-    }
-
-    if (sortBy === "salary-low") {
-      result.sort((a, b) => {
-        const salaryA =
-          getSalaryRange(a.salary)?.min || 0;
-
-        const salaryB =
-          getSalaryRange(b.salary)?.min || 0;
-
-        return salaryA - salaryB;
-      });
+            return (
+              salaryA -
+              salaryB
+            );
+          }
+        );
+      }
 
       return result;
-    }
-
-    return result;
-  }, [
-    jobs,
-    search,
-    location,
-    selectedFilters,
-    sortBy,
-  ]);
+    }, [
+      jobs,
+      search,
+      location,
+      selectedFilters,
+      sortBy,
+    ]);
 
   // ============================================================
   // JOB DETAIL
   // ============================================================
 
-  const openJobDetail = (job) => {
-    navigate(`/jobs/${job.id}`);
+  const openJobDetail = (
+    job
+  ) => {
+    navigate(
+      `/jobs/${job.id}`
+    );
   };
 
   // ============================================================
   // PAGINATION
   // ============================================================
 
-  const handlePageChange = (newPage) => {
+  const handlePageChange = (
+    newPage
+  ) => {
     if (
       newPage < 1 ||
       newPage > totalPages ||
@@ -734,13 +1117,20 @@ const Jobs = () => {
     filterKey,
     children,
   }) => {
-    const isOpen = openFilters[filterKey];
+    const isOpen =
+      openFilters[
+        filterKey
+      ];
 
     return (
       <div className="border-b border-slate-200 last:border-b-0">
         <button
           type="button"
-          onClick={() => toggleFilter(filterKey)}
+          onClick={() =>
+            toggleFilter(
+              filterKey
+            )
+          }
           className="w-full flex items-center justify-between py-4 text-left"
         >
           <span className="font-semibold text-slate-800">
@@ -787,43 +1177,49 @@ const Jobs = () => {
 
     return (
       <div className="space-y-3">
-        {items.map(([label, value], index) => {
-          const checked = isFilterSelected(
-            filterKey,
-            value
-          );
-
-          return (
-            <label
-              key={`${filterKey}-${String(
+        {items.map(
+          (
+            [label, value],
+            index
+          ) => {
+            const checked =
+              isFilterSelected(
+                filterKey,
                 value
-              )}-${index}`}
-              className="flex items-center gap-3 cursor-pointer group"
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() =>
-                  handleFilterChange(
-                    filterKey,
-                    value
-                  )
-                }
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
+              );
 
-              <span
-                className={`text-sm transition ${
-                  checked
-                    ? "text-blue-600 font-medium"
-                    : "text-slate-600 group-hover:text-blue-600"
-                }`}
+            return (
+              <label
+                key={`${filterKey}-${String(
+                  value
+                )}-${index}`}
+                className="flex items-center gap-3 cursor-pointer group"
               >
-                {label}
-              </span>
-            </label>
-          );
-        })}
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() =>
+                    handleFilterChange(
+                      filterKey,
+                      value
+                    )
+                  }
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+
+                <span
+                  className={`text-sm transition ${
+                    checked
+                      ? "text-blue-600 font-medium"
+                      : "text-slate-600 group-hover:text-blue-600"
+                  }`}
+                >
+                  {label}
+                </span>
+              </label>
+            );
+          }
+        )}
       </div>
     );
   };
@@ -832,17 +1228,27 @@ const Jobs = () => {
   // JOB CARD
   // ============================================================
 
-  const JobCard = ({ job }) => {
-    const isSaved = savedJobs.includes(job.id);
+  const JobCard = ({
+    job,
+  }) => {
+    const isSaved =
+      savedJobs.includes(
+        job.id
+      );
+
+    const isBookmarkLoading =
+      savingJobId === job.id &&
+      (saving || unsaving);
 
     return (
       <div
-        onClick={() => openJobDetail(job)}
+
         className="group bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer"
       >
         {/* TOP */}
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4 min-w-0">
+
             {/* LOGO */}
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shrink-0 flex items-center justify-center bg-blue-50 text-blue-600 font-bold text-lg">
               {job.logoUrl ? (
@@ -882,28 +1288,47 @@ const Jobs = () => {
             </div>
           </div>
 
-          {/* SAVE */}
+          {/* ==================================================
+              SAVE / BOOKMARK
+          ================================================== */}
+
           <button
             type="button"
-            onClick={(e) => {
+            disabled={
+              isBookmarkLoading
+            }
+            onClick={async (e) => {
               e.stopPropagation();
 
-              toggleSaveJob(job.id);
+              await toggleSaveJob(
+                job.id
+              );
             }}
             className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition ${
+              isBookmarkLoading
+                ? "opacity-60 cursor-not-allowed"
+                : ""
+            } ${
               isSaved
                 ? "bg-red-50 text-red-500"
                 : "bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
             }`}
           >
-            <Heart
-              size={18}
-              fill={
-                isSaved
-                  ? "currentColor"
-                  : "none"
-              }
-            />
+            {isBookmarkLoading ? (
+              <Loader2
+                size={17}
+                className="animate-spin"
+              />
+            ) : (
+              <Bookmark
+                size={18}
+                fill={
+                  isSaved
+                    ? "currentColor"
+                    : "none"
+                }
+              />
+            )}
           </button>
         </div>
 
@@ -936,7 +1361,9 @@ const Jobs = () => {
               className="text-blue-500 shrink-0"
             />
 
-            <span>{job.experience}</span>
+            <span>
+              {job.experience}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -979,27 +1406,37 @@ const Jobs = () => {
         </p>
 
         {/* SKILLS */}
-        {job.skills?.length > 0 && (
+        {job.skills?.length >
+          0 && (
           <div className="flex flex-wrap gap-2 mt-4">
-            {job.skills.slice(0, 5).map(
-              (skill, index) => (
-                <span
-                  key={`${normalizeValue(
-                    skill
-                  )}-${index}`}
-                  className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-medium"
-                >
-                  {normalizeValue(skill)}
-                </span>
-              )
-            )}
+            {job.skills
+              .slice(0, 5)
+              .map(
+                (
+                  skill,
+                  index
+                ) => (
+                  <span
+                    key={`${normalizeValue(
+                      skill
+                    )}-${index}`}
+                    className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-medium"
+                  >
+                    {normalizeValue(
+                      skill
+                    )}
+                  </span>
+                )
+              )}
           </div>
         )}
 
         {/* BOTTOM */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5 pt-5 border-t border-slate-100">
           <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-400">
-            <span>{job.posted}</span>
+            <span>
+              {job.posted}
+            </span>
 
             <span className="flex items-center gap-1.5">
               <Users size={14} />
@@ -1012,7 +1449,9 @@ const Jobs = () => {
             onClick={(e) => {
               e.stopPropagation();
 
-              openJobDetail(job);
+              openJobDetail(
+                job
+              );
             }}
             className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold transition"
           >
@@ -1027,7 +1466,10 @@ const Jobs = () => {
   // LOADING
   // ============================================================
 
-  if (loading && jobs.length === 0) {
+  if (
+    loading &&
+    jobs.length === 0
+  ) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="text-center">
@@ -1052,12 +1494,17 @@ const Jobs = () => {
   // ERROR
   // ============================================================
 
-  if (error && jobs.length === 0) {
+  if (
+    error &&
+    jobs.length === 0
+  ) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white rounded-2xl border border-red-100 p-6 text-center">
           <div className="w-12 h-12 mx-auto rounded-full bg-red-50 text-red-500 flex items-center justify-center">
-            <AlertCircle size={24} />
+            <AlertCircle
+              size={24}
+            />
           </div>
 
           <h2 className="mt-4 text-lg font-bold text-slate-900">
@@ -1080,7 +1527,9 @@ const Jobs = () => {
             }
             className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition"
           >
-            <RefreshCw size={16} />
+            <RefreshCw
+              size={16}
+            />
             Try Again
           </button>
         </div>
@@ -1094,12 +1543,14 @@ const Jobs = () => {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* ========================================================
+
+      {/* ======================================================
           HEADER
-      ======================================================== */}
+      ====================================================== */}
 
       <section className="bg-gradient-to-br from-slate-50 via-white to-blue-50/40 border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
           <div className="max-w-3xl">
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">
               Find Your Dream Job
@@ -1110,18 +1561,17 @@ const Jobs = () => {
             </p>
           </div>
 
-          {/* ====================================================
-              SEARCH
-          ==================================================== */}
-
+          {/* SEARCH */}
           <div className="mt-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-2">
             <div className="flex items-center gap-1.5 md:grid md:grid-cols-[1fr_1fr_auto] md:gap-2">
-              
+
               {/* KEYWORD */}
               <div
                 className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2.5 md:px-3"
                 onClick={() =>
-                  setMobileSearchOpen(true)
+                  setMobileSearchOpen(
+                    true
+                  )
                 }
               >
                 <Search
@@ -1133,10 +1583,14 @@ const Jobs = () => {
                   type="text"
                   value={search}
                   onChange={(e) =>
-                    setSearch(e.target.value)
+                    setSearch(
+                      e.target.value
+                    )
                   }
                   onFocus={() =>
-                    setMobileSearchOpen(true)
+                    setMobileSearchOpen(
+                      true
+                    )
                   }
                   placeholder="Job title, skills, company..."
                   className="w-full min-w-0 outline-none text-sm text-slate-700 placeholder:text-slate-400"
@@ -1160,7 +1614,9 @@ const Jobs = () => {
                   type="text"
                   value={location}
                   onChange={(e) =>
-                    setLocation(e.target.value)
+                    setLocation(
+                      e.target.value
+                    )
                   }
                   placeholder="Location"
                   className="w-full min-w-0 outline-none text-sm text-slate-700 placeholder:text-slate-400"
@@ -1171,7 +1627,9 @@ const Jobs = () => {
               <button
                 type="button"
                 onClick={() =>
-                  setMobileSearchOpen(true)
+                  setMobileSearchOpen(
+                    true
+                  )
                 }
                 className={`${
                   mobileSearchOpen
@@ -1192,18 +1650,21 @@ const Jobs = () => {
         </div>
       </section>
 
-      {/* ========================================================
+      {/* ======================================================
           CONTENT
-      ======================================================== */}
+      ====================================================== */}
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-6 py-2 sm:py-2">
+
         {/* TOP */}
-        <div className="flex items-center justify-between gap-4 mb-5">
+        <div className="flex items-center justify-between gap-4 mb-3">
           <div>
             <p className="text-sm text-slate-500">
               Showing{" "}
               <span className="font-semibold text-slate-700">
-                {filteredJobs.length}
+                {
+                  filteredJobs.length
+                }
               </span>{" "}
               jobs
 
@@ -1223,22 +1684,25 @@ const Jobs = () => {
           <button
             type="button"
             onClick={() =>
-              setMobileFilters(true)
+              setMobileFilters(
+                true
+              )
             }
             className="lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold"
           >
-            <SlidersHorizontal size={17} />
+            <SlidersHorizontal
+              size={17}
+            />
             Filters
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-          {/* ====================================================
-              DESKTOP FILTER
-          ==================================================== */}
 
+          {/* DESKTOP FILTER */}
           <aside className="hidden lg:block">
             <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-24">
+
               <div className="flex items-center justify-between mb-2">
                 <h2 className="font-bold text-slate-900">
                   Filters
@@ -1246,7 +1710,9 @@ const Jobs = () => {
 
                 <button
                   type="button"
-                  onClick={resetFilters}
+                  onClick={
+                    resetFilters
+                  }
                   className="text-xs font-semibold text-blue-600 hover:text-blue-700"
                 >
                   Reset
@@ -1259,7 +1725,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="department"
-                  items={filters.department}
+                  items={
+                    filters.department
+                  }
                 />
               </FilterSection>
 
@@ -1269,7 +1737,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="workMode"
-                  items={filters.workMode}
+                  items={
+                    filters.workMode
+                  }
                 />
               </FilterSection>
 
@@ -1279,7 +1749,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="experience"
-                  items={filters.experience}
+                  items={
+                    filters.experience
+                  }
                 />
               </FilterSection>
 
@@ -1289,7 +1761,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="location"
-                  items={filters.location}
+                  items={
+                    filters.location
+                  }
                 />
               </FilterSection>
 
@@ -1299,7 +1773,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="salary"
-                  items={filters.salary}
+                  items={
+                    filters.salary
+                  }
                 />
               </FilterSection>
 
@@ -1309,7 +1785,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="company"
-                  items={filters.company}
+                  items={
+                    filters.company
+                  }
                 />
               </FilterSection>
 
@@ -1319,49 +1797,69 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="role"
-                  items={filters.role}
+                  items={
+                    filters.role
+                  }
                 />
               </FilterSection>
             </div>
           </aside>
 
-          {/* ====================================================
-              JOB LIST
-          ==================================================== */}
-
+          {/* JOB LIST */}
           <main className="min-w-0">
+
             {/* SORT */}
             <div className="flex items-center justify-between gap-3 mb-4">
+
               <p className="hidden sm:block text-sm text-slate-500">
-                {filteredJobs.length} matching jobs
+                {
+                  filteredJobs.length
+                }{" "}
+                matching jobs
               </p>
 
               <div className="relative ml-auto">
                 <button
                   type="button"
                   onClick={() =>
-                    setSortOpen((prev) => !prev)
+                    setSortOpen(
+                      (prev) =>
+                        !prev
+                    )
                   }
                   className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700"
                 >
-                  <ArrowUpDown size={16} />
+                  <ArrowUpDown
+                    size={16}
+                  />
 
-                  {sortBy === "relevance"
+                  {sortBy ===
+                  "relevance"
                     ? "Relevance"
-                    : sortBy === "latest"
+                    : sortBy ===
+                      "latest"
                     ? "Latest"
-                    : sortBy === "salary-high"
+                    : sortBy ===
+                      "salary-high"
                     ? "Salary: High to Low"
                     : "Salary: Low to High"}
 
-                  <ChevronDown size={16} />
+                  <ChevronDown
+                    size={16}
+                  />
                 </button>
 
                 {sortOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 overflow-hidden">
                     {[
-                      ["relevance", "Relevance"],
-                      ["latest", "Latest"],
+                      [
+                        "relevance",
+                        "Relevance",
+                      ],
+                      [
+                        "latest",
+                        "Latest",
+                      ],
                       [
                         "salary-high",
                         "Salary: High to Low",
@@ -1371,16 +1869,24 @@ const Jobs = () => {
                         "Salary: Low to High",
                       ],
                     ].map(
-                      ([value, label]) => (
+                      ([
+                        value,
+                        label,
+                      ]) => (
                         <button
                           key={value}
                           type="button"
                           onClick={() => {
-                            setSortBy(value);
-                            setSortOpen(false);
+                            setSortBy(
+                              value
+                            );
+                            setSortOpen(
+                              false
+                            );
                           }}
                           className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 ${
-                            sortBy === value
+                            sortBy ===
+                            value
                               ? "text-blue-600 font-semibold bg-blue-50"
                               : "text-slate-600"
                           }`}
@@ -1395,28 +1901,34 @@ const Jobs = () => {
             </div>
 
             {/* PAGINATION LOADING */}
-            {loading && jobs.length > 0 && (
-              <div className="mb-4 flex items-center gap-2 text-sm text-blue-600">
-                <Loader2
-                  size={16}
-                  className="animate-spin"
-                />
-                Updating jobs...
-              </div>
-            )}
+            {loading &&
+              jobs.length >
+                0 && (
+                <div className="mb-4 flex items-center gap-2 text-sm text-blue-600">
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                  />
+                  Updating jobs...
+                </div>
+              )}
 
             {/* JOBS */}
-            {filteredJobs.length > 0 ? (
+            {filteredJobs.length >
+            0 ? (
               <div className="space-y-4">
-                {filteredJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                  />
-                ))}
+                {filteredJobs.map(
+                  (job) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                    />
+                  )
+                )}
               </div>
             ) : (
               <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center">
+
                 <div className="w-14 h-14 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
                   <Search
                     size={25}
@@ -1434,7 +1946,9 @@ const Jobs = () => {
 
                 <button
                   type="button"
-                  onClick={resetFilters}
+                  onClick={
+                    resetFilters
+                  }
                   className="mt-5 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition"
                 >
                   Clear Filters
@@ -1442,17 +1956,21 @@ const Jobs = () => {
               </div>
             )}
 
-            {/* ==================================================
-                PAGINATION
-            ================================================== */}
-
-            {totalPages > 1 && (
+            {/* PAGINATION */}
+            {totalPages >
+              1 && (
               <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+
                 <button
                   type="button"
-                  disabled={page <= 1 || loading}
+                  disabled={
+                    page <= 1 ||
+                    loading
+                  }
                   onClick={() =>
-                    handlePageChange(page - 1)
+                    handlePageChange(
+                      page - 1
+                    )
                   }
                   className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
                 >
@@ -1461,42 +1979,58 @@ const Jobs = () => {
 
                 {Array.from(
                   {
-                    length: Math.min(
-                      totalPages,
-                      5
-                    ),
+                    length:
+                      Math.min(
+                        totalPages,
+                        5
+                      ),
                   },
-                  (_, index) => {
+                  (
+                    _,
+                    index
+                  ) => {
                     let pageNumber =
                       index + 1;
 
                     if (
-                      totalPages > 5 &&
+                      totalPages >
+                        5 &&
                       page > 3
                     ) {
-                      pageNumber = Math.min(
-                        page - 2 + index,
-                        totalPages - 4
-                      );
+                      pageNumber =
+                        Math.min(
+                          page -
+                            2 +
+                            index,
+                          totalPages -
+                            4
+                        );
                     }
 
                     return (
                       <button
-                        key={pageNumber}
+                        key={
+                          pageNumber
+                        }
                         type="button"
-                        disabled={loading}
+                        disabled={
+                          loading
+                        }
                         onClick={() =>
                           handlePageChange(
                             pageNumber
                           )
                         }
                         className={`w-10 h-10 rounded-lg text-sm font-semibold ${
-                          page === pageNumber
+                          page ===
+                          pageNumber
                             ? "bg-blue-600 text-white"
                             : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                         }`}
                       >
-                        {pageNumber}
+                        {
+                          pageNumber
+                        }
                       </button>
                     );
                   }
@@ -1505,11 +2039,14 @@ const Jobs = () => {
                 <button
                   type="button"
                   disabled={
-                    page >= totalPages ||
+                    page >=
+                      totalPages ||
                     loading
                   }
                   onClick={() =>
-                    handlePageChange(page + 1)
+                    handlePageChange(
+                      page + 1
+                    )
                   }
                   className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
                 >
@@ -1527,24 +2064,32 @@ const Jobs = () => {
 
       {mobileFilters && (
         <div className="fixed inset-0 z-50 lg:hidden">
+
           <div
             className="absolute inset-0 bg-black/40"
             onClick={() =>
-              setMobileFilters(false)
+              setMobileFilters(
+                false
+              )
             }
           />
 
           <div className="absolute right-0 top-0 h-full w-[90%] max-w-sm bg-white shadow-2xl overflow-y-auto">
+
             {/* HEADER */}
             <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between z-10">
+
               <h2 className="font-bold text-slate-900">
                 Filters
               </h2>
 
               <div className="flex items-center gap-3">
+
                 <button
                   type="button"
-                  onClick={resetFilters}
+                  onClick={
+                    resetFilters
+                  }
                   className="text-xs font-semibold text-blue-600"
                 >
                   Reset
@@ -1553,7 +2098,9 @@ const Jobs = () => {
                 <button
                   type="button"
                   onClick={() =>
-                    setMobileFilters(false)
+                    setMobileFilters(
+                      false
+                    )
                   }
                   className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center"
                 >
@@ -1564,13 +2111,16 @@ const Jobs = () => {
 
             {/* FILTER CONTENT */}
             <div className="px-5">
+
               <FilterSection
                 title="Department"
                 filterKey="department"
               >
                 <FilterContent
                   filterKey="department"
-                  items={filters.department}
+                  items={
+                    filters.department
+                  }
                 />
               </FilterSection>
 
@@ -1580,7 +2130,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="workMode"
-                  items={filters.workMode}
+                  items={
+                    filters.workMode
+                  }
                 />
               </FilterSection>
 
@@ -1590,7 +2142,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="experience"
-                  items={filters.experience}
+                  items={
+                    filters.experience
+                  }
                 />
               </FilterSection>
 
@@ -1600,7 +2154,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="location"
-                  items={filters.location}
+                  items={
+                    filters.location
+                  }
                 />
               </FilterSection>
 
@@ -1610,7 +2166,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="salary"
-                  items={filters.salary}
+                  items={
+                    filters.salary
+                  }
                 />
               </FilterSection>
 
@@ -1620,7 +2178,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="company"
-                  items={filters.company}
+                  items={
+                    filters.company
+                  }
                 />
               </FilterSection>
 
@@ -1630,7 +2190,9 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="role"
-                  items={filters.role}
+                  items={
+                    filters.role
+                  }
                 />
               </FilterSection>
             </div>
@@ -1640,7 +2202,9 @@ const Jobs = () => {
               <button
                 type="button"
                 onClick={() =>
-                  setMobileFilters(false)
+                  setMobileFilters(
+                    false
+                  )
                 }
                 className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold"
               >
@@ -1655,3 +2219,4 @@ const Jobs = () => {
 };
 
 export default Jobs;
+

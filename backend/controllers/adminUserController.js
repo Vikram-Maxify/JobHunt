@@ -216,13 +216,13 @@ exports.updateUserAdmin = async (req, res) => {
       }
     }
 
+    // ✅ UPDATED: Only allow 'admin' and 'user' roles
     if (role !== undefined) {
-      // Only allow specific roles
-      const allowedRoles = ["admin", "recruiter", "jobseeker"];
+      const allowedRoles = ["admin", "user"];
       if (!allowedRoles.includes(role)) {
         return res.status(400).json({
           success: false,
-          message: "Invalid role. Allowed roles: admin, recruiter, jobseeker",
+          message: "Invalid role. Allowed roles: admin, user",
         });
       }
       user.role = role;

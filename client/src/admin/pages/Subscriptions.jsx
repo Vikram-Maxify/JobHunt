@@ -350,6 +350,9 @@ const Subscriptions = () => {
                     <th className="text-left px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap min-w-[110px] w-[12%]">
                       Price
                     </th>
+                    <th className="text-left px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap min-w-[90px]">
+                      Purchases
+                    </th>
                     <th className="text-left px-4 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap w-[35%]">
                       Features
                     </th>
@@ -398,6 +401,12 @@ const Subscriptions = () => {
                               ({subscription.discountPercentage}% off)
                             </span>
                           )}
+                        </p>
+                      </td>
+
+                      <td className="px-4 py-4 min-w-[90px]">
+                        <p className="text-sm font-medium text-slate-700">
+                          {Number(subscription.purchaseCount || 0).toLocaleString("en-IN")}
                         </p>
                       </td>
 
@@ -513,6 +522,9 @@ const Subscriptions = () => {
                             ({subscription.discountPercentage}% off)
                           </span>
                         )}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1">
+                        {Number(subscription.purchaseCount || 0).toLocaleString("en-IN")} purchase{subscription.purchaseCount === 1 ? "" : "s"}
                       </p>
                     </div>
                     <div className="flex gap-1 flex-shrink-0">

@@ -39,7 +39,6 @@ import ApplicationDetails from "./admin/pages/ApplicationDetails";
 import Applications from "./admin/pages/Applications";
 
 import SubscriptionCreate from "./admin/pages/SubscriptionCreate";
-import SubscriptionEdit from "./admin/pages/SubscriptionEdit";
 import Subscriptions from "./admin/pages/Subscriptions";
 
 import AdminGallery from "./admin/pages/Gallery";
@@ -176,7 +175,7 @@ function App() {
 
                 <Route
                   path="subscriptions/edit/:id"
-                  element={<SubscriptionEdit />}
+                  element={<SubscriptionCreate />}
                 />
 
                 {/* GALLERY */}

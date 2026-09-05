@@ -6,16 +6,50 @@ const Subscription = require("../models/Subscription");
 exports.getAllPlansAdmin = async (req, res) => {
   try {
     const { isActive } = req.query;
+    const UserSubscription = require("../models/UserSubscription");
 
     const filter = {};
     if (isActive !== undefined) filter.isActive = isActive === "true";
 
     const plans = await Subscription.find(filter).sort({ price: 1 });
+    const purchaseStats = await UserSubscription.aggregate([
+      { $match: { paymentStatus: "completed" } },
+      {
+        $group: {
+          _id: "$subscription",
+          purchaseCount: { $sum: 1 },
+        },
+      },
+    ]);
+    const purchaseCounts = new Map(
+      purchaseStats.map((stat) => [String(stat._id), stat.purchaseCount]),
+    );
+    const plansWithCount = plans.map((plan) => ({
+      ...plan.toObject(),
+      purchaseCount: purchaseCounts.get(String(plan._id)) || 0,
+    }));
+
+    // A subscription keeps a price snapshot at purchase time. Summing that
+    // snapshot keeps historical revenue correct after a plan price is edited.
+    const [revenue] = await UserSubscription.aggregate([
+      { $match: { paymentStatus: "completed" } },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: { $ifNull: ["$subscriptionDetails.price", 0] } },
+          purchaseCount: { $sum: 1 },
+        },
+      },
+    ]);
 
     res.status(200).json({
       success: true,
-      count: plans.length,
-      data: plans,
+      count: plansWithCount.length,
+      data: plansWithCount,
+      metrics: {
+        revenue: revenue?.total || 0,
+        completedPurchases: revenue?.purchaseCount || 0,
+      },
     });
   } catch (error) {
     res.status(500).json({
@@ -30,6 +64,7 @@ exports.getAllPlansAdmin = async (req, res) => {
 // @route   GET /api/admin/subscriptions/:id
 exports.getPlanByIdAdmin = async (req, res) => {
   try {
+    const UserSubscription = require("../models/UserSubscription");
     const plan = await Subscription.findById(req.params.id);
 
     if (!plan) {
@@ -39,7 +74,17 @@ exports.getPlanByIdAdmin = async (req, res) => {
       });
     }
 
-    res.status(200).json({ success: true, data: plan });
+    const purchaseCount = await UserSubscription.countDocuments({
+      subscription: plan._id,
+      paymentStatus: "completed",
+    });
+
+    const planData = {
+      ...plan.toObject(),
+      purchaseCount,
+    };
+
+    res.status(200).json({ success: true, data: planData });
   } catch (error) {
     res.status(500).json({
       success: false,

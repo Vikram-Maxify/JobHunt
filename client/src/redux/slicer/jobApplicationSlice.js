@@ -91,6 +91,24 @@ export const getAllApplicationsAdmin = createAsyncThunk(
 );
 
 // ============================================================
+// GET ONE APPLICATION - ADMIN
+// GET /api/admin/applications/:id
+// ============================================================
+export const getApplicationByIdAdmin = createAsyncThunk(
+  "application/getApplicationByIdAdmin",
+  async (applicationId, { rejectWithValue }) => {
+    try {
+      const response = await api.get(`/admin/applications/${applicationId}`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || error.message || "Failed to fetch application",
+      );
+    }
+  },
+);
+
+// ============================================================
 // UPDATE APPLICATION STATUS - ADMIN
 // PATCH /api/admin/applications/:id/status
 // ============================================================
@@ -408,6 +426,22 @@ const applicationSlice = createSlice({
         state.error = action.payload || "Failed to fetch applications";
       })
 
+      .addCase(getApplicationByIdAdmin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.currentApplication = null;
+      })
+      .addCase(getApplicationByIdAdmin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.currentApplication = action.payload?.data || null;
+        state.error = null;
+      })
+      .addCase(getApplicationByIdAdmin.rejected, (state, action) => {
+        state.loading = false;
+        state.currentApplication = null;
+        state.error = action.payload || "Failed to fetch application";
+      })
+
       // ========================================================
       // UPDATE APPLICATION STATUS
       // ========================================================
@@ -435,6 +469,13 @@ const applicationSlice = createSlice({
           if (index !== -1) {
             state.adminApplications[index] = {
               ...state.adminApplications[index],
+              ...updatedApplication,
+            };
+          }
+
+          if (state.currentApplication?._id === updatedApplication._id) {
+            state.currentApplication = {
+              ...state.currentApplication,
               ...updatedApplication,
             };
           }

@@ -968,28 +968,6 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              {/* REVENUE */}
-
-              <div className="flex items-center gap-3 rounded-xl bg-green-50 p-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-green-600 shadow-sm">
-                  <IndianRupee size={18} />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs text-slate-500">
-                    Revenue Today
-                  </p>
-
-                  <p className="mt-0.5 text-lg font-black text-slate-800">
-                    ₹18,450
-                  </p>
-                </div>
-
-                <ArrowUpRight
-                  size={16}
-                  className="text-green-500"
-                />
-              </div>
 
             </div>
           </section>

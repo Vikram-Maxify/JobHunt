@@ -283,7 +283,7 @@ const CarrierWork = () => {
 
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7">
               From creating your profile to landing your dream job,
-              CareerSphere makes your career journey simple and
+              DreamGoGlobal makes your career journey simple and
               straightforward.
             </p>
           </div>
@@ -483,7 +483,7 @@ const CarrierWork = () => {
             </a>
 
             <p className="mt-2 text-[9px] text-slate-400 sm:text-[10px]">
-              Join 10,000+ professionals on CareerSphere
+              Join 10,000+ professionals on DreamGoGlobal
             </p>
           </div>
         </div>

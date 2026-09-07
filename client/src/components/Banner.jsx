@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -6,15 +6,60 @@ import {
   Crown,
   Sparkles,
 } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+
+import { fetchAllSubscriptions } from "../redux/slicer/userSubscriptionSlice";
 
 const Banner = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  // =====================================================
+  // FETCH SUBSCRIPTIONS
+  // =====================================================
+
+  const {
+    subscriptions = [],
+    loading,
+  } = useSelector((state) => state.userSubscription);
+
+  useEffect(() => {
+    dispatch(fetchAllSubscriptions());
+  }, [dispatch]);
+
+  // =====================================================
+  // GET PREMIUM PLAN
+  // =====================================================
+
+  const premiumPlan = subscriptions.find(
+    (plan) => plan?.planName?.toLowerCase() === "premium"
+  );
+
+  // =====================================================
+  // EXPLORE PREMIUM SUBSCRIPTION
+  // =====================================================
+
+  const handleExploreSubscription = () => {
+    if (!premiumPlan?._id) {
+      navigate("/subscription");
+      return;
+    }
+
+    navigate("/purchases", {
+      state: {
+        subscriptionId: premiumPlan._id,
+        planName: premiumPlan.planName,
+        price: premiumPlan.price,
+        features: premiumPlan.features || [],
+      },
+    });
+  };
 
   return (
     <section className="w-full bg-slate-50 px-4 py-6 sm:px-6 sm:py-6 lg:px-8 lg:py-6">
       <div className="mx-auto w-full max-w-7xl">
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 px-5 py-4 shadow-xl sm:px-8 sm:py-4 lg:px-12 lg:py-4">
-          
+
           {/* Decorative circles */}
           <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-white/10 blur-sm" />
           <div className="pointer-events-none absolute -bottom-28 -left-20 h-72 w-72 rounded-full bg-indigo-400/20" />
@@ -28,7 +73,7 @@ const Banner = () => {
               {/* Badge */}
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold text-white backdrop-blur-sm sm:text-sm">
                 <Crown size={16} />
-                CareerSphere Premium
+                DreamGoGlobal Premium
               </div>
 
               <h2 className="text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
@@ -84,8 +129,9 @@ const Banner = () => {
               <div className="mt-8 flex justify-center lg:justify-start">
                 <button
                   type="button"
-                  onClick={() => navigate("/subscription")}
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-blue-700 shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl sm:px-7 sm:py-4 sm:text-base"
+                  onClick={handleExploreSubscription}
+                  disabled={loading}
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-bold text-blue-700 shadow-lg transition duration-300 hover:-translate-y-0.5 hover:bg-blue-50 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-70 sm:px-7 sm:py-4 sm:text-base"
                 >
                   Explore Subscription
                   <ArrowRight
@@ -97,7 +143,11 @@ const Banner = () => {
 
             </div>
 
-            {/* RIGHT CARD */}
+            {/* =================================================
+                RIGHT CARD
+                PREMIUM DATA FROM BACKEND
+            ================================================= */}
+
             <div className="relative mx-auto w-full max-w-md">
 
               <div className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-2xl backdrop-blur-md sm:p-6">
@@ -117,14 +167,14 @@ const Banner = () => {
                       </p>
 
                       <h3 className="text-lg font-black text-white">
-                        Premium
+                        {premiumPlan?.planName || "Premium"}
                       </h3>
                     </div>
 
                   </div>
 
                   <span className="rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold text-white">
-                    Popular
+                    {premiumPlan?.isPopular ? "Popular" : "Premium"}
                   </span>
 
                 </div>
@@ -138,7 +188,9 @@ const Banner = () => {
 
                   <div className="mt-1 flex items-end gap-1">
                     <span className="text-3xl font-black text-slate-900">
-                      ₹199
+                      {premiumPlan?.price !== undefined
+                        ? `$${premiumPlan.price}`
+                        : "$199"}
                     </span>
 
                     <span className="pb-1 text-sm text-slate-500">
@@ -146,31 +198,43 @@ const Banner = () => {
                     </span>
                   </div>
 
+                  {/* PREMIUM FEATURES */}
                   <div className="mt-5 space-y-3">
 
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <CheckCircle2
-                        size={16}
-                        className="text-blue-600"
-                      />
-                      Unlimited job applications
-                    </div>
+                    {premiumPlan?.features?.length > 0 ? (
+                      premiumPlan.features
+                        .slice(0, 3)
+                        .map((feature, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 text-sm text-slate-600"
+                          >
+                            <CheckCircle2
+                              size={16}
+                              className="shrink-0 text-blue-600"
+                            />
 
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <CheckCircle2
-                        size={16}
-                        className="text-blue-600"
-                      />
-                      Premium career features
-                    </div>
+                            <span>{feature?.trim()}</span>
+                          </div>
+                        ))
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <CheckCircle2 size={16} className="text-blue-600" />
+                          Unlimited job applications
+                        </div>
 
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                      <CheckCircle2
-                        size={16}
-                        className="text-blue-600"
-                      />
-                      Better career visibility
-                    </div>
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <CheckCircle2 size={16} className="text-blue-600" />
+                          Premium career features
+                        </div>
+
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
+                          <CheckCircle2 size={16} className="text-blue-600" />
+                          Better career visibility
+                        </div>
+                      </>
+                    )}
 
                   </div>
 

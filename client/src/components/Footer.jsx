@@ -98,7 +98,7 @@ const Footer = () => {
 
               <div>
                 <h2 className="text-xl font-black tracking-tight">
-                  CareerSphere
+                  DreamGoGlobal
                 </h2>
 
                 <p className="text-xs text-slate-400">
@@ -111,7 +111,7 @@ const Footer = () => {
             <p className="mt-5 max-w-sm text-sm leading-6 text-slate-400">
               Discover better career opportunities, connect with
               professionals and build a successful future with
-              CareerSphere.
+              DreamGoGlobal.
             </p>
 
             {/* Social / Community Icons */}
@@ -143,7 +143,7 @@ const Footer = () => {
               </Link>
 
               <a
-                href="mailto:hello@careersphere.com"
+                href="mailto:hello@dreamgoglobal.com"
                 aria-label="Email"
                 className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900 text-slate-400 transition-all duration-300 hover:border-blue-500 hover:bg-blue-600 hover:text-white"
               >
@@ -245,7 +245,7 @@ const Footer = () => {
               {/* Email */}
 
               <a
-                href="mailto:hello@careersphere.com"
+                href="mailto:hello@DreamGoGlobal.com"
                 className="group flex items-start gap-3"
               >
 
@@ -260,7 +260,7 @@ const Footer = () => {
                   </p>
 
                   <p className="mt-0.5 break-all text-sm text-slate-300 transition-colors group-hover:text-blue-400">
-                    hello@careersphere.com
+                    hello@DreamGoGlobal.com
                   </p>
 
                 </div>
@@ -380,7 +380,7 @@ const Footer = () => {
         <div className="flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
 
           <p className="text-center text-xs text-slate-500 sm:text-left">
-            © {new Date().getFullYear()} CareerSphere. All rights reserved.
+            © {new Date().getFullYear()} DreamGoGlobal. All rights reserved.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-5 sm:justify-end">

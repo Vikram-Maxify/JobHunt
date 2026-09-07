@@ -50,16 +50,6 @@ const JobCategories = () => {
     <>
       <style>
         {`
-          @keyframes floatImage {
-            0%, 100% {
-              transform: translateY(0);
-            }
-
-            50% {
-              transform: translateY(-6px);
-            }
-          }
-
           @keyframes fadeUp {
             0% {
               opacity: 0;
@@ -84,12 +74,8 @@ const JobCategories = () => {
             animation: fadeUp 0.8s ease forwards;
           }
 
-          {/* .category-image {
-            animation: floatImage 3s ease-in-out infinite;
-          } */}
-
           .category-card:hover {
-            transform: translateY(-8px);
+            transform: translateY(-5px);
             box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
             border-color: #93c5fd;
           }
@@ -104,7 +90,8 @@ const JobCategories = () => {
         `}
       </style>
 
-      <section className="section-bg relative py-6 sm:py-8 overflow-hidden">
+      <section className="section-bg relative py-4 overflow-hidden">
+
         {/* Decorative Background */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-100/40 rounded-full blur-3xl" />
@@ -112,11 +99,15 @@ const JobCategories = () => {
           <div className="absolute bottom-0 right-1/4 w-72 h-72 bg-purple-100/40 rounded-full blur-3xl" />
         </div>
 
-        <div className="max-w-[90rem] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[80rem] mx-auto px-4 sm:px-6 lg:px-8">
 
-          {/* Section Header */}
+          {/* =========================
+              SECTION HEADER
+          ========================== */}
           <div className="text-center mb-8 sm:mb-10">
+
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-4">
+
               <Sparkles
                 size={14}
                 className="text-blue-600"
@@ -125,6 +116,7 @@ const JobCategories = () => {
               <span className="text-xs font-medium text-blue-600 tracking-wider uppercase">
                 Explore Categories
               </span>
+
             </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
@@ -138,6 +130,7 @@ const JobCategories = () => {
               Discover opportunities across different industries.
               Your next career move starts here.
             </p>
+
           </div>
 
           {/* =========================
@@ -154,9 +147,11 @@ const JobCategories = () => {
           ========================== */}
           {!loading && error && (
             <div className="flex justify-center py-12">
+
               <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl text-sm font-medium">
                 {error}
               </div>
+
             </div>
           )}
 
@@ -167,9 +162,11 @@ const JobCategories = () => {
             !error &&
             categories?.length === 0 && (
               <div className="text-center py-12">
+
                 <p className="text-gray-500">
                   No categories available.
                 </p>
+
               </div>
             )}
 
@@ -179,121 +176,142 @@ const JobCategories = () => {
           {!loading &&
             !error &&
             categories?.length > 0 && (
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
 
                 {categories.map((category, index) => {
+
                   const gradient =
                     gradientColors[index % gradientColors.length];
 
+                  const positions = Number(
+                    category.jobCount || 0
+                  ).toLocaleString();
+
                   return (
+
                     <div
                       key={category._id || category.id}
                       className={`category-card ${
                         isVisible ? "animate-in" : ""
-                      } relative group rounded-2xl p-4 sm:p-6 lg:p-8 cursor-pointer`}
+                      } relative group rounded-2xl p-3 sm:p-4 cursor-pointer`}
                       style={{
                         animationDelay: `${delays[index] || 100}ms`,
                       }}
                     >
-                      {/* Active Badge */}
-                      {category.isActive !== false && (
-                        <div className="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 rounded-full shadow-lg z-20">
-                          Active
+
+                      {/* =========================
+                          POSITIONS BADGE
+                      ========================== */}
+                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 rounded-full shadow-lg z-20">
+
+                        {positions}{" "}
+                        {Number(category.jobCount || 0) === 1
+                          ? "Position"
+                          : "Positions"}
+
+                      </div>
+
+                      {/* =========================
+                          CARD CONTENT
+                      ========================== */}
+                      <div className="flex items-center gap-3 sm:gap-4">
+
+                        {/* =====================
+                            LEFT IMAGE
+                        ====================== */}
+                        <div className="relative flex-shrink-0">
+
+                          <div
+                            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br ${gradient} p-[3px] shadow-md group-hover:shadow-xl transition-all duration-300`}
+                          >
+
+                            <div className="w-full h-full rounded-2xl bg-white overflow-hidden">
+
+                              {category.image ? (
+
+                                <img
+                                  src={category.image}
+                                  alt={
+                                    category.name ||
+                                    "Category"
+                                  }
+                                  className="block w-full h-full object-cover rounded-2xl"
+                                  loading="lazy"
+                                  onLoad={() => {
+                                    // console.log(
+                                    //   "IMAGE LOADED:",
+                                    //   category.image
+                                    // );
+                                  }}
+                                  onError={(e) => {
+                                    // console.log(
+                                    //   "IMAGE FAILED:",
+                                    //   category.image
+                                    // );
+
+                                    e.currentTarget.style.display =
+                                      "none";
+                                  }}
+                                />
+
+                              ) : (
+
+                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
+                                  No Image
+                                </div>
+
+                              )}
+
+                            </div>
+
+                          </div>
+
                         </div>
-                      )}
-
-                      <div className="flex flex-col items-center text-center">
 
                         {/* =====================
-                            CATEGORY IMAGE
+                            RIGHT CONTENT
                         ====================== */}
-                       <div className="relative">
-  <div
-    className={`w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 rounded-2xl bg-gradient-to-br ${gradient} p-[3px] shadow-md group-hover:shadow-xl transition-all duration-300`}
-  >
-    <div className="w-full h-full rounded-2xl bg-white overflow-hidden">
-      {category.image ? (
-        <img
-          src={category.image}
-          alt={category.name || "Category"}
-          className="block w-full h-full object-cover rounded-2xl"
-          loading="lazy"
-          onLoad={() => {
-            // console.log("IMAGE LOADED:", category.image);
-          }}
-          onError={(e) => {
-            // console.log("IMAGE FAILED:", category.image);
-            e.currentTarget.style.display = "none";
-          }}
-        />
-      ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
-          No Image
-        </div>
-      )}
-    </div>
-  </div>
-</div>
+                        <div className="flex-1 min-w-0">
 
-                        {/* =====================
-                            CATEGORY NAME
-                        ====================== */}
-                        <h3 className="mt-4 sm:mt-5 text-base sm:text-lg lg:text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-                          {category.name}
-                        </h3>
+                          {/* CATEGORY NAME */}
+                          <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
 
-                        {/* =====================
-                            DESCRIPTION
-                        ====================== */}
-                        <p className="text-xs sm:text-sm text-gray-500 mt-2 line-clamp-2 min-h-[32px] sm:min-h-[40px]">
-                          {category.shortDescription ||
-                            "Explore job opportunities in this category."}
-                        </p>
+                            {category.name}
 
-                        {/* =====================
-                            JOB COUNT
-                        ====================== */}
-                        <div className="mt-3 sm:mt-4 flex items-center justify-center gap-2">
-                          <p className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-gray-900">
-                            {Number(
-                              category.jobCount || 0
-                            ).toLocaleString()}
+                          </h3>
 
-                            <span className="text-xs sm:text-sm font-medium text-gray-400 ml-1">
-                              +
-                            </span>
+                          {/* DESCRIPTION */}
+                          <p className="text-[11px] sm:text-xs lg:text-sm text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">
+
+                            {category.shortDescription ||
+                              "Explore job opportunities in this category."}
+
                           </p>
-                        </div>
 
-                        <p className="text-[10px] sm:text-xs text-gray-500">
-                          open positions
-                        </p>
+                        </div>
 
                         {/* =====================
-                            EXPLORE
+                            ARROW
                         ====================== */}
-                        <div className="mt-3 sm:mt-4 flex items-center gap-1 text-[10px] sm:text-xs text-gray-400 group-hover:text-blue-600 transition-colors">
-                          <Clock size={11} />
+                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
 
-                          <span>
-                            Explore opportunities
-                          </span>
+                          <ArrowRight
+                            size={17}
+                            className="text-blue-500 group-hover:translate-x-1 transition-transform"
+                          />
+
                         </div>
+
                       </div>
 
-                      {/* =====================
-                          HOVER ARROW
-                      ====================== */}
-                      <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                        <ArrowRight
-                          size={18}
-                          className="text-blue-500"
-                        />
-                      </div>
                     </div>
+
                   );
                 })}
+
               </div>
+
             )}
 
           {/* =========================

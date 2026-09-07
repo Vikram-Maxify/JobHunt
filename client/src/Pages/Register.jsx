@@ -183,7 +183,7 @@ const Register = () => {
 
                     <div>
                       <h2 className="text-lg font-black tracking-tight text-white">
-                        CareerSphere
+                        DreamGoGlobal
                       </h2>
 
                       <p className="text-[11px] text-blue-100/70">
@@ -210,7 +210,7 @@ const Register = () => {
                     <p className="mt-4 max-w-sm text-xs leading-6 text-blue-100/80 xl:text-sm">
                       Join thousands of professionals who are discovering better
                       career opportunities, building connections and growing
-                      their careers with CareerSphere.
+                      their careers with DreamGoGlobal.
                     </p>
                   </div>
 
@@ -279,7 +279,7 @@ const Register = () => {
 
                   <div>
                     <h2 className="text-lg font-black text-gray-900">
-                      CareerSphere
+                      DreamGoGlobal
                     </h2>
 
                     <p className="text-[11px] text-gray-400">
@@ -300,7 +300,7 @@ const Register = () => {
                   </h2>
 
                   <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-gray-500 sm:text-sm">
-                    Start your professional journey with CareerSphere
+                    Start your professional journey with DreamGoGlobal
                   </p>
                 </div>
 

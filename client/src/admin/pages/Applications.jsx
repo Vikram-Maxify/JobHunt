@@ -551,7 +551,7 @@ const Applications = () => {
 
               <p className="text-sm text-slate-500 mt-1">
                 View and manage all job applications
-                submitted to CareerSphere.
+                submitted to DreamGoGlobal.
               </p>
             </div>
 

@@ -201,7 +201,7 @@ const AdminLogin = () => {
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Login to manage CareerSphere
+            Login to manage DreamGoGlobal
           </p>
         </div>
 
@@ -230,7 +230,7 @@ const AdminLogin = () => {
                     setEmail(e.target.value);
                     setAdminError("");
                   }}
-                  placeholder="admin@careersphere.com"
+                  placeholder="admin@dreamgoglobal.com"
                   required
                   disabled={loading}
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-10 pr-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-60"

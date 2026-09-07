@@ -328,7 +328,7 @@ const Jobs = () => {
             Manage Jobs
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Create, manage and monitor job opportunities on CareerSphere.
+            Create, manage and monitor job opportunities on DreamGoGlobal.
           </p>
         </div>
         <button
@@ -1352,7 +1352,7 @@ const JobsEmptyState = ({ hasFilters, onClear, onAdd }) => (
     <p className="text-sm text-slate-500 text-center mb-4 max-w-sm">
       {hasFilters
         ? "Try adjusting your search or filter criteria to find what you're looking for."
-        : "Start by adding your first job posting on CareerSphere."}
+        : "Start by adding your first job posting on DreamGoGlobal."}
     </p>
     {hasFilters ? (
       <button

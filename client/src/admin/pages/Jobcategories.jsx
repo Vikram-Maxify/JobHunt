@@ -316,7 +316,7 @@ const handleAddCategory = async (newCategory, file) => {
             Job Categories
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage and organize job categories available on CareerSphere.
+            Manage and organize job categories available on DreamGoGlobal.
           </p>
         </div>
         <button
@@ -817,7 +817,7 @@ const CategoriesEmptyState = ({ hasFilters, onClear, onAdd }) => (
     <p className="text-sm text-slate-500 text-center mb-4 max-w-sm">
       {hasFilters
         ? "Try adjusting your search or filter criteria to find what you're looking for."
-        : "Start by adding your first job category to organize jobs on CareerSphere."}
+        : "Start by adding your first job category to organize jobs on DreamGoGlobal."}
     </p>
     {hasFilters ? (
       <button

@@ -68,7 +68,7 @@ const Subscription = () => {
         <div className="relative mx-auto max-w-4xl text-center">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600">
             <Sparkles size={16} />
-            CareerSphere Plans
+            DreamGoGlobal Plans
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl xl:text-6xl">
@@ -163,25 +163,25 @@ const Subscription = () => {
                     </p>
                   </div>
 
-                  <div className="mt-5 sm:mt-6 lg:mt-7">
-                    <div className="flex items-end gap-2">
-                      <span className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                        {plan.formattedPrice}
-                      </span>
+                 <div className="mt-5 sm:mt-6 lg:mt-7">
+  <div className="flex items-end gap-2">
+    <span className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+      {plan.formattedPrice?.replace("₹", "$")}
+    </span>
 
-                      {hasDiscount && (
-                        <span className="mb-1 text-sm text-slate-400 line-through">
-                          ₹{originalPrice.toLocaleString("en-IN")}
-                        </span>
-                      )}
-                    </div>
+    {hasDiscount && (
+      <span className="mb-1 text-sm text-slate-400 line-through">
+        ${originalPrice.toLocaleString("en-IN")}
+      </span>
+    )}
+  </div>
 
-                    {hasDiscount && (
-                      <p className="mt-1 text-xs font-medium text-emerald-600 sm:mt-2">
-                        {plan.discountPercentage}% off
-                      </p>
-                    )}
-                  </div>
+  {hasDiscount && (
+    <p className="mt-1 text-xs font-medium text-emerald-600 sm:mt-2">
+      {plan.discountPercentage}% off
+    </p>
+  )}
+</div>
 
                   <button
                     onClick={(e) => {

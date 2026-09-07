@@ -133,7 +133,7 @@ const AboutUs = () => {
             <Sparkles size={12} />
           </span>
 
-          About CareerSphere
+          About DreamGoGlobal
 
         </div>
 
@@ -243,7 +243,7 @@ const AboutUs = () => {
 
             <img
               src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1200&q=90"
-              alt="CareerSphere professionals collaborating"
+              alt="DreamGoGlobal professionals collaborating"
               className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
             />
 
@@ -349,7 +349,7 @@ const AboutUs = () => {
             </h2>
 
             <p className="mt-5 text-sm leading-relaxed text-gray-500 sm:text-base">
-              CareerSphere was created with one simple idea:
+              DreamGoGlobal was created with one simple idea:
               finding the right career opportunity should be easier,
               faster and more meaningful.
             </p>
@@ -358,7 +358,7 @@ const AboutUs = () => {
               We bring job seekers, professionals, recruiters and
               companies together on one modern platform. Whether
               you're starting your career, looking for your next
-              opportunity or searching for talented people, CareerSphere
+              opportunity or searching for talented people, DreamGoGlobal
               helps you move forward.
             </p>
 
@@ -733,7 +733,7 @@ const AboutUs = () => {
             </h2>
 
             <p className="mt-4 text-sm leading-relaxed text-gray-400 sm:text-base">
-              CareerSphere brings everything together in one
+              DreamGoGlobal brings everything together in one
               professional ecosystem.
             </p>
 
@@ -893,7 +893,7 @@ const AboutUs = () => {
             </h2>
 
             <p className="mt-5 text-sm leading-relaxed text-gray-500 sm:text-base">
-              CareerSphere is a growing professional community
+              DreamGoGlobal is a growing professional community
               where people connect, learn, discover opportunities
               and build relationships that can shape their future.
             </p>

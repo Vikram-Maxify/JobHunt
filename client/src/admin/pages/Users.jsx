@@ -292,7 +292,7 @@ const Users = () => {
             Manage Users
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            View, manage and monitor all registered CareerSphere users.
+            View, manage and monitor all registered DreamGoGlobal users.
           </p>
           <p className="text-xs text-slate-400 mt-0.5">
             Total: {total} users • Page {currentPage} of {totalPages}
@@ -777,7 +777,7 @@ const UsersEmptyState = ({ hasFilters, onClear }) => (
     <p className="text-sm text-slate-500 text-center mb-4 max-w-sm">
       {hasFilters
         ? "Try adjusting your search or filter criteria to find what you're looking for."
-        : "When users register on CareerSphere, they will appear here."}
+        : "When users register on DreamGoGlobal, they will appear here."}
     </p>
     {hasFilters && (
       <button

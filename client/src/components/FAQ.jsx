@@ -14,9 +14,9 @@ const FAQ = () => {
 
   const faqs = [
     {
-      question: "What is CareerSphere?",
+      question: "What is DreamGoGlobal?",
       answer:
-        "CareerSphere is a job search platform that helps job seekers discover relevant opportunities, connect with companies, and take the next step in their career.",
+        "DreamGoGlobal is a job search platform that helps job seekers discover relevant opportunities, connect with companies, and take the next step in their career.",
     },
     {
       question: "How can I search for jobs?",
@@ -84,7 +84,7 @@ const FAQ = () => {
             {/* Description */}
             <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7 lg:text-lg">
               Find quick answers to the most common questions about
-              CareerSphere, job applications, profiles, subscriptions, and
+              DreamGoGlobal, job applications, profiles, subscriptions, and
               more.
             </p>
           </div>

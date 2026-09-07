@@ -41,7 +41,7 @@ const AdminNavbar = ({ setSidebarOpen }) => {
             </h2>
 
             <p className="hidden text-xs text-slate-400 sm:block">
-              Manage your CareerSphere platform
+              Manage your DreamGoGlobal platform
             </p>
           </div>
         </div>

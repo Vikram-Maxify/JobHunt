@@ -283,7 +283,7 @@ const Navbar = () => {
               className="group flex min-w-0 shrink-0 items-center gap-2"
               aria-label="CareerSphere Home"
             >
-              <div className="w-52">
+              <div className="w-40 sm:w-40 lg:w-48">
                 <img
                   src="https://i.ibb.co/27YvVmBq/logo-D.png"
                   alt=""
@@ -306,11 +306,10 @@ const Navbar = () => {
                     <Link
                       key={item.name}
                       to={item.path}
-                      className={`relative flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 xl:gap-2 xl:px-3.5 xl:text-sm ${
-                        active
+                      className={`relative flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 xl:gap-2 xl:px-3.5 xl:text-sm ${active
                           ? "bg-blue-50 text-blue-600"
                           : "text-slate-600 hover:bg-blue-50/70 hover:text-blue-600"
-                      }`}
+                        }`}
                     >
                       <Icon size={16} strokeWidth={2} className="shrink-0" />
 
@@ -353,11 +352,10 @@ const Navbar = () => {
 
                   <Link
                     to="/login"
-                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 xl:gap-2 xl:px-4 xl:text-sm ${
-                      isActive("/login")
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 xl:gap-2 xl:px-4 xl:text-sm ${isActive("/login")
                         ? "bg-blue-50 text-blue-600"
                         : "text-slate-600 hover:bg-blue-50/70 hover:text-blue-600"
-                    }`}
+                      }`}
                   >
                     <LogIn size={16} strokeWidth={2} />
 
@@ -406,9 +404,8 @@ const Navbar = () => {
 
                     <ChevronDown
                       size={15}
-                      className={`text-slate-400 transition-transform duration-200 ${
-                        userMenu ? "rotate-180" : ""
-                      }`}
+                      className={`text-slate-400 transition-transform duration-200 ${userMenu ? "rotate-180" : ""
+                        }`}
                     />
                   </button>
 
@@ -574,9 +571,8 @@ const Navbar = () => {
       ====================================================== */}
 
       <div
-        className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300 lg:hidden ${
-          mobileMenu ? "opacity-100" : "pointer-events-none opacity-0"
-        }`}
+        className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300 lg:hidden ${mobileMenu ? "opacity-100" : "pointer-events-none opacity-0"
+          }`}
         onClick={() => setMobileMenu(false)}
       />
 
@@ -585,9 +581,8 @@ const Navbar = () => {
       ====================================================== */}
 
       <div
-        className={`fixed right-0 top-0 z-[60] flex h-full w-[300px] max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
-          mobileMenu ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed right-0 top-0 z-[60] flex h-full w-[300px] max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${mobileMenu ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         {/* HEADER */}
 
@@ -619,18 +614,16 @@ const Navbar = () => {
                   key={item.name}
                   to={item.path}
                   onClick={() => setMobileMenu(false)}
-                  className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 sm:py-4 ${
-                    active
+                  className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 sm:py-4 ${active
                       ? "bg-blue-50 text-blue-600"
                       : "text-slate-700 hover:bg-blue-50/70 hover:text-blue-600"
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
-                      active
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${active
                         ? "bg-white text-blue-600 shadow-sm"
                         : "bg-slate-100 text-slate-500"
-                    }`}
+                      }`}
                   >
                     <Icon size={18} strokeWidth={2} />
                   </span>
@@ -664,11 +657,10 @@ const Navbar = () => {
               <Link
                 to="/login"
                 onClick={() => setMobileMenu(false)}
-                className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 sm:py-4 ${
-                  isActive("/login")
+                className={`flex w-full items-center gap-4 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200 sm:py-4 ${isActive("/login")
                     ? "bg-blue-50 text-blue-600"
                     : "text-slate-700 hover:bg-blue-50/70 hover:text-blue-600"
-                }`}
+                  }`}
               >
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100">
                   <LogIn size={18} strokeWidth={2} />
@@ -720,9 +712,8 @@ const Navbar = () => {
 
                 <ChevronDown
                   size={18}
-                  className={`shrink-0 text-slate-400 transition-transform ${
-                    mobileUserMenu ? "rotate-180" : ""
-                  }`}
+                  className={`shrink-0 text-slate-400 transition-transform ${mobileUserMenu ? "rotate-180" : ""
+                    }`}
                 />
               </button>
 

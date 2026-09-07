@@ -63,7 +63,7 @@ const ImageSection = () => {
               <div className="h-1 w-8 rounded-full bg-blue-600" />
 
               <span className="text-xs font-bold uppercase tracking-wider text-blue-600 sm:text-sm">
-                CareerSphere Gallery
+                DreamGoGlobal Gallery
               </span>
             </div>
 
@@ -76,7 +76,7 @@ const ImageSection = () => {
             {/* Description */}
             <p className="mt-3 max-w-xl text-sm leading-6 text-gray-500 sm:text-base sm:leading-7">
               Discover inspiring moments, professional journeys,
-              workplace culture and experiences from the CareerSphere
+              workplace culture and experiences from the DreamGoGlobal
               community.
             </p>
           </div>
@@ -143,7 +143,7 @@ const ImageSection = () => {
                     </h3>
 
                     <p className="mt-1 text-xs text-white/70 sm:text-sm">
-                      CareerSphere
+                      DreamGoGlobal
                     </p>
                   </div>
 

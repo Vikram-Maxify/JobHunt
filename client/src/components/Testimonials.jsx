@@ -1,8 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ArrowRight,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   Quote,
   Sparkles,
   Star,
@@ -25,6 +27,8 @@ import { getTestimonials } from "../redux/slicer/userTestimonialSlice";
 
 const Testimonials = () => {
   const dispatch = useDispatch();
+
+  const swiperRef = useRef(null);
 
   const {
     testimonials = [],
@@ -160,7 +164,7 @@ const Testimonials = () => {
 
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7">
             Hear from professionals around the world who are using
-            CareerSphere to discover better opportunities and take
+            DreamGoGlobal to discover better opportunities and take
             the next step in their careers.
           </p>
         </div>
@@ -171,13 +175,61 @@ const Testimonials = () => {
 
         <div className="relative mt-8 sm:mt-10">
 
+          {/* =================================================
+              DESKTOP LEFT BUTTON
+          ================================================= */}
+
+          <button
+            type="button"
+            aria-label="Previous testimonial"
+            onClick={() => swiperRef.current?.slidePrev()}
+            className="
+              testimonial-prev
+              absolute
+              left-0
+              top-1/2
+              z-30
+              hidden
+              h-10
+              w-10
+              -translate-x-1/2
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-slate-200
+              bg-white
+              text-blue-600
+              shadow-[0_5px_15px_rgba(15,23,42,0.08)]
+              transition-all
+              duration-300
+              hover:border-blue-600
+              hover:bg-blue-600
+              hover:text-white
+              lg:flex
+            "
+          >
+            <ChevronLeft
+              size={18}
+              strokeWidth={2.5}
+              className="block"
+            />
+          </button>
+
+          {/* =================================================
+              SWIPER
+          ================================================= */}
+
           <Swiper
             modules={[
               Autoplay,
               Pagination,
-              Navigation,
               A11y,
             ]}
+            onSwiper={(swiper) => {
+              swiperRef.current = swiper;
+            }}
             spaceBetween={20}
             slidesPerView={1}
             loop={testimonials.length > 3}
@@ -192,7 +244,6 @@ const Testimonials = () => {
               clickable: true,
               dynamicBullets: true,
             }}
-            navigation={true}
             breakpoints={{
               0: {
                 slidesPerView: 1,
@@ -449,6 +500,49 @@ const Testimonials = () => {
             })}
 
           </Swiper>
+
+          {/* =================================================
+              DESKTOP RIGHT BUTTON
+          ================================================= */}
+
+          <button
+            type="button"
+            aria-label="Next testimonial"
+            onClick={() => swiperRef.current?.slideNext()}
+            className="
+              testimonial-next
+              absolute
+              right-0
+              top-1/2
+              z-30
+              hidden
+              h-10
+              w-10
+              translate-x-1/2
+              -translate-y-1/2
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-slate-200
+              bg-white
+              text-blue-600
+              shadow-[0_5px_15px_rgba(15,23,42,0.08)]
+              transition-all
+              duration-300
+              hover:border-blue-600
+              hover:bg-blue-600
+              hover:text-white
+              lg:flex
+            "
+          >
+            <ChevronRight
+              size={18}
+              strokeWidth={2.5}
+              className="block"
+            />
+          </button>
+
         </div>
 
         {/* =================================================
@@ -457,44 +551,44 @@ const Testimonials = () => {
 
         <div className="mt-2 flex justify-center">
 
-         <Link to='/subscription'>
-           <button
-            type="button"
-            className="
-              group
-              inline-flex
-              items-center
-              gap-2
-              rounded-full
-              border
-              border-blue-200
-              bg-white
-              px-5
-              py-2.5
-              text-xs
-              font-bold
-              text-blue-600
-              shadow-sm
-              transition-all
-              duration-300
-              hover:border-blue-600
-              hover:bg-blue-600
-              hover:text-white
-              hover:shadow-lg
-              hover:shadow-blue-500/20
-              sm:px-6
-              sm:py-3
-              sm:text-sm
-            "
-          >
-            Explore CareerSphere
+          <Link to='/subscription'>
+            <button
+              type="button"
+              className="
+                group
+                inline-flex
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-blue-200
+                bg-white
+                px-5
+                py-2.5
+                text-xs
+                font-bold
+                text-blue-600
+                shadow-sm
+                transition-all
+                duration-300
+                hover:border-blue-600
+                hover:bg-blue-600
+                hover:text-white
+                hover:shadow-lg
+                hover:shadow-blue-500/20
+                sm:px-6
+                sm:py-3
+                sm:text-sm
+              "
+            >
+              Explore DreamGoGlobal
 
-            <ArrowRight
-              size={16}
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            />
-          </button>
-         </Link>
+              <ArrowRight
+                size={16}
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              />
+            </button>
+          </Link>
 
         </div>
 
@@ -539,48 +633,50 @@ const Testimonials = () => {
             background: #2563eb;
           }
 
-          /* Navigation */
+          /* =====================================================
+             REMOVE SWIPER DEFAULT NAVIGATION ICON
+          ===================================================== */
 
-          .testimonials-swiper .swiper-button-next,
-          .testimonials-swiper .swiper-button-prev {
-            width: 40px;
-            height: 40px;
-            margin-top: -25px;
-            border-radius: 999px;
-            background: white;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 5px 15px rgba(15, 23, 42, 0.08);
-            transition: all 0.3s ease;
+          .testimonials-swiper .swiper-button-next::after,
+          .testimonials-swiper .swiper-button-prev::after {
+            display: none !important;
+            content: none !important;
           }
 
-          .testimonials-swiper .swiper-button-next:after,
-          .testimonials-swiper .swiper-button-prev:after {
-            font-size: 14px;
-            font-weight: 800;
-            color: #2563eb;
-          }
+          /* =====================================================
+             MOBILE
+          ===================================================== */
 
-          .testimonials-swiper .swiper-button-next:hover,
-          .testimonials-swiper .swiper-button-prev:hover {
-            background: #2563eb;
-            border-color: #2563eb;
-          }
-
-          .testimonials-swiper .swiper-button-next:hover:after,
-          .testimonials-swiper .swiper-button-prev:hover:after {
-            color: white;
-          }
-
-          /* Mobile */
-
-          @media (max-width: 767px) {
-            .testimonials-swiper .swiper-button-next,
-            .testimonials-swiper .swiper-button-prev {
-              display: none;
+          @media (max-width: 1023px) {
+            .testimonial-prev,
+            .testimonial-next {
+              display: none !important;
             }
           }
 
-          /* Small screens */
+          /* =====================================================
+             DESKTOP
+          ===================================================== */
+
+          @media (min-width: 1024px) {
+
+            .testimonials-slider-container {
+              position: relative;
+            }
+
+            .testimonials-swiper {
+              overflow: hidden;
+            }
+
+            .testimonial-prev,
+            .testimonial-next {
+              display: flex;
+            }
+          }
+
+          /* =====================================================
+             SMALL SCREENS
+          ===================================================== */
 
           @media (max-width: 639px) {
             .testimonials-swiper {

@@ -25,9 +25,9 @@ import {
 const Settings = () => {
   // General Settings State
   const [generalSettings, setGeneralSettings] = useState({
-    platformName: "CareerSphere",
+    platformName: "DreamGoGlobal",
     tagline: "Your gateway to better career opportunities",
-    supportEmail: "support@careersphere.com",
+    supportEmail: "support@dreamgoglobal.com",
     contactPhone: "+91 98765 43210",
     logo: null,
     logoPreview: "",
@@ -332,7 +332,7 @@ const Settings = () => {
                           ? "border-red-300"
                           : "border-slate-200"
                       } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none`}
-                      placeholder="CareerSphere"
+                      placeholder="DreamGoGlobal"
                     />
                     {errors.platformName && (
                       <p className="text-[10px] sm:text-xs text-red-600 mt-1">
@@ -373,7 +373,7 @@ const Settings = () => {
                             ? "border-red-300"
                             : "border-slate-200"
                         } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none`}
-                        placeholder="support@careersphere.com"
+                        placeholder="support@dreamgoglobal.com"
                       />
                     </div>
                     {errors.supportEmail && (

@@ -68,7 +68,7 @@ const ChooseUs = () => {
 
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-xs font-bold text-blue-600 sm:text-sm">
             <Sparkles size={15} />
-            Why Choose CareerSphere
+            Why Choose DreamGoGlobal
           </div>
 
           {/* Heading */}
@@ -83,7 +83,7 @@ const ChooseUs = () => {
           {/* Description */}
 
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base sm:leading-7">
-            CareerSphere brings jobs, professionals and career resources
+            DreamGoGlobal brings jobs, professionals and career resources
             together in one powerful platform designed to help you discover
             opportunities and grow professionally.
           </p>

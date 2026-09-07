@@ -247,7 +247,7 @@ const SkillDevelopment = () => {
 
             <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-blue-100 sm:text-base sm:leading-7">
               Learn the skills employers are looking for and
-              take your career to the next level with CareerSphere.
+              take your career to the next level with DreamGoGlobal.
             </p>
 
             {/* SEARCH */}

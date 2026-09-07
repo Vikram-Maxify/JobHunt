@@ -271,7 +271,7 @@ const Gallery = () => {
                                 </span>
 
                                 <span className="text-xs font-bold tracking-wide text-blue-700">
-                                    CareerSphere Gallery
+                                    DreamGoGlobal Gallery
                                 </span>
 
                             </div>
@@ -286,7 +286,7 @@ const Gallery = () => {
 
                             <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-slate-600 sm:text-base sm:leading-8 lg:mx-0">
                                 Explore the people, opportunities, workplaces
-                                and moments that make the CareerSphere journey
+                                and moments that make the DreamGoGlobal journey
                                 meaningful.
                             </p>
 
@@ -479,7 +479,7 @@ const Gallery = () => {
 
                             <p className="mt-2 max-w-xl text-sm text-gray-500 sm:text-base">
                                 Take a look at the people, teams and experiences
-                                that define the CareerSphere community.
+                                that define the DreamGoGlobal community.
                             </p>
 
                         </div>

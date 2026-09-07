@@ -142,36 +142,31 @@ const AdminSidebar = ({ sidebarOpen, setSidebarOpen }) => {
         }`}
       >
         {/* LOGO */}
-        <div className="flex h-20 shrink-0 items-center justify-between border-b border-slate-100 px-5">
-          <button
-            type="button"
-            onClick={() => navigate("/admin")}
-            className="flex min-w-0 items-center gap-3"
-          >
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/20">
-              <BriefcaseBusiness size={22} />
-            </div>
+       <div className="flex h-20 shrink-0 items-center justify-between border-b border-slate-100 px-5">
+  <button
+    type="button"
+    onClick={() => navigate("/admin")}
+    className="flex min-w-0 items-center gap-3"
+  >
+    <div className="w-44 sm:w-44 lg:w-48">
+      <img
+        src="https://i.ibb.co/27YvVmBq/logo-D.png"
+        alt="CareerSphere"
+        loading="lazy"
+        className="h-auto w-full object-contain"
+      />
+    </div>
+  </button>
 
-            <div className="min-w-0 text-left">
-              <h1 className="truncate text-lg font-black tracking-tight text-slate-900">
-                CareerSphere
-              </h1>
-
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-600">
-                Admin Panel
-              </p>
-            </div>
-          </button>
-
-          {/* MOBILE CLOSE */}
-          <button
-            type="button"
-            onClick={() => setSidebarOpen(false)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 lg:hidden"
-          >
-            <X size={20} />
-          </button>
-        </div>
+  {/* MOBILE CLOSE */}
+  <button
+    type="button"
+    onClick={() => setSidebarOpen(false)}
+    className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 lg:hidden"
+  >
+    <X size={20} />
+  </button>
+</div>
 
         {/* ADMIN PROFILE MINI */}
         <div className="mx-4 mt-5 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-indigo-50 p-3">

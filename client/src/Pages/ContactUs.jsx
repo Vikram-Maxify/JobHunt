@@ -123,7 +123,7 @@ const ContactUs = () => {
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-slate-200 sm:text-base lg:text-lg">
 
           Looking for opportunities abroad or planning your next
-          career move? CareerSphere helps you discover jobs,
+          career move? DreamGoGlobal helps you discover jobs,
           build your profile and move closer to your global career goals.
 
         </p>
@@ -183,7 +183,7 @@ const ContactUs = () => {
             </h3>
 
             <p className="mt-1 break-all text-sm text-gray-500">
-              support@careersphere.com
+              support@DreamGoGlobal.com
             </p>
 
           </div>
@@ -358,7 +358,7 @@ const ContactUs = () => {
             <div className="mt-8">
 
               <p className="text-sm font-semibold text-gray-700">
-                Follow CareerSphere
+                Follow DreamGoGlobal
               </p>
 
               <div className="mt-3 flex gap-3">
@@ -430,7 +430,7 @@ const ContactUs = () => {
                   </p>
 
                   <p className="mt-1 text-xs text-green-700">
-                    Thank you for contacting CareerSphere.
+                    Thank you for contacting DreamGoGlobal.
                   </p>
 
                 </div>
@@ -576,7 +576,7 @@ const ContactUs = () => {
             </h2>
 
             <p className="mt-3 text-sm text-blue-100 sm:text-base">
-              Connect with CareerSphere and take the next step
+              Connect with DreamGoGlobal and take the next step
               toward your professional future.
             </p>
 

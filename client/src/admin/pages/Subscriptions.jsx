@@ -232,7 +232,7 @@ const Subscriptions = () => {
             Manage Subscriptions
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Create and manage subscription plans for CareerSphere users.
+            Create and manage subscription plans for DreamGoGlobal users.
           </p>
         </div>
         <button

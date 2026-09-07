@@ -169,7 +169,7 @@ const GlobalJourneyBanner = () => {
                   FLOATING CARD
                   HIDDEN ON MOBILE
               ================================================= */}
-              <div className="absolute bottom-5 left-5 right-5 hidden sm:block sm:bottom-6 sm:left-6 sm:right-auto">
+              {/* <div className="absolute bottom-5 left-5 right-5 hidden sm:block sm:bottom-6 sm:left-6 sm:right-auto">
                 <div className="w-full rounded-2xl border border-white/20 bg-white/95 p-3.5 shadow-2xl backdrop-blur-md sm:w-[250px] sm:p-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 sm:h-11 sm:w-11">
@@ -198,7 +198,7 @@ const GlobalJourneyBanner = () => {
                     </span>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>

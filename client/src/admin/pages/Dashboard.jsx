@@ -16,7 +16,7 @@ import {
 
 import StatCard from "../components/StateCard";
 
-import { getAllUsersAdmin } from "../../redux/slicer/adminUserSlice";
+import { getAllUsersAdmin } from "../../redux/slicer/adminuserSlice";
 import { getAllJobsAdmin } from "../../redux/slicer/jobSlice";
 import { getAllSubscriptionsAdmin } from "../../redux/slicer/adminsubscriptionSlice";
 import { getAllApplicationsAdmin } from "../../redux/slicer/jobApplicationSlice";

@@ -53,11 +53,11 @@ const Purchases = () => {
   const price = location.state?.price ?? 0;
   const features = location.state?.features || [];
 
-  useEffect(() => {
-    if (!subscriptionId) {
-      navigate("/subscription");
-    }
-  }, [subscriptionId, navigate]);
+  // useEffect(() => {
+  //   if (!subscriptionId) {
+  //     navigate("/subscription");
+  //   }
+  // }, [subscriptionId, navigate]);
 
   const PlanIcon = iconMap[planName] || Sparkles;
   const isFree = price <= 0;
@@ -215,7 +215,7 @@ const Purchases = () => {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#bfdbfe] bg-[#eff6ff] px-3.5 py-2 text-xs font-bold uppercase tracking-[0.12em] text-[#2563eb]">
               <Sparkles size={14} />
-              CareerSphere Premium Checkout
+              DreamGoGlobal Premium Checkout
             </div>
 
             <h1 className="mt-4 text-[29px] font-black leading-[1.08] tracking-[-0.035em] text-[#0f172a] sm:mt-5 sm:text-4xl lg:text-5xl">
@@ -332,7 +332,7 @@ const Purchases = () => {
                       </p>
                       <p className="mt-1 text-xs leading-5 text-[#64748b]">
                         Your payment details are encrypted and securely
-                        processed by Razorpay. CareerSphere does not store your
+                        processed by Razorpay. DreamGoGlobal does not store your
                         card details.
                       </p>
                     </div>
@@ -345,7 +345,7 @@ const Purchases = () => {
                 </div>
 
                 <p className="mt-3 text-center text-[10px] leading-5 text-[#94a3b8]">
-                  By continuing, you agree to CareerSphere's Terms of Service
+                  By continuing, you agree to DreamGoGlobal's Terms of Service
                   and Subscription Policy.
                 </p>
               </div>

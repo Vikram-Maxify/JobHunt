@@ -1,26 +1,25 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import {
-  BriefcaseBusiness,
-  Search,
+  ChevronDown,
   CreditCard,
+  FileText,
   Images,
-  Phone,
   Info,
   LogIn,
-  UserPlus,
-  Menu,
-  X,
-  UserRound,
-  FileText,
   LogOut,
-  ChevronDown,
+  Menu,
+  Phone,
+  Search,
+  UserPlus,
+  UserRound,
+  X,
 } from "lucide-react";
 
-import { FaBookmark } from "react-icons/fa";
 import { BsCreditCardFill } from "react-icons/bs";
+import { FaBookmark } from "react-icons/fa";
 
 import { getProfile, logoutUser } from "../redux/slicer/authSlice";
 import FeedbackModal from "./FeedbackModal";
@@ -284,18 +283,12 @@ const Navbar = () => {
               className="group flex min-w-0 shrink-0 items-center gap-2"
               aria-label="CareerSphere Home"
             >
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 shadow-md transition-all duration-300 group-hover:shadow-lg sm:h-10 sm:w-10">
-                <BriefcaseBusiness
-                  size={20}
-                  strokeWidth={2}
-                  className="text-white sm:h-[22px] sm:w-[22px]"
+              <div className="w-52">
+                <img
+                  src="https://i.ibb.co/27YvVmBq/logo-D.png"
+                  alt=""
+                  loading="lazy"
                 />
-              </div>
-
-              <div className="truncate text-lg font-bold tracking-tight sm:text-xl md:text-2xl">
-                <span className="text-slate-800">Career</span>
-
-                <span className="text-blue-600">Sphere</span>
               </div>
             </Link>
 

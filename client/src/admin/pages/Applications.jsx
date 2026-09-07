@@ -1298,7 +1298,7 @@ const Applications = () => {
 
                             </div>
 
-                            <div className="relative">
+                            {/* <div className="relative">
 
                               <select
                                 value={String(
@@ -1334,7 +1334,7 @@ const Applications = () => {
                                 <RefreshCw className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500 animate-spin pointer-events-none" />
                               )}
 
-                            </div>
+                            </div> */}
 
                           </div>
 

@@ -375,7 +375,7 @@ const MySubscription = () => {
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="text-base font-extrabold text-slate-900 sm:text-lg break-words">
-                    Subscription cancel karni hai?
+                    Do you really want to cancel your subscription?
                   </h3>
                   <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm break-words">
                     Ye action aapki current plan ko cancel kar dega.
@@ -415,7 +415,7 @@ const MySubscription = () => {
                   disabled={cancelLoading}
                   className="w-full rounded-xl border border-slate-200 bg-white py-3 text-xs font-bold text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] touch-manipulation disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1 sm:text-sm"
                 >
-                  Wapas Jao
+                  Go Back
                 </button>
                 <button
                   type="button"
@@ -423,7 +423,7 @@ const MySubscription = () => {
                   disabled={cancelLoading}
                   className="w-full rounded-xl bg-red-500 py-3 text-xs font-bold text-white shadow-md transition hover:bg-red-600 active:scale-[0.98] touch-manipulation disabled:cursor-not-allowed disabled:opacity-70 sm:flex-1 sm:text-sm"
                 >
-                  {cancelLoading ? "Cancelling..." : "Haan, Cancel Karo"}
+                  {cancelLoading ? "Cancelling..." : "Cancel"}
                 </button>
               </div>
             </div>

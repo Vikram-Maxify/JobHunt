@@ -270,7 +270,7 @@ const MySubscription = () => {
                   Subscription History
                 </h2>
                 <p className="mt-0.5 text-[10px] leading-5 text-slate-500 sm:text-xs">
-                  Aapke previous subscription plans
+                  Here is your previous subscription history.
                 </p>
               </div>
             </div>

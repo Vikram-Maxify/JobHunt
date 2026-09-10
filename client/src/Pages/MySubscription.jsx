@@ -340,9 +340,8 @@ const MySubscription = () => {
                 <h2 className="mt-1 text-base font-black text-slate-900 sm:text-lg">
                   Subscription History
                 </h2>
-
-                <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
-                  Aapke previous subscription plans
+                <p className="mt-0.5 text-[10px] leading-5 text-slate-500 sm:text-xs">
+                  Here is your previous subscription history.
                 </p>
               </div>
             </div>
@@ -510,8 +509,8 @@ const MySubscription = () => {
                 </div>
 
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-base font-black text-slate-900 sm:text-lg">
-                    Subscription cancel karni hai?
+                  <h3 className="text-base font-extrabold text-slate-900 sm:text-lg break-words">
+                    Do you really want to cancel your subscription?
                   </h3>
 
                   <p className="mt-1 text-xs leading-5 text-slate-500 sm:text-sm">
@@ -564,7 +563,7 @@ const MySubscription = () => {
                   disabled={cancelLoading}
                   className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 transition hover:bg-slate-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
                 >
-                  Wapas Jao
+                  Go Back
                 </button>
 
                 {/* CONFIRM */}
@@ -575,7 +574,7 @@ const MySubscription = () => {
                   disabled={cancelLoading}
                   className="w-full rounded-xl bg-red-500 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-red-600 hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70 sm:flex-1"
                 >
-                  {cancelLoading ? "Cancelling..." : "Haan, Cancel Karo"}
+                  {cancelLoading ? "Cancelling..." : "Cancel"}
                 </button>
               </div>
             </div>

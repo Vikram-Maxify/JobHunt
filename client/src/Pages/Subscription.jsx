@@ -101,8 +101,8 @@ const Subscription = () => {
       values: ["Basic", "Enhanced", "Priority"],
     },
     {
-      label: "Resume Builder",
-      values: [true, true, true],
+      label: "Waiting Time",
+      values: [45, 30, 15],
     },
     {
       label: "Job Alerts",
@@ -121,8 +121,8 @@ const Subscription = () => {
       values: [false, true, true],
     },
     {
-      label: "AI Career Assistant",
-      values: [false, false, true],
+      label: "Country",
+      values: [2, 4, 8],
     },
     {
       label: "Personalized Recommendations",

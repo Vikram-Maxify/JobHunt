@@ -130,6 +130,11 @@ const JobSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    waitingPeriod: {
+      type: String,
+      trim: true,
+      default: "",
+    },
 
     // Company details (optional)
     companyLogo: {

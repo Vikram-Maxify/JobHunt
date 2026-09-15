@@ -145,30 +145,30 @@ const JobDetail = () => {
 
   const job = backendJob
     ? {
-        ...backendJob,
+      ...backendJob,
 
-        id: backendJob._id || backendJob.id,
+      id: backendJob._id || backendJob.id,
 
-        type: backendJob.jobType || "Full Time",
+      type: backendJob.jobType || "Full Time",
 
-        posted: backendJob.daysAgo || "Recently",
+      posted: backendJob.daysAgo || "Recently",
 
-        applicants: backendJob.applicantCount ?? 0,
+      applicants: backendJob.applicantCount ?? 0,
 
-        logo:
-          backendJob.companyLogo?.displayUrl ||
-          backendJob.companyLogo?.url ||
-          backendJob.company?.charAt(0)?.toUpperCase() ||
-          "C",
+      logo:
+        backendJob.companyLogo?.displayUrl ||
+        backendJob.companyLogo?.url ||
+        backendJob.company?.charAt(0)?.toUpperCase() ||
+        "C",
 
-        logoClass: "bg-blue-100 text-blue-600",
+      logoClass: "bg-blue-100 text-blue-600",
 
-        responsibilities: backendJob.responsibilities || [],
+      responsibilities: backendJob.responsibilities || [],
 
-        requirements: backendJob.requirements || [],
+      requirements: backendJob.requirements || [],
 
-        skills: backendJob.skills || [],
-      }
+      skills: backendJob.skills || [],
+    }
     : null;
 
   // =========================================================
@@ -427,8 +427,8 @@ const JobDetail = () => {
 
       alert(
         error ||
-          profileError ||
-          "Unable to load your profile. Please try again.",
+        profileError ||
+        "Unable to load your profile. Please try again.",
       );
     } finally {
       setLoadingSavedDetails(false);
@@ -791,13 +791,11 @@ const JobDetail = () => {
                     onClick={handleSaveToggle}
                     disabled={saving || unsaving}
                     title={isSaved ? "Unsave Job" : "Save Job"}
-                    className={`flex h-10 w-10 items-center justify-center rounded-lg border transition ${
-                      isSaved
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg border transition ${isSaved
                         ? "border-blue-200 bg-blue-50 text-blue-600"
                         : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:text-blue-600"
-                    } ${
-                      saving || unsaving ? "cursor-not-allowed opacity-60" : ""
-                    }`}
+                      } ${saving || unsaving ? "cursor-not-allowed opacity-60" : ""
+                      }`}
                   >
                     {saving || unsaving ? (
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
@@ -1424,11 +1422,10 @@ const JobDetail = () => {
                           {/* YES */}
 
                           <label
-                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition ${
-                              formData.passport === "Yes"
+                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition ${formData.passport === "Yes"
                                 ? "border-blue-500 bg-blue-50 text-blue-700"
                                 : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -1445,11 +1442,10 @@ const JobDetail = () => {
                           {/* NO */}
 
                           <label
-                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition ${
-                              formData.passport === "No"
+                            className={`flex cursor-pointer items-center gap-2 rounded-lg border px-5 py-3 text-sm font-semibold transition ${formData.passport === "No"
                                 ? "border-blue-500 bg-blue-50 text-blue-700"
                                 : "border-slate-200 bg-white text-slate-600 hover:border-blue-300"
-                            }`}
+                              }`}
                           >
                             <input
                               type="radio"
@@ -1535,9 +1531,7 @@ const JobDetail = () => {
                             <FileText size={20} className="text-slate-400" />
 
                             <span className="mt-2 max-w-full truncate text-xs font-medium text-slate-500">
-                              {formData.resume
-                                ? formData.resume.name
-                                : "Upload Resume"}
+                              {formData.resume ? formData.resume.name : "Upload Resume"}
                             </span>
 
                             <input
@@ -1545,7 +1539,7 @@ const JobDetail = () => {
                               accept=".pdf,application/pdf"
                               onChange={handleResume}
                               required
-                              className=""
+                              className="hidden"
                             />
                           </label>
                         </div>

@@ -4,6 +4,7 @@ import {
   Bookmark,
   BriefcaseBusiness,
   Building2,
+  Calendar,
   ChevronDown,
   ChevronUp,
   Clock3,
@@ -20,7 +21,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 
 import { getAllJobsUser } from "../redux/slicer/jobSlice";
-
 import { saveJob, unsaveJob } from "../redux/slicer/jobApplicationSlice";
 
 const Jobs = () => {
@@ -188,6 +188,84 @@ const Jobs = () => {
   };
 
   // ============================================================
+  // 5-DAY ROLLING DEADLINE
+  // ============================================================
+  //
+  // Job posted:
+  // 15 Sep -> 20 Sep
+  //
+  // After 20 Sep:
+  // 20 Sep -> 25 Sep
+  //
+  // After 25 Sep:
+  // 25 Sep -> 30 Sep
+  //
+  // The cycle continues every 5 days.
+  // ============================================================
+
+  const getRollingDeadline = (createdAt) => {
+    if (!createdAt) {
+      return null;
+    }
+
+    const createdDate = new Date(createdAt);
+
+    if (Number.isNaN(createdDate.getTime())) {
+      return null;
+    }
+
+    const now = new Date();
+
+    const cycleMilliseconds = 5 * 24 * 60 * 60 * 1000;
+
+    let deadline = new Date(
+      createdDate.getTime() + cycleMilliseconds,
+    );
+
+    while (deadline <= now) {
+      deadline = new Date(
+        deadline.getTime() + cycleMilliseconds,
+      );
+    }
+
+    return deadline;
+  };
+
+  // ============================================================
+  // FORMAT DEADLINE
+  // ============================================================
+
+  const formatDeadline = (deadline) => {
+    if (!deadline) {
+      return "";
+    }
+
+    return deadline.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
+
+  // ============================================================
+  // CHECK DEADLINE TODAY
+  // ============================================================
+
+  const isDeadlineToday = (deadline) => {
+    if (!deadline) {
+      return false;
+    }
+
+    const today = new Date();
+
+    return (
+      deadline.getDate() === today.getDate() &&
+      deadline.getMonth() === today.getMonth() &&
+      deadline.getFullYear() === today.getFullYear()
+    );
+  };
+
+  // ============================================================
   // MAP BACKEND JOB
   // ============================================================
 
@@ -206,6 +284,12 @@ const Jobs = () => {
       normalizeValue(job?.companyLogo?.thumb) ||
       normalizeValue(job?.companyLogo);
 
+    // ----------------------------------------------------------
+    // Calculate rolling 5-day deadline from job posting date
+    // ----------------------------------------------------------
+
+    const calculatedDeadline = getRollingDeadline(job?.createdAt);
+
     return {
       id: job?._id,
 
@@ -215,19 +299,24 @@ const Jobs = () => {
 
       location: jobLocation,
 
-      experience: normalizeValue(job?.experience) || "0-3 Yrs",
+      experience:
+        normalizeValue(job?.experience) || "0-3 Yrs",
 
-      salary: normalizeValue(job?.salary) || "Salary not disclosed",
+      salary:
+        normalizeValue(job?.salary) || "Salary not disclosed",
 
-      type: normalizeValue(job?.jobType) || "Full Time",
+      type:
+        normalizeValue(job?.jobType) || "Full Time",
 
-      workMode: normalizeValue(job?.jobType) || "Full Time",
+      workMode:
+        normalizeValue(job?.jobType) || "Full Time",
 
       department: departmentName,
 
       role: roleName,
 
-      posted: normalizeValue(job?.daysAgo) || "Recently",
+      posted:
+        normalizeValue(job?.daysAgo) || "Recently",
 
       applicants: `${job?.applicantCount || 0} applicants`,
 
@@ -235,21 +324,40 @@ const Jobs = () => {
         normalizeValue(job?.description) ||
         "No description available for this job.",
 
-      skills: Array.isArray(job?.skills) ? job.skills : [],
+      skills: Array.isArray(job?.skills)
+        ? job.skills
+        : [],
 
       featured: Boolean(job?.isFeatured),
 
+      // Urgent hiring
       urgent: Boolean(job?.isUrgent),
 
       logoUrl,
 
-      logo: companyName?.charAt(0)?.toUpperCase() || "C",
+      logo:
+        companyName?.charAt(0)?.toUpperCase() || "C",
 
       logoClass: "bg-blue-50 text-blue-600",
 
-      tags: Array.isArray(job?.tags) ? job.tags : [],
+      tags: Array.isArray(job?.tags)
+        ? job.tags
+        : [],
 
       createdAt: job?.createdAt || null,
+
+      // Original backend deadline
+      backendDeadline:
+        job?.applicationDeadline || null,
+
+      // New rolling deadline
+      deadline: calculatedDeadline,
+
+      deadlineText:
+        formatDeadline(calculatedDeadline),
+
+      deadlineToday:
+        isDeadlineToday(calculatedDeadline),
 
       rawJob: job,
     };
@@ -345,13 +453,16 @@ const Jobs = () => {
     if (!cleanValue) return;
 
     setSelectedFilters((prev) => {
-      const currentValues = Array.isArray(prev[filterName])
+      const currentValues = Array.isArray(
+        prev[filterName],
+      )
         ? prev[filterName]
         : [];
 
       const alreadySelected = currentValues.some(
         (item) =>
-          normalizeValue(item).toLowerCase() === cleanValue.toLowerCase(),
+          normalizeValue(item).toLowerCase() ===
+          cleanValue.toLowerCase(),
       );
 
       return {
@@ -360,7 +471,8 @@ const Jobs = () => {
         [filterName]: alreadySelected
           ? currentValues.filter(
               (item) =>
-                normalizeValue(item).toLowerCase() !== cleanValue.toLowerCase(),
+                normalizeValue(item).toLowerCase() !==
+                cleanValue.toLowerCase(),
             )
           : [...currentValues, cleanValue],
       };
@@ -391,7 +503,8 @@ const Jobs = () => {
   // ============================================================
 
   const isFilterSelected = (filterName, value) => {
-    const selectedValues = selectedFilters[filterName] || [];
+    const selectedValues =
+      selectedFilters[filterName] || [];
 
     return selectedValues.some(
       (item) =>
@@ -410,32 +523,31 @@ const Jobs = () => {
       return;
     }
 
-    const isCurrentlySaved = savedJobs.includes(jobId);
+    const isCurrentlySaved =
+      savedJobs.includes(jobId);
 
     try {
       setSavingJobId(jobId);
 
       if (isCurrentlySaved) {
-        // ==========================================
-        // REMOVE BOOKMARK FROM BACKEND
-        // ==========================================
-
         await dispatch(unsaveJob(jobId)).unwrap();
 
-        // Update UI only after backend success
-        setSavedJobs((prev) => prev.filter((id) => id !== jobId));
+        setSavedJobs((prev) =>
+          prev.filter((id) => id !== jobId),
+        );
       } else {
-        // ==========================================
-        // SAVE BOOKMARK TO BACKEND
-        // ==========================================
-
         await dispatch(saveJob(jobId)).unwrap();
 
-        // Update UI only after backend success
-        setSavedJobs((prev) => [...prev, jobId]);
+        setSavedJobs((prev) => [
+          ...prev,
+          jobId,
+        ]);
       }
     } catch (error) {
-      console.error("Bookmark API error:", error);
+      console.error(
+        "Bookmark API error:",
+        error,
+      );
     } finally {
       setSavingJobId(null);
     }
@@ -448,7 +560,9 @@ const Jobs = () => {
   const getSalaryRange = (salary) => {
     if (!salary) return null;
 
-    const text = String(salary).toLowerCase().replace(/,/g, "");
+    const text = String(salary)
+      .toLowerCase()
+      .replace(/,/g, "");
 
     const numbers = text.match(/\d+(\.\d+)?/g);
 
@@ -472,7 +586,10 @@ const Jobs = () => {
       };
     }
 
-    if (text.includes("cr") || text.includes("crore")) {
+    if (
+      text.includes("cr") ||
+      text.includes("crore")
+    ) {
       return {
         min: Math.min(...nums) * 100,
         max: Math.max(...nums) * 100,
@@ -489,7 +606,10 @@ const Jobs = () => {
   // SALARY MATCH
   // ============================================================
 
-  const matchesSalary = (salary, selectedRange) => {
+  const matchesSalary = (
+    salary,
+    selectedRange,
+  ) => {
     const range = getSalaryRange(salary);
 
     if (!range) return false;
@@ -499,13 +619,22 @@ const Jobs = () => {
         return range.min <= 3;
 
       case "3-6":
-        return range.max >= 3 && range.min <= 6;
+        return (
+          range.max >= 3 &&
+          range.min <= 6
+        );
 
       case "6-10":
-        return range.max >= 6 && range.min <= 10;
+        return (
+          range.max >= 6 &&
+          range.min <= 10
+        );
 
       case "10-20":
-        return range.max >= 10 && range.min <= 20;
+        return (
+          range.max >= 10 &&
+          range.min <= 20
+        );
 
       case "20+":
         return range.max >= 20;
@@ -519,23 +648,40 @@ const Jobs = () => {
   // EXPERIENCE
   // ============================================================
 
-  const getExperienceStart = (experience) => {
-    const match = String(experience || "").match(/\d+/);
+  const getExperienceStart = (
+    experience,
+  ) => {
+    const match = String(
+      experience || "",
+    ).match(/\d+/);
 
-    return match ? Number(match[0]) : 0;
+    return match
+      ? Number(match[0])
+      : 0;
   };
 
-  const matchesExperience = (jobExperience, selectedExperience) => {
+  const matchesExperience = (
+    jobExperience,
+    selectedExperience,
+  ) => {
     if (
-      normalizeValue(jobExperience).toLowerCase() ===
-      normalizeValue(selectedExperience).toLowerCase()
+      normalizeValue(
+        jobExperience,
+      ).toLowerCase() ===
+      normalizeValue(
+        selectedExperience,
+      ).toLowerCase()
     ) {
       return true;
     }
 
     return (
-      getExperienceStart(jobExperience) ===
-      getExperienceStart(selectedExperience)
+      getExperienceStart(
+        jobExperience,
+      ) ===
+      getExperienceStart(
+        selectedExperience,
+      )
     );
   };
 
@@ -543,10 +689,17 @@ const Jobs = () => {
   // EXACT MATCH
   // ============================================================
 
-  const exactMatch = (jobValue, selectedValue) => {
+  const exactMatch = (
+    jobValue,
+    selectedValue,
+  ) => {
     return (
-      normalizeValue(jobValue).toLowerCase() ===
-      normalizeValue(selectedValue).toLowerCase()
+      normalizeValue(
+        jobValue,
+      ).toLowerCase() ===
+      normalizeValue(
+        selectedValue,
+      ).toLowerCase()
     );
   };
 
@@ -559,17 +712,30 @@ const Jobs = () => {
 
     // SEARCH
     if (search.trim()) {
-      const searchText = search.toLowerCase().trim();
+      const searchText =
+        search.toLowerCase().trim();
 
       result = result.filter((job) => {
         return (
-          job.title?.toLowerCase().includes(searchText) ||
-          job.company?.toLowerCase().includes(searchText) ||
-          job.department?.toLowerCase().includes(searchText) ||
-          job.role?.toLowerCase().includes(searchText) ||
-          job.description?.toLowerCase().includes(searchText) ||
+          job.title
+            ?.toLowerCase()
+            .includes(searchText) ||
+          job.company
+            ?.toLowerCase()
+            .includes(searchText) ||
+          job.department
+            ?.toLowerCase()
+            .includes(searchText) ||
+          job.role
+            ?.toLowerCase()
+            .includes(searchText) ||
+          job.description
+            ?.toLowerCase()
+            .includes(searchText) ||
           job.skills?.some((skill) =>
-            normalizeValue(skill).toLowerCase().includes(searchText),
+            normalizeValue(skill)
+              .toLowerCase()
+              .includes(searchText),
           )
         );
       });
@@ -577,72 +743,124 @@ const Jobs = () => {
 
     // LOCATION SEARCH
     if (location.trim()) {
-      const locationText = location.toLowerCase().trim();
+      const locationText =
+        location.toLowerCase().trim();
 
       result = result.filter((job) =>
-        job.location?.toLowerCase().includes(locationText),
+        job.location
+          ?.toLowerCase()
+          .includes(locationText),
       );
     }
 
     // DEPARTMENT
-    if (selectedFilters.department.length > 0) {
+    if (
+      selectedFilters.department.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.department.some((selectedValue) =>
-          exactMatch(job.department, selectedValue),
+        selectedFilters.department.some(
+          (selectedValue) =>
+            exactMatch(
+              job.department,
+              selectedValue,
+            ),
         ),
       );
     }
 
     // WORK MODE
-    if (selectedFilters.workMode.length > 0) {
+    if (
+      selectedFilters.workMode.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.workMode.some((selectedValue) =>
-          exactMatch(job.workMode, selectedValue),
+        selectedFilters.workMode.some(
+          (selectedValue) =>
+            exactMatch(
+              job.workMode,
+              selectedValue,
+            ),
         ),
       );
     }
 
     // EXPERIENCE
-    if (selectedFilters.experience.length > 0) {
+    if (
+      selectedFilters.experience.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.experience.some((selectedValue) =>
-          matchesExperience(job.experience, selectedValue),
+        selectedFilters.experience.some(
+          (selectedValue) =>
+            matchesExperience(
+              job.experience,
+              selectedValue,
+            ),
         ),
       );
     }
 
     // LOCATION FILTER
-    if (selectedFilters.location.length > 0) {
+    if (
+      selectedFilters.location.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.location.some((selectedValue) =>
-          exactMatch(job.location, selectedValue),
+        selectedFilters.location.some(
+          (selectedValue) =>
+            exactMatch(
+              job.location,
+              selectedValue,
+            ),
         ),
       );
     }
 
     // SALARY FILTER
-    if (selectedFilters.salary.length > 0) {
+    if (
+      selectedFilters.salary.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.salary.some((selectedValue) =>
-          matchesSalary(job.salary, selectedValue),
+        selectedFilters.salary.some(
+          (selectedValue) =>
+            matchesSalary(
+              job.salary,
+              selectedValue,
+            ),
         ),
       );
     }
 
     // COMPANY FILTER
-    if (selectedFilters.company.length > 0) {
+    if (
+      selectedFilters.company.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.company.some((selectedValue) =>
-          exactMatch(job.company, selectedValue),
+        selectedFilters.company.some(
+          (selectedValue) =>
+            exactMatch(
+              job.company,
+              selectedValue,
+            ),
         ),
       );
     }
 
     // ROLE FILTER
-    if (selectedFilters.role.length > 0) {
+    if (
+      selectedFilters.role.length >
+      0
+    ) {
       result = result.filter((job) =>
-        selectedFilters.role.some((selectedValue) =>
-          exactMatch(job.role, selectedValue),
+        selectedFilters.role.some(
+          (selectedValue) =>
+            exactMatch(
+              job.role,
+              selectedValue,
+            ),
         ),
       );
     }
@@ -650,15 +868,27 @@ const Jobs = () => {
     // SORT
     if (sortBy === "latest") {
       result.sort(
-        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+        (a, b) =>
+          new Date(
+            b.createdAt || 0,
+          ) -
+          new Date(
+            a.createdAt || 0,
+          ),
       );
     }
 
     if (sortBy === "salary-high") {
       result.sort((a, b) => {
-        const salaryA = getSalaryRange(a.salary)?.max || 0;
+        const salaryA =
+          getSalaryRange(
+            a.salary,
+          )?.max || 0;
 
-        const salaryB = getSalaryRange(b.salary)?.max || 0;
+        const salaryB =
+          getSalaryRange(
+            b.salary,
+          )?.max || 0;
 
         return salaryB - salaryA;
       });
@@ -666,16 +896,28 @@ const Jobs = () => {
 
     if (sortBy === "salary-low") {
       result.sort((a, b) => {
-        const salaryA = getSalaryRange(a.salary)?.min || 0;
+        const salaryA =
+          getSalaryRange(
+            a.salary,
+          )?.min || 0;
 
-        const salaryB = getSalaryRange(b.salary)?.min || 0;
+        const salaryB =
+          getSalaryRange(
+            b.salary,
+          )?.min || 0;
 
         return salaryA - salaryB;
       });
     }
 
     return result;
-  }, [jobs, search, location, selectedFilters, sortBy]);
+  }, [
+    jobs,
+    search,
+    location,
+    selectedFilters,
+    sortBy,
+  ]);
 
   // ============================================================
   // JOB DETAIL
@@ -689,8 +931,14 @@ const Jobs = () => {
   // PAGINATION
   // ============================================================
 
-  const handlePageChange = (newPage) => {
-    if (newPage < 1 || newPage > totalPages || loading) {
+  const handlePageChange = (
+    newPage,
+  ) => {
+    if (
+      newPage < 1 ||
+      newPage > totalPages ||
+      loading
+    ) {
       return;
     }
 
@@ -711,26 +959,45 @@ const Jobs = () => {
   // FILTER SECTION
   // ============================================================
 
-  const FilterSection = ({ title, filterKey, children }) => {
-    const isOpen = openFilters[filterKey];
+  const FilterSection = ({
+    title,
+    filterKey,
+    children,
+  }) => {
+    const isOpen =
+      openFilters[filterKey];
 
     return (
       <div className="border-b border-slate-200 last:border-b-0">
         <button
           type="button"
-          onClick={() => toggleFilter(filterKey)}
+          onClick={() =>
+            toggleFilter(filterKey)
+          }
           className="w-full flex items-center justify-between py-4 text-left"
         >
-          <span className="font-semibold text-slate-800">{title}</span>
+          <span className="font-semibold text-slate-800">
+            {title}
+          </span>
 
           {isOpen ? (
-            <ChevronUp size={18} className="text-slate-500" />
+            <ChevronUp
+              size={18}
+              className="text-slate-500"
+            />
           ) : (
-            <ChevronDown size={18} className="text-slate-500" />
+            <ChevronDown
+              size={18}
+              className="text-slate-500"
+            />
           )}
         </button>
 
-        {isOpen && <div className="pb-4">{children}</div>}
+        {isOpen && (
+          <div className="pb-4">
+            {children}
+          </div>
+        )}
       </div>
     );
   };
@@ -739,40 +1006,60 @@ const Jobs = () => {
   // FILTER CONTENT
   // ============================================================
 
-  const FilterContent = ({ filterKey, items }) => {
+  const FilterContent = ({
+    filterKey,
+    items,
+  }) => {
     if (!items?.length) {
-      return <p className="text-xs text-slate-400">No options available</p>;
+      return (
+        <p className="text-xs text-slate-400">
+          No options available
+        </p>
+      );
     }
 
     return (
       <div className="space-y-3">
-        {items.map(([label, value], index) => {
-          const checked = isFilterSelected(filterKey, value);
+        {items.map(
+          ([label, value], index) => {
+            const checked =
+              isFilterSelected(
+                filterKey,
+                value,
+              );
 
-          return (
-            <label
-              key={`${filterKey}-${String(value)}-${index}`}
-              className="flex items-center gap-3 cursor-pointer group"
-            >
-              <input
-                type="checkbox"
-                checked={checked}
-                onChange={() => handleFilterChange(filterKey, value)}
-                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-              />
-
-              <span
-                className={`text-sm transition ${
-                  checked
-                    ? "text-blue-600 font-medium"
-                    : "text-slate-600 group-hover:text-blue-600"
-                }`}
+            return (
+              <label
+                key={`${filterKey}-${String(
+                  value,
+                )}-${index}`}
+                className="flex items-center gap-3 cursor-pointer group"
               >
-                {label}
-              </span>
-            </label>
-          );
-        })}
+                <input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={() =>
+                    handleFilterChange(
+                      filterKey,
+                      value,
+                    )
+                  }
+                  className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                />
+
+                <span
+                  className={`text-sm transition ${
+                    checked
+                      ? "text-blue-600 font-medium"
+                      : "text-slate-600 group-hover:text-blue-600"
+                  }`}
+                >
+                  {label}
+                </span>
+              </label>
+            );
+          },
+        )}
       </div>
     );
   };
@@ -782,9 +1069,12 @@ const Jobs = () => {
   // ============================================================
 
   const JobCard = ({ job }) => {
-    const isSaved = savedJobs.includes(job.id);
+    const isSaved =
+      savedJobs.includes(job.id);
 
-    const isBookmarkLoading = savingJobId === job.id && (saving || unsaving);
+    const isBookmarkLoading =
+      savingJobId === job.id &&
+      (saving || unsaving);
 
     return (
       <div className="group bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 hover:border-blue-200 hover:shadow-lg transition-all duration-300 cursor-pointer">
@@ -799,7 +1089,8 @@ const Jobs = () => {
                   alt={job.company}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.currentTarget.style.display = "none";
+                    e.currentTarget.style.display =
+                      "none";
 
                     e.currentTarget.parentElement.innerHTML = `<span>${job.logo}</span>`;
                   }}
@@ -816,7 +1107,10 @@ const Jobs = () => {
               </h3>
 
               <div className="flex items-center gap-2 mt-1">
-                <Building2 size={15} className="text-slate-400 shrink-0" />
+                <Building2
+                  size={15}
+                  className="text-slate-400 shrink-0"
+                />
 
                 <span className="text-sm text-slate-500 truncate">
                   {job.company}
@@ -825,20 +1119,21 @@ const Jobs = () => {
             </div>
           </div>
 
-          {/* ==================================================
-              SAVE / BOOKMARK
-          ================================================== */}
-
+          {/* SAVE / BOOKMARK */}
           <button
             type="button"
             disabled={isBookmarkLoading}
             onClick={async (e) => {
               e.stopPropagation();
 
-              await toggleSaveJob(job.id);
+              await toggleSaveJob(
+                job.id,
+              );
             }}
             className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 transition ${
-              isBookmarkLoading ? "opacity-60 cursor-not-allowed" : ""
+              isBookmarkLoading
+                ? "opacity-60 cursor-not-allowed"
+                : ""
             } ${
               isSaved
                 ? "bg-red-50 text-red-500"
@@ -846,27 +1141,54 @@ const Jobs = () => {
             }`}
           >
             {isBookmarkLoading ? (
-              <Loader2 size={17} className="animate-spin" />
+              <Loader2
+                size={17}
+                className="animate-spin"
+              />
             ) : (
-              <Bookmark size={18} fill={isSaved ? "currentColor" : "none"} />
+              <Bookmark
+                size={18}
+                fill={
+                  isSaved
+                    ? "currentColor"
+                    : "none"
+                }
+              />
             )}
           </button>
         </div>
 
-        {/* BADGES */}
+        {/* ======================================================
+            BADGES
+        ====================================================== */}
+
         <div className="flex flex-wrap items-center gap-2 mt-4">
+          {/* FEATURED */}
           {job.featured && (
             <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-50 text-amber-600">
               Featured
             </span>
           )}
 
+          {/* URGENT HIRING */}
           {job.urgent && (
-            <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-600">
-              Urgent
-            </span>
+            <>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-700 border border-red-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+                URGENT HIRING
+              </span>
+
+              <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-red-50 text-red-600 border border-red-100">
+                Apply Today
+              </span>
+
+              <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-orange-50 text-orange-600 border border-orange-100">
+                Limited Openings
+              </span>
+            </>
           )}
 
+          {/* JOB TYPE */}
           {job.type && (
             <span className="px-2.5 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-600">
               {job.type}
@@ -874,28 +1196,88 @@ const Jobs = () => {
           )}
         </div>
 
-        {/* META */}
+        {/* ======================================================
+            DEADLINE
+        ====================================================== */}
+
+        {job.deadlineText && (
+          <div
+            className={`mt-4 flex flex-wrap items-center gap-2 rounded-xl px-3.5 py-2.5 border ${
+              job.deadlineToday
+                ? "bg-red-50 border-red-200 text-red-700"
+                : job.urgent
+                  ? "bg-red-50/60 border-red-100 text-red-600"
+                  : "bg-slate-50 border-slate-100 text-slate-600"
+            }`}
+          >
+            <Calendar
+              size={16}
+              className={
+                job.deadlineToday ||
+                job.urgent
+                  ? "text-red-500 shrink-0"
+                  : "text-blue-500 shrink-0"
+              }
+            />
+
+            <span className="text-xs sm:text-sm font-medium">
+              Application Deadline:
+            </span>
+
+            <span className="text-xs sm:text-sm font-bold">
+              {job.deadlineText}
+            </span>
+
+            {job.deadlineToday && (
+              <span className="ml-auto text-[10px] sm:text-xs font-bold uppercase tracking-wide text-red-600">
+                Last Day
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ======================================================
+            META
+        ====================================================== */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-5">
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Clock3 size={16} className="text-blue-500 shrink-0" />
+            <Clock3
+              size={16}
+              className="text-blue-500 shrink-0"
+            />
 
-            <span>{job.experience}</span>
+            <span>
+              {job.experience}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <span className="truncate">{job.salary}</span>
+            <span className="truncate">
+              {job.salary}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <MapPin size={16} className="text-blue-500 shrink-0" />
+            <MapPin
+              size={16}
+              className="text-blue-500 shrink-0"
+            />
 
-            <span className="truncate">{job.location}</span>
+            <span className="truncate">
+              {job.location}
+            </span>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-slate-500">
-            <BriefcaseBusiness size={16} className="text-blue-500 shrink-0" />
+            <BriefcaseBusiness
+              size={16}
+              className="text-blue-500 shrink-0"
+            />
 
-            <span className="truncate">{job.workMode}</span>
+            <span className="truncate">
+              {job.workMode}
+            </span>
           </div>
         </div>
 
@@ -907,21 +1289,29 @@ const Jobs = () => {
         {/* SKILLS */}
         {job.skills?.length > 0 && (
           <div className="flex flex-wrap gap-2 mt-4">
-            {job.skills.slice(0, 5).map((skill, index) => (
-              <span
-                key={`${normalizeValue(skill)}-${index}`}
-                className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-medium"
-              >
-                {normalizeValue(skill)}
-              </span>
-            ))}
+            {job.skills
+              .slice(0, 5)
+              .map((skill, index) => (
+                <span
+                  key={`${normalizeValue(
+                    skill,
+                  )}-${index}`}
+                  className="px-2.5 py-1 rounded-lg bg-slate-50 text-slate-600 text-xs font-medium"
+                >
+                  {normalizeValue(
+                    skill,
+                  )}
+                </span>
+              ))}
           </div>
         )}
 
         {/* BOTTOM */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-5 pt-5 border-t border-slate-100">
           <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm text-slate-400">
-            <span> Posted :{job.posted}</span>
+            <span>
+              Posted : {job.posted}
+            </span>
 
             <span className="flex items-center gap-1.5">
               <Users size={14} />
@@ -953,7 +1343,10 @@ const Jobs = () => {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
         <div className="text-center">
-          <Loader2 size={42} className="mx-auto text-blue-600 animate-spin" />
+          <Loader2
+            size={42}
+            className="mx-auto text-blue-600 animate-spin"
+          />
 
           <h2 className="mt-4 text-lg font-semibold text-slate-800">
             Loading jobs...
@@ -983,7 +1376,9 @@ const Jobs = () => {
             Unable to load jobs
           </h2>
 
-          <p className="mt-2 text-sm text-slate-500">{error}</p>
+          <p className="mt-2 text-sm text-slate-500">
+            {error}
+          </p>
 
           <button
             type="button"
@@ -1033,15 +1428,26 @@ const Jobs = () => {
               {/* KEYWORD */}
               <div
                 className="flex min-w-0 flex-1 items-center gap-2 px-2 py-2.5 md:px-3"
-                onClick={() => setMobileSearchOpen(true)}
+                onClick={() =>
+                  setMobileSearchOpen(true)
+                }
               >
-                <Search size={20} className="text-slate-400 shrink-0" />
+                <Search
+                  size={20}
+                  className="text-slate-400 shrink-0"
+                />
 
                 <input
                   type="text"
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onFocus={() => setMobileSearchOpen(true)}
+                  onChange={(e) =>
+                    setSearch(
+                      e.target.value,
+                    )
+                  }
+                  onFocus={() =>
+                    setMobileSearchOpen(true)
+                  }
                   placeholder="Job title, skills, company..."
                   className="w-full min-w-0 outline-none text-sm text-slate-700 placeholder:text-slate-400"
                 />
@@ -1050,15 +1456,24 @@ const Jobs = () => {
               {/* LOCATION */}
               <div
                 className={`${
-                  mobileSearchOpen ? "flex" : "hidden"
+                  mobileSearchOpen
+                    ? "flex"
+                    : "hidden"
                 } md:flex min-w-0 flex-1 items-center gap-2 border-l border-slate-200 px-2 py-2.5 md:px-3`}
               >
-                <MapPin size={20} className="text-slate-400 shrink-0" />
+                <MapPin
+                  size={20}
+                  className="text-slate-400 shrink-0"
+                />
 
                 <input
                   type="text"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e) =>
+                    setLocation(
+                      e.target.value,
+                    )
+                  }
                   placeholder="Location"
                   className="w-full min-w-0 outline-none text-sm text-slate-700 placeholder:text-slate-400"
                 />
@@ -1067,14 +1482,24 @@ const Jobs = () => {
               {/* SEARCH BUTTON */}
               <button
                 type="button"
-                onClick={() => setMobileSearchOpen(true)}
+                onClick={() =>
+                  setMobileSearchOpen(
+                    true,
+                  )
+                }
                 className={`${
-                  mobileSearchOpen ? "flex" : "hidden"
+                  mobileSearchOpen
+                    ? "flex"
+                    : "hidden"
                 } md:flex shrink-0 items-center justify-center rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-blue-700 sm:px-6 sm:text-sm`}
               >
-                <span className="sm:hidden">Search</span>
+                <span className="sm:hidden">
+                  Search
+                </span>
 
-                <span className="hidden sm:inline">Search Jobs</span>
+                <span className="hidden sm:inline">
+                  Search Jobs
+                </span>
               </button>
             </div>
           </div>
@@ -1099,7 +1524,9 @@ const Jobs = () => {
                 <>
                   {" "}
                   of{" "}
-                  <span className="font-semibold text-slate-700">{total}</span>
+                  <span className="font-semibold text-slate-700">
+                    {total}
+                  </span>
                 </>
               )}
             </p>
@@ -1108,10 +1535,14 @@ const Jobs = () => {
           {/* MOBILE FILTER */}
           <button
             type="button"
-            onClick={() => setMobileFilters(true)}
+            onClick={() =>
+              setMobileFilters(true)
+            }
             className="lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold"
           >
-            <SlidersHorizontal size={17} />
+            <SlidersHorizontal
+              size={17}
+            />
             Filters
           </button>
         </div>
@@ -1121,7 +1552,9 @@ const Jobs = () => {
           <aside className="hidden lg:block">
             <div className="bg-white border border-slate-200 rounded-2xl p-5 sticky top-24">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="font-bold text-slate-900">Filters</h2>
+                <h2 className="font-bold text-slate-900">
+                  Filters
+                </h2>
 
                 <button
                   type="button"
@@ -1132,38 +1565,84 @@ const Jobs = () => {
                 </button>
               </div>
 
-              <FilterSection title="Department" filterKey="department">
+              <FilterSection
+                title="Department"
+                filterKey="department"
+              >
                 <FilterContent
                   filterKey="department"
-                  items={filters.department}
+                  items={
+                    filters.department
+                  }
                 />
               </FilterSection>
 
-              <FilterSection title="Work Mode" filterKey="workMode">
-                <FilterContent filterKey="workMode" items={filters.workMode} />
+              <FilterSection
+                title="Work Mode"
+                filterKey="workMode"
+              >
+                <FilterContent
+                  filterKey="workMode"
+                  items={
+                    filters.workMode
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Experience" filterKey="experience">
+              <FilterSection
+                title="Experience"
+                filterKey="experience"
+              >
                 <FilterContent
                   filterKey="experience"
-                  items={filters.experience}
+                  items={
+                    filters.experience
+                  }
                 />
               </FilterSection>
 
-              <FilterSection title="Location" filterKey="location">
-                <FilterContent filterKey="location" items={filters.location} />
+              <FilterSection
+                title="Location"
+                filterKey="location"
+              >
+                <FilterContent
+                  filterKey="location"
+                  items={
+                    filters.location
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Salary" filterKey="salary">
-                <FilterContent filterKey="salary" items={filters.salary} />
+              <FilterSection
+                title="Salary"
+                filterKey="salary"
+              >
+                <FilterContent
+                  filterKey="salary"
+                  items={filters.salary}
+                />
               </FilterSection>
 
-              <FilterSection title="Company" filterKey="company">
-                <FilterContent filterKey="company" items={filters.company} />
+              <FilterSection
+                title="Company"
+                filterKey="company"
+              >
+                <FilterContent
+                  filterKey="company"
+                  items={
+                    filters.company
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Role" filterKey="role">
-                <FilterContent filterKey="role" items={filters.role} />
+              <FilterSection
+                title="Role"
+                filterKey="role"
+              >
+                <FilterContent
+                  filterKey="role"
+                  items={filters.role}
+                />
               </FilterSection>
             </div>
           </aside>
@@ -1179,70 +1658,115 @@ const Jobs = () => {
               <div className="relative ml-auto">
                 <button
                   type="button"
-                  onClick={() => setSortOpen((prev) => !prev)}
+                  onClick={() =>
+                    setSortOpen(
+                      (prev) => !prev,
+                    )
+                  }
                   className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700"
                 >
-                  <ArrowUpDown size={16} />
+                  <ArrowUpDown
+                    size={16}
+                  />
 
-                  {sortBy === "relevance"
+                  {sortBy ===
+                  "relevance"
                     ? "Relevance"
                     : sortBy === "latest"
                       ? "Latest"
-                      : sortBy === "salary-high"
+                      : sortBy ===
+                          "salary-high"
                         ? "Salary: High to Low"
                         : "Salary: Low to High"}
 
-                  <ChevronDown size={16} />
+                  <ChevronDown
+                    size={16}
+                  />
                 </button>
 
                 {sortOpen && (
                   <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 overflow-hidden">
                     {[
-                      ["relevance", "Relevance"],
-                      ["latest", "Latest"],
-                      ["salary-high", "Salary: High to Low"],
-                      ["salary-low", "Salary: Low to High"],
-                    ].map(([value, label]) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => {
-                          setSortBy(value);
-                          setSortOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 ${
-                          sortBy === value
-                            ? "text-blue-600 font-semibold bg-blue-50"
-                            : "text-slate-600"
-                        }`}
-                      >
-                        {label}
-                      </button>
-                    ))}
+                      [
+                        "relevance",
+                        "Relevance",
+                      ],
+                      [
+                        "latest",
+                        "Latest",
+                      ],
+                      [
+                        "salary-high",
+                        "Salary: High to Low",
+                      ],
+                      [
+                        "salary-low",
+                        "Salary: Low to High",
+                      ],
+                    ].map(
+                      ([
+                        value,
+                        label,
+                      ]) => (
+                        <button
+                          key={value}
+                          type="button"
+                          onClick={() => {
+                            setSortBy(
+                              value,
+                            );
+                            setSortOpen(
+                              false,
+                            );
+                          }}
+                          className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 ${
+                            sortBy ===
+                            value
+                              ? "text-blue-600 font-semibold bg-blue-50"
+                              : "text-slate-600"
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      ),
+                    )}
                   </div>
                 )}
               </div>
             </div>
 
             {/* PAGINATION LOADING */}
-            {loading && jobs.length > 0 && (
-              <div className="mb-4 flex items-center gap-2 text-sm text-blue-600">
-                <Loader2 size={16} className="animate-spin" />
-                Updating jobs...
-              </div>
-            )}
+            {loading &&
+              jobs.length > 0 && (
+                <div className="mb-4 flex items-center gap-2 text-sm text-blue-600">
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                  />
+                  Updating jobs...
+                </div>
+              )}
 
             {/* JOBS */}
-            {filteredJobs.length > 0 ? (
+            {filteredJobs.length >
+            0 ? (
               <div className="space-y-4">
-                {filteredJobs.map((job) => (
-                  <JobCard key={job.id} job={job} />
-                ))}
+                {filteredJobs.map(
+                  (job) => (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                    />
+                  ),
+                )}
               </div>
             ) : (
               <div className="bg-white border border-slate-200 rounded-2xl p-8 sm:p-12 text-center">
                 <div className="w-14 h-14 mx-auto rounded-full bg-slate-100 flex items-center justify-center">
-                  <Search size={25} className="text-slate-400" />
+                  <Search
+                    size={25}
+                    className="text-slate-400"
+                  />
                 </div>
 
                 <h3 className="mt-4 text-lg font-bold text-slate-900">
@@ -1269,8 +1793,15 @@ const Jobs = () => {
               <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
                 <button
                   type="button"
-                  disabled={page <= 1 || loading}
-                  onClick={() => handlePageChange(page - 1)}
+                  disabled={
+                    page <= 1 ||
+                    loading
+                  }
+                  onClick={() =>
+                    handlePageChange(
+                      page - 1,
+                    )
+                  }
                   className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
                 >
                   Previous
@@ -1278,28 +1809,55 @@ const Jobs = () => {
 
                 {Array.from(
                   {
-                    length: Math.min(totalPages, 5),
+                    length:
+                      Math.min(
+                        totalPages,
+                        5,
+                      ),
                   },
                   (_, index) => {
-                    let pageNumber = index + 1;
+                    let pageNumber =
+                      index + 1;
 
-                    if (totalPages > 5 && page > 3) {
-                      pageNumber = Math.min(page - 2 + index, totalPages - 4);
+                    if (
+                      totalPages >
+                        5 &&
+                      page > 3
+                    ) {
+                      pageNumber =
+                        Math.min(
+                          page -
+                            2 +
+                            index,
+                          totalPages -
+                            4,
+                        );
                     }
 
                     return (
                       <button
-                        key={pageNumber}
+                        key={
+                          pageNumber
+                        }
                         type="button"
-                        disabled={loading}
-                        onClick={() => handlePageChange(pageNumber)}
+                        disabled={
+                          loading
+                        }
+                        onClick={() =>
+                          handlePageChange(
+                            pageNumber,
+                          )
+                        }
                         className={`w-10 h-10 rounded-lg text-sm font-semibold ${
-                          page === pageNumber
+                          page ===
+                          pageNumber
                             ? "bg-blue-600 text-white"
                             : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
                         }`}
                       >
-                        {pageNumber}
+                        {
+                          pageNumber
+                        }
                       </button>
                     );
                   },
@@ -1307,8 +1865,16 @@ const Jobs = () => {
 
                 <button
                   type="button"
-                  disabled={page >= totalPages || loading}
-                  onClick={() => handlePageChange(page + 1)}
+                  disabled={
+                    page >=
+                      totalPages ||
+                    loading
+                  }
+                  onClick={() =>
+                    handlePageChange(
+                      page + 1,
+                    )
+                  }
                   className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
                 >
                   Next
@@ -1327,13 +1893,19 @@ const Jobs = () => {
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
             className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileFilters(false)}
+            onClick={() =>
+              setMobileFilters(
+                false,
+              )
+            }
           />
 
           <div className="absolute right-0 top-0 h-full w-[90%] max-w-sm bg-white shadow-2xl overflow-y-auto">
             {/* HEADER */}
             <div className="sticky top-0 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between z-10">
-              <h2 className="font-bold text-slate-900">Filters</h2>
+              <h2 className="font-bold text-slate-900">
+                Filters
+              </h2>
 
               <div className="flex items-center gap-3">
                 <button
@@ -1346,7 +1918,11 @@ const Jobs = () => {
 
                 <button
                   type="button"
-                  onClick={() => setMobileFilters(false)}
+                  onClick={() =>
+                    setMobileFilters(
+                      false,
+                    )
+                  }
                   className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center"
                 >
                   <X size={18} />
@@ -1356,38 +1932,86 @@ const Jobs = () => {
 
             {/* FILTER CONTENT */}
             <div className="px-5">
-              <FilterSection title="Department" filterKey="department">
+              <FilterSection
+                title="Department"
+                filterKey="department"
+              >
                 <FilterContent
                   filterKey="department"
-                  items={filters.department}
+                  items={
+                    filters.department
+                  }
                 />
               </FilterSection>
 
-              <FilterSection title="Work Mode" filterKey="workMode">
-                <FilterContent filterKey="workMode" items={filters.workMode} />
+              <FilterSection
+                title="Work Mode"
+                filterKey="workMode"
+              >
+                <FilterContent
+                  filterKey="workMode"
+                  items={
+                    filters.workMode
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Experience" filterKey="experience">
+              <FilterSection
+                title="Experience"
+                filterKey="experience"
+              >
                 <FilterContent
                   filterKey="experience"
-                  items={filters.experience}
+                  items={
+                    filters.experience
+                  }
                 />
               </FilterSection>
 
-              <FilterSection title="Location" filterKey="location">
-                <FilterContent filterKey="location" items={filters.location} />
+              <FilterSection
+                title="Location"
+                filterKey="location"
+              >
+                <FilterContent
+                  filterKey="location"
+                  items={
+                    filters.location
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Salary" filterKey="salary">
-                <FilterContent filterKey="salary" items={filters.salary} />
+              <FilterSection
+                title="Salary"
+                filterKey="salary"
+              >
+                <FilterContent
+                  filterKey="salary"
+                  items={
+                    filters.salary
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Company" filterKey="company">
-                <FilterContent filterKey="company" items={filters.company} />
+              <FilterSection
+                title="Company"
+                filterKey="company"
+              >
+                <FilterContent
+                  filterKey="company"
+                  items={
+                    filters.company
+                  }
+                />
               </FilterSection>
 
-              <FilterSection title="Role" filterKey="role">
-                <FilterContent filterKey="role" items={filters.role} />
+              <FilterSection
+                title="Role"
+                filterKey="role"
+              >
+                <FilterContent
+                  filterKey="role"
+                  items={filters.role}
+                />
               </FilterSection>
             </div>
 
@@ -1395,7 +2019,11 @@ const Jobs = () => {
             <div className="sticky bottom-0 bg-white border-t border-slate-200 p-4">
               <button
                 type="button"
-                onClick={() => setMobileFilters(false)}
+                onClick={() =>
+                  setMobileFilters(
+                    false,
+                  )
+                }
                 className="w-full py-3 rounded-xl bg-blue-600 text-white font-semibold"
               >
                 Apply Filters

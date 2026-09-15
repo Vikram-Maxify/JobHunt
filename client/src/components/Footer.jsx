@@ -38,6 +38,14 @@ const Footer = () => {
       name: "Contact Us",
       path: "/contact",
     },
+    {
+      name:"Term&Condition",
+      path:"/termcondition",
+    },
+    {
+      name:"Privacy Policy",
+      path:"/privacy-policy"
+    },
   ];
 
   const jobSeekerLinks = [

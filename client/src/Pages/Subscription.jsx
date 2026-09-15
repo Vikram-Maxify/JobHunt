@@ -1,4 +1,4 @@
-import { ArrowRight, Check, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -6,6 +6,40 @@ import {
   fetchAllSubscriptions,
   fetchMySubscription,
 } from "../redux/slicer/userSubscriptionSlice";
+
+const ComparisonStatus = ({ available, accent }) => {
+  if (available) {
+    return (
+      <span
+        className="mx-auto flex h-7 w-7 items-center justify-center rounded-full"
+        style={{
+          backgroundColor: `${accent}1A`,
+          color: accent,
+        }}
+      >
+        <Check size={15} strokeWidth={3} />
+      </span>
+    );
+  }
+
+  return (
+    <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+      <X size={15} strokeWidth={2.5} />
+    </span>
+  );
+};
+
+const ComparisonRow = ({ label, children }) => {
+  return (
+    <tr className="border-b border-slate-100 last:border-b-0">
+      <td className="sticky left-0 z-10 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-700 sm:px-6">
+        {label}
+      </td>
+
+      {children}
+    </tr>
+  );
+};
 
 const Subscription = () => {
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -19,7 +53,10 @@ const Subscription = () => {
 
   useEffect(() => {
     dispatch(fetchAllSubscriptions());
-    if (isAuthenticated) dispatch(fetchMySubscription());
+
+    if (isAuthenticated) {
+      dispatch(fetchMySubscription());
+    }
   }, [dispatch, isAuthenticated]);
 
   const handlePlanSelect = (plan) => {
@@ -29,6 +66,7 @@ const Subscription = () => {
   // Button click -> /purchases pe navigate, wahan payment ke baad buySubscription API call hogi
   const handlePlanClick = (plan) => {
     const activePlanId = mySubscription?.subscription?._id;
+
     if (activePlanId && activePlanId === plan._id) return;
 
     navigate("/purchases", {
@@ -41,10 +79,63 @@ const Subscription = () => {
     });
   };
 
+  /*
+    Dummy comparison data
+
+    IMPORTANT:
+    Ye data sirf comparison UI ke liye hai.
+    Isme countries, job posts, applications ya backend limits
+    use nahi kiye gaye hain.
+  */
+  const comparisonData = [
+    {
+      label: "Job Search",
+      values: [true, true, true],
+    },
+    {
+      label: "Advanced Job Filters",
+      values: [true, true, true],
+    },
+    {
+      label: "Profile Visibility",
+      values: ["Basic", "Enhanced", "Priority"],
+    },
+    {
+      label: "Resume Builder",
+      values: [true, true, true],
+    },
+    {
+      label: "Job Alerts",
+      values: [true, true, true],
+    },
+    {
+      label: "Application Tracking",
+      values: [true, true, true],
+    },
+    {
+      label: "Career Insights",
+      values: [false, true, true],
+    },
+    {
+      label: "Priority Support",
+      values: [false, true, true],
+    },
+    {
+      label: "AI Career Assistant",
+      values: [false, false, true],
+    },
+    {
+      label: "Personalized Recommendations",
+      values: [false, true, true],
+    },
+  ];
+
   if (fetchLoading) {
     return (
       <main className="flex min-h-[60vh] items-center justify-center bg-[#f8fafc]">
-        <p className="text-sm font-medium text-slate-500">Loading plans...</p>
+        <p className="text-sm font-medium text-slate-500">
+          Loading plans...
+        </p>
       </main>
     );
   }
@@ -59,34 +150,33 @@ const Subscription = () => {
 
   return (
     <main className="overflow-x-hidden bg-[#f8fafc] text-slate-900">
-      {/* =====================================================
-          HERO
-      ====================================================== */}
-      <section className="relative overflow-hidden bg-white px-5 pb-6 pt-8 sm:px-8 lg:px-10 lg:pb-8 lg:pt-8">
+      {/* ================= HERO ================= */}
+      <section className="relative overflow-hidden bg-white px-5 pb-6 pt-4 sm:px-8 lg:px-10 lg:pb-8 lg:pt-4">
         <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-indigo-100/60 blur-3xl" />
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600">
+          <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-600">
             <Sparkles size={16} />
             DreamGoGlobal Plans
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl xl:text-6xl">
             Choose the plan that
-            <span className="block text-indigo-600">fits your career</span>
+            <span className="block text-indigo-600">
+              fits your career
+            </span>
           </h1>
 
           <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-slate-500 sm:text-base sm:leading-8 lg:text-lg">
             Start free and unlock powerful career tools as you grow. Find
-            opportunities, build skills, and take your career to the next level.
+            opportunities, build skills, and take your career to the next
+            level.
           </p>
         </div>
       </section>
 
-      {/* =====================================================
-          PRICING CARDS
-      ====================================================== */}
-      <section className="px-5 pb-8 sm:px-8 lg:px-10 lg:pb-8">
+      {/* ================= PRICING CARDS ================= */}
+      <section className="px-5 pb-4 sm:px-8 lg:px-10 lg:pb-6">
         {!subscriptions || subscriptions.length === 0 ? (
           <p className="text-center text-sm text-slate-500">
             Abhi koi plan available nahi hai.
@@ -96,27 +186,32 @@ const Subscription = () => {
             {subscriptions.map((plan) => {
               const isSelected = selectedPlan === plan.planName;
               const isPopular = plan.isPopular;
+
               const isAlreadyPurchased =
                 mySubscription?.subscription?._id === plan._id;
+
               const accent = plan.color || "#4F46E5";
 
-              // discount hai to original price wapas nikal ke strikethrough dikhao
               const hasDiscount = plan.discountPercentage > 0;
+
               const originalPrice = hasDiscount
-                ? Math.round(plan.price / (1 - plan.discountPercentage / 100))
+                ? Math.round(
+                    plan.price / (1 - plan.discountPercentage / 100)
+                  )
                 : null;
 
               return (
                 <div
                   key={plan._id}
                   onClick={() => handlePlanSelect(plan)}
-                  className={`relative flex cursor-pointer flex-col rounded-3xl border bg-white p-5 transition duration-300 hover:-translate-y-1 sm:p-6 md:p-7 lg:p-8 ${
-                    isSelected
+                  className={
+                    "relative flex cursor-pointer flex-col rounded-3xl border bg-white p-5 transition duration-300 hover:-translate-y-1 sm:p-6 md:p-7 lg:p-8 " +
+                    (isSelected
                       ? "shadow-2xl ring-2"
                       : isPopular
                         ? "shadow-2xl"
-                        : "border-slate-200 shadow-sm"
-                  }`}
+                        : "border-slate-200 shadow-sm")
+                  }
                   style={
                     isSelected || isPopular
                       ? {
@@ -149,39 +244,45 @@ const Subscription = () => {
                   <div>
                     <div
                       className="flex h-10 w-10 items-center justify-center rounded-xl sm:h-12 sm:w-12"
-                      style={{ backgroundColor: `${accent}1A`, color: accent }}
+                      style={{
+                        backgroundColor: `${accent}1A`,
+                        color: accent,
+                      }}
                     >
-                      <Sparkles size={18} className="sm:size-[22px]" />
+                      <Sparkles
+                        size={18}
+                        className="sm:size-[22px]"
+                      />
                     </div>
 
                     <h2 className="mt-4 text-xl font-bold text-slate-900 sm:text-2xl">
                       {plan.planName}
                     </h2>
 
-                    <p className="mt-1 text-sm text-slate-500 line-clamp-2">
+                    <p className="mt-1 line-clamp-2 text-sm text-slate-500">
                       {plan.description}
                     </p>
                   </div>
 
-                 <div className="mt-5 sm:mt-6 lg:mt-7">
-  <div className="flex items-end gap-2">
-    <span className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-      {plan.formattedPrice?.replace("₹", "$")}
-    </span>
+                  <div className="mt-5 sm:mt-6 lg:mt-7">
+                    <div className="flex items-end gap-2">
+                      <span className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
+                        {plan.formattedPrice?.replace("₹", "$")}
+                      </span>
 
-    {hasDiscount && (
-      <span className="mb-1 text-sm text-slate-400 line-through">
-        ${originalPrice.toLocaleString("en-IN")}
-      </span>
-    )}
-  </div>
+                      {hasDiscount && (
+                        <span className="mb-1 text-sm text-slate-400 line-through">
+                          ${originalPrice.toLocaleString("en-IN")}
+                        </span>
+                      )}
+                    </div>
 
-  {hasDiscount && (
-    <p className="mt-1 text-xs font-medium text-emerald-600 sm:mt-2">
-      {plan.discountPercentage}% off
-    </p>
-  )}
-</div>
+                    {hasDiscount && (
+                      <p className="mt-1 text-xs font-medium text-emerald-600 sm:mt-2">
+                        {plan.discountPercentage}% off
+                      </p>
+                    )}
+                  </div>
 
                   <button
                     onClick={(e) => {
@@ -189,16 +290,22 @@ const Subscription = () => {
                       handlePlanClick(plan);
                     }}
                     disabled={isAlreadyPurchased}
-                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition sm:py-3.5 hover:opacity-90"
+                    className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-white transition hover:opacity-90 sm:py-3.5"
                     style={{
-                      backgroundColor: isAlreadyPurchased ? "#94a3b8" : accent,
+                      backgroundColor: isAlreadyPurchased
+                        ? "#94a3b8"
+                        : accent,
                     }}
                   >
                     {isAlreadyPurchased
                       ? "Already Purchased"
                       : `Go ${plan.planName}`}
+
                     {!isAlreadyPurchased && (
-                      <ArrowRight size={16} className="sm:size-[17px]" />
+                      <ArrowRight
+                        size={16}
+                        className="sm:size-[17px]"
+                      />
                     )}
                   </button>
 
@@ -222,8 +329,12 @@ const Subscription = () => {
                               color: accent,
                             }}
                           >
-                            <Check size={13} strokeWidth={3} />
+                            <Check
+                              size={13}
+                              strokeWidth={3}
+                            />
                           </span>
+
                           <span>{feature.trim()}</span>
                         </li>
                       ))}
@@ -231,12 +342,18 @@ const Subscription = () => {
 
                     <div className="mt-5 flex flex-wrap gap-4 text-xs text-slate-400">
                       <span>
-                        {plan.numberOfCountries || plan.countries?.length || 1}{" "}
+                        {plan.numberOfCountries ||
+                          plan.countries?.length ||
+                          1}{" "}
                         countries
                       </span>
+
                       <span>•</span>
+
                       <span>{plan.maxJobs} job posts</span>
+
                       <span>•</span>
+
                       <span>{plan.maxApplications} applications</span>
                     </div>
 
@@ -253,19 +370,152 @@ const Subscription = () => {
         )}
       </section>
 
-      {/* =====================================================
-          TRUST BAR
-      ====================================================== */}
+      {/* ===================================================== */}
+      {/*                  PLAN COMPARISON                       */}
+      {/* ===================================================== */}
+
+      {subscriptions && subscriptions.length > 0 && (
+        <section className="px-5 pb-4 pt-2 sm:px-8 lg:px-10 lg:pb-4">
+          <div className="mx-auto max-w-6xl">
+            {/* Comparison Header */}
+            <div className="mb-4 text-center sm:mb-8">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-600">
+                <Check size={14} />
+                Compare Plans
+              </div>
+
+              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+                Find the plan that's right for you
+              </h2>
+
+              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+                Compare the features and benefits available with each plan
+                before making your choice.
+              </p>
+            </div>
+
+            {/* Comparison Table */}
+            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[760px] border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 bg-slate-50">
+                      <th className="sticky left-0 z-20 min-w-[190px] bg-slate-50 px-4 py-5 text-left text-sm font-bold text-slate-800 sm:min-w-[230px] sm:px-6">
+                        Features
+                      </th>
+
+                      {subscriptions.map((plan) => {
+                        const accent =
+                          plan.color || "#4F46E5";
+
+                        return (
+                          <th
+                            key={plan._id}
+                            className="min-w-[170px] px-4 py-5 text-center sm:min-w-[190px] sm:px-6"
+                          >
+                            <div className="flex flex-col items-center">
+                              {plan.isPopular && (
+                                <span
+                                  className="mb-2 rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-white"
+                                  style={{
+                                    backgroundColor: accent,
+                                  }}
+                                >
+                                  Popular
+                                </span>
+                              )}
+
+                              <span className="text-sm font-bold text-slate-900 sm:text-base">
+                                {plan.planName}
+                              </span>
+
+                              <span
+                                className="mt-1 text-lg font-black sm:text-xl"
+                                style={{ color: accent }}
+                              >
+                                {plan.formattedPrice?.replace(
+                                  "₹",
+                                  "$"
+                                )}
+                              </span>
+                            </div>
+                          </th>
+                        );
+                      })}
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {comparisonData.map((row) => (
+                      <ComparisonRow
+                        key={row.label}
+                        label={row.label}
+                      >
+                        {subscriptions.map((plan, index) => {
+                          const accent =
+                            plan.color || "#4F46E5";
+
+                          const value =
+                            row.values[
+                              Math.min(
+                                index,
+                                row.values.length - 1
+                              )
+                            ];
+
+                          return (
+                            <td
+                              key={plan._id}
+                              className="px-4 py-4 text-center sm:px-6"
+                            >
+                              {typeof value === "boolean" ? (
+                                <ComparisonStatus
+                                  available={value}
+                                  accent={accent}
+                                />
+                              ) : (
+                                <span
+                                  className="text-sm font-semibold"
+                                  style={{
+                                    color: accent,
+                                  }}
+                                >
+                                  {value}
+                                </span>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </ComparisonRow>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Scroll Hint */}
+              <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 text-center text-[11px] font-medium text-slate-400 sm:hidden">
+                ← Swipe horizontally to compare all plans →
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ================= TRUST BAR ================= */}
       <section className="border-y border-slate-200 bg-white px-5 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto flex max-w-5xl flex-col items-center justify-center gap-4 text-center sm:flex-row sm:gap-6">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
-            <ShieldCheck size={20} className="sm:size-[21px]" />
+            <ShieldCheck
+              size={20}
+              className="sm:size-[21px]"
+            />
           </div>
 
           <div>
             <p className="font-semibold text-slate-900">
               Simple, transparent pricing
             </p>
+
             <p className="mt-1 text-sm text-slate-500">
               No hidden charges. Upgrade or cancel whenever you want.
             </p>

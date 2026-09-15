@@ -56,6 +56,7 @@ import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import SuccessStories from "./Pages/SuccessStory";
 import TermCondition from "./Pages/TermCondition";
 import { getProfile } from "./redux/slicer/authSlice";
+import ApplyNowPopup from "./components/ApplyNowPopup";
 
 function App() {
   const dispatch = useDispatch();
@@ -197,6 +198,7 @@ function App() {
               </Route>
             </Route>
           </Routes>
+          <ApplyNowPopup />
         </SubscriptionProvider>
       </ApplicationProvider>
     </JobCategoryProvider>

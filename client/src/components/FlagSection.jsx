@@ -133,8 +133,8 @@ const FlagSection = () => {
           className="
             mt-4
             grid
-            grid-cols-2
-            gap-3
+            grid-cols-4
+            gap-2
 
             sm:mt-4
             sm:grid-cols-3

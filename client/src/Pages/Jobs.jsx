@@ -190,18 +190,6 @@ const Jobs = () => {
   // ============================================================
   // 5-DAY ROLLING DEADLINE
   // ============================================================
-  //
-  // Job posted:
-  // 15 Sep -> 20 Sep
-  //
-  // After 20 Sep:
-  // 20 Sep -> 25 Sep
-  //
-  // After 25 Sep:
-  // 25 Sep -> 30 Sep
-  //
-  // The cycle continues every 5 days.
-  // ============================================================
 
   const getRollingDeadline = (createdAt) => {
     if (!createdAt) {
@@ -284,10 +272,7 @@ const Jobs = () => {
       normalizeValue(job?.companyLogo?.thumb) ||
       normalizeValue(job?.companyLogo);
 
-    // ----------------------------------------------------------
-    // Calculate rolling 5-day deadline from job posting date
-    // ----------------------------------------------------------
-
+    // Calculate rolling 5-day deadline
     const calculatedDeadline = getRollingDeadline(job?.createdAt);
 
     return {
@@ -330,7 +315,6 @@ const Jobs = () => {
 
       featured: Boolean(job?.isFeatured),
 
-      // Urgent hiring
       urgent: Boolean(job?.isUrgent),
 
       logoUrl,
@@ -346,11 +330,9 @@ const Jobs = () => {
 
       createdAt: job?.createdAt || null,
 
-      // Original backend deadline
       backendDeadline:
         job?.applicationDeadline || null,
 
-      // New rolling deadline
       deadline: calculatedDeadline,
 
       deadlineText:
@@ -1221,7 +1203,7 @@ const Jobs = () => {
             />
 
             <span className="text-xs sm:text-sm font-medium">
-              Application Deadline:
+              Apply before:
             </span>
 
             <span className="text-xs sm:text-sm font-bold">
@@ -1531,20 +1513,6 @@ const Jobs = () => {
               )}
             </p>
           </div>
-
-          {/* MOBILE FILTER */}
-          <button
-            type="button"
-            onClick={() =>
-              setMobileFilters(true)
-            }
-            className="lg:hidden flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold"
-          >
-            <SlidersHorizontal
-              size={17}
-            />
-            Filters
-          </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
@@ -1649,89 +1617,115 @@ const Jobs = () => {
 
           {/* JOB LIST */}
           <main className="min-w-0">
-            {/* SORT */}
-            <div className="flex items-center justify-between gap-3 mb-4">
+            {/* ==================================================
+                SORT + MOBILE FILTER
+            ================================================== */}
+
+            <div className="flex items-center justify-between gap-2 mb-4">
               <p className="hidden sm:block text-sm text-slate-500">
                 {filteredJobs.length} matching jobs
               </p>
 
-              <div className="relative ml-auto">
+              <div className="ml-auto flex items-center gap-2 w-full sm:w-auto">
+                {/* MOBILE FILTER */}
                 <button
                   type="button"
                   onClick={() =>
-                    setSortOpen(
-                      (prev) => !prev,
-                    )
+                    setMobileFilters(true)
                   }
-                  className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700"
+                  className="lg:hidden flex-1 min-w-0 inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-semibold whitespace-nowrap"
                 >
-                  <ArrowUpDown
-                    size={16}
+                  <SlidersHorizontal
+                    size={17}
                   />
 
-                  {sortBy ===
-                  "relevance"
-                    ? "Relevance"
-                    : sortBy === "latest"
-                      ? "Latest"
-                      : sortBy ===
-                          "salary-high"
-                        ? "Salary: High to Low"
-                        : "Salary: Low to High"}
-
-                  <ChevronDown
-                    size={16}
-                  />
+                  <span>
+                    Filters
+                  </span>
                 </button>
 
-                {sortOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 overflow-hidden">
-                    {[
-                      [
-                        "relevance",
-                        "Relevance",
-                      ],
-                      [
-                        "latest",
-                        "Latest",
-                      ],
-                      [
-                        "salary-high",
-                        "Salary: High to Low",
-                      ],
-                      [
-                        "salary-low",
-                        "Salary: Low to High",
-                      ],
-                    ].map(
-                      ([
-                        value,
-                        label,
-                      ]) => (
-                        <button
-                          key={value}
-                          type="button"
-                          onClick={() => {
-                            setSortBy(
-                              value,
-                            );
-                            setSortOpen(
-                              false,
-                            );
-                          }}
-                          className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 ${
-                            sortBy ===
-                            value
-                              ? "text-blue-600 font-semibold bg-blue-50"
-                              : "text-slate-600"
-                          }`}
-                        >
-                          {label}
-                        </button>
-                      ),
-                    )}
-                  </div>
-                )}
+                {/* SORT */}
+                <div className="relative flex-1 sm:flex-none min-w-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setSortOpen(
+                        (prev) => !prev,
+                      )
+                    }
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 whitespace-nowrap"
+                  >
+                    <ArrowUpDown
+                      size={16}
+                    />
+
+                    <span className="truncate">
+                      {sortBy ===
+                      "relevance"
+                        ? "Relevance"
+                        : sortBy ===
+                            "latest"
+                          ? "Latest"
+                          : sortBy ===
+                              "salary-high"
+                            ? "Salary: High to Low"
+                            : "Salary: Low to High"}
+                    </span>
+
+                    <ChevronDown
+                      size={16}
+                    />
+                  </button>
+
+                  {sortOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-30 overflow-hidden">
+                      {[
+                        [
+                          "relevance",
+                          "Relevance",
+                        ],
+                        [
+                          "latest",
+                          "Latest",
+                        ],
+                        [
+                          "salary-high",
+                          "Salary: High to Low",
+                        ],
+                        [
+                          "salary-low",
+                          "Salary: Low to High",
+                        ],
+                      ].map(
+                        ([
+                          value,
+                          label,
+                        ]) => (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => {
+                              setSortBy(
+                                value,
+                              );
+                              setSortOpen(
+                                false,
+                              );
+                            }}
+                            className={`w-full text-left px-4 py-3 text-sm hover:bg-slate-50 ${
+                              sortBy ===
+                              value
+                                ? "text-blue-600 font-semibold bg-blue-50"
+                                : "text-slate-600"
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1986,9 +1980,7 @@ const Jobs = () => {
               >
                 <FilterContent
                   filterKey="salary"
-                  items={
-                    filters.salary
-                  }
+                  items={filters.salary}
                 />
               </FilterSection>
 

@@ -118,18 +118,18 @@ const MySubscription = () => {
           <div className="flex items-center gap-3">
             {/* Icon */}
 
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#A0E9FF]/40 text-[#159FEF] sm:h-12 sm:w-12">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 sm:h-12 sm:w-12">
               <Crown className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
 
             {/* Heading */}
 
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-bold uppercase tracking-wider text-[#159FEF]">
+              <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
                 Account
               </p>
 
-              <h1 className="mt-1 text-xl font-black tracking-tight text-slate-900 sm:text-2xl lg:text-3xl">
+              <h1 className="mt-1 text-xl font-black tracking-tight  text-blue-600 first:text-blue-600 sm:text-2xl lg:text-3xl">
                 My Subscription
               </h1>
 
@@ -221,7 +221,7 @@ const MySubscription = () => {
                   {/* PLAN INFO */}
 
                   <div className="flex min-w-0 flex-1 items-center gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#30AFFF] text-white shadow-lg shadow-[#30AFFF]/20 sm:h-14 sm:w-14">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-lg shadow-[#30AFFF]/20 sm:h-14 sm:w-14">
                       <PlanIcon className="h-6 w-6" />
                     </div>
 
@@ -328,12 +328,12 @@ const MySubscription = () => {
 
           <div className="w-full border-b border-slate-100 px-5 py-4 sm:px-6 sm:py-5">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#A0E9FF]/40 text-[#159FEF]">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                 <History className="h-[18px] w-[18px]" />
               </div>
 
               <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#159FEF]">
+                <p className="text-xs font-bold uppercase tracking-wider text-blue-600">
                   Account History
                 </p>
 
@@ -396,7 +396,7 @@ const MySubscription = () => {
                         {/* PLAN INFORMATION */}
 
                         <div className="flex min-w-0 flex-1 items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#159FEF] shadow-sm">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
                             <ItemIcon className="h-[18px] w-[18px]" />
                           </div>
 
@@ -464,7 +464,7 @@ const MySubscription = () => {
 
           <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="max-w-2xl">
-              <div className="flex items-center gap-2 text-[#A0E9FF]">
+              <div className="flex items-center gap-2 text-blue-600">
                 <Sparkles size={17} />
 
                 <span className="text-xs font-bold uppercase tracking-wider">
@@ -485,7 +485,7 @@ const MySubscription = () => {
             <button
               type="button"
               onClick={() => navigate("/subscription")}
-              className="inline-flex w-full shrink-0 items-center justify-center rounded-xl bg-[#30AFFF] px-6 py-3 text-sm font-bold text-white transition-all hover:bg-[#159FEF] hover:shadow-lg hover:shadow-[#30AFFF]/20 sm:w-fit"
+              className="inline-flex w-full shrink-0 items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white transition-all hover:bg-[#159FEF] hover:shadow-lg hover:shadow-[#30AFFF]/20 sm:w-fit"
             >
               View Plans
             </button>

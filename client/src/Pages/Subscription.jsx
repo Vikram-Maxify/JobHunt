@@ -374,132 +374,222 @@ const Subscription = () => {
       {/*                  PLAN COMPARISON                       */}
       {/* ===================================================== */}
 
-      {subscriptions && subscriptions.length > 0 && (
-        <section className="px-5 pb-4 pt-2 sm:px-8 lg:px-10 lg:pb-4">
-          <div className="mx-auto max-w-6xl">
-            {/* Comparison Header */}
-            <div className="mb-4 text-center sm:mb-8">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-600">
-                <Check size={14} />
-                Compare Plans
-              </div>
+      {/* Plan Comparison */}
+{subscriptions && subscriptions.length > 0 && (
+  <section className="px-3 pb-5 pt-3 sm:px-8 lg:px-10 lg:pb-6">
+    <div className="mx-auto max-w-6xl">
 
-              <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-                Find the plan that's right for you
-              </h2>
+      {/* Heading */}
+      <div className="mb-5 text-center sm:mb-8">
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3.5 py-1.5 text-xs font-semibold text-indigo-600">
+          <Check size={14} />
+          Compare Plans
+        </div>
 
-              <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-                Compare the features and benefits available with each plan
-                before making your choice.
-              </p>
-            </div>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+          Find the plan that's right for you
+        </h2>
 
-            {/* Comparison Table */}
-            <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-200 bg-slate-50">
-                      <th className="sticky left-0 z-20 min-w-[190px] bg-slate-50 px-4 py-5 text-left text-sm font-bold text-slate-800 sm:min-w-[230px] sm:px-6">
-                        Features
-                      </th>
+        <p className="mx-auto mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
+          Compare the features and benefits available with each plan
+          before making your choice.
+        </p>
+      </div>
 
-                      {subscriptions.map((plan) => {
-                        const accent =
-                          plan.color || "#4F46E5";
+      {/* Comparison Table */}
+      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm sm:rounded-3xl">
 
-                        return (
-                          <th
-                            key={plan._id}
-                            className="min-w-[170px] px-4 py-5 text-center sm:min-w-[190px] sm:px-6"
+        {/* Mobile scroll hint */}
+        <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50 px-3 py-2.5 sm:hidden">
+          <span className="text-[11px] font-medium text-slate-500">
+            Compare all plans
+          </span>
+
+          <span className="text-[10px] font-semibold text-indigo-500">
+            ← Swipe →
+          </span>
+        </div>
+
+        <div className="overflow-x-auto overscroll-x-contain">
+          <table className="w-full min-w-[650px] border-collapse">
+
+            {/* Header */}
+            <thead>
+              <tr className="border-b border-slate-200 bg-slate-50">
+
+                {/* Feature column */}
+                <th
+                  className="
+                    sticky left-0 z-30
+                    min-w-[145px]
+                    bg-slate-50
+                    px-3 py-4
+                    text-left
+                    text-xs font-bold
+                    text-slate-800
+                    shadow-[3px_0_6px_-5px_rgba(15,23,42,0.25)]
+                    sm:min-w-[230px]
+                    sm:px-6 sm:py-5
+                    sm:text-sm
+                  "
+                >
+                  Features
+                </th>
+
+                {subscriptions.map((plan) => {
+                  const accent = plan.color || "#4F46E5";
+
+                  return (
+                    <th
+                      key={plan._id}
+                      className="
+                        min-w-[165px]
+                        px-3 py-4
+                        text-center
+                        sm:min-w-[190px]
+                        sm:px-6 sm:py-5
+                      "
+                    >
+                      <div className="flex flex-col items-center">
+
+                        {plan.isPopular && (
+                          <span
+                            className="
+                              mb-1.5
+                              rounded-full
+                              px-2 py-0.5
+                              text-[8px]
+                              font-bold
+                              uppercase
+                              tracking-wide
+                              text-white
+                              sm:mb-2
+                              sm:px-2.5 sm:py-1
+                              sm:text-[9px]
+                            "
+                            style={{ backgroundColor: accent }}
                           >
-                            <div className="flex flex-col items-center">
-                              {plan.isPopular && (
-                                <span
-                                  className="mb-2 rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-white"
-                                  style={{
-                                    backgroundColor: accent,
-                                  }}
-                                >
-                                  Popular
-                                </span>
-                              )}
+                            Popular
+                          </span>
+                        )}
 
-                              <span className="text-sm font-bold text-slate-900 sm:text-base">
-                                {plan.planName}
-                              </span>
+                        <span className="text-xs font-bold text-slate-900 sm:text-base">
+                          {plan.planName}
+                        </span>
 
-                              <span
-                                className="mt-1 text-lg font-black sm:text-xl"
-                                style={{ color: accent }}
-                              >
-                                {plan.formattedPrice?.replace(
-                                  "₹",
-                                  "$"
-                                )}
-                              </span>
-                            </div>
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  </thead>
+                        <span
+                          className="mt-1 text-base font-black sm:text-xl"
+                          style={{ color: accent }}
+                        >
+                          {plan.formattedPrice?.replace("₹", "$")}
+                        </span>
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
 
-                  <tbody>
-                    {comparisonData.map((row) => (
-                      <ComparisonRow
-                        key={row.label}
-                        label={row.label}
+            {/* Body */}
+            <tbody>
+              {comparisonData.map((row) => (
+                <tr
+                  key={row.label}
+                  className="border-b border-slate-100 last:border-b-0"
+                >
+
+                  {/* Feature name */}
+                  <td
+                    className="
+                      sticky left-0 z-20
+                      min-w-[145px]
+                      bg-white
+                      px-3 py-3.5
+                      text-left
+                      text-[11px]
+                      font-semibold
+                      leading-4
+                      text-slate-700
+                      shadow-[3px_0_6px_-5px_rgba(15,23,42,0.25)]
+                      sm:min-w-[230px]
+                      sm:px-6 sm:py-4
+                      sm:text-sm
+                    "
+                  >
+                    {row.label}
+                  </td>
+
+                  {/* Values */}
+                  {subscriptions.map((plan, index) => {
+                    const accent = plan.color || "#4F46E5";
+
+                    const value =
+                      row.values[
+                        Math.min(
+                          index,
+                          row.values.length - 1
+                        )
+                      ];
+
+                    return (
+                      <td
+                        key={plan._id}
+                        className="
+                          min-w-[165px]
+                          px-3 py-3.5
+                          text-center
+                          sm:min-w-[190px]
+                          sm:px-6 sm:py-4
+                        "
                       >
-                        {subscriptions.map((plan, index) => {
-                          const accent =
-                            plan.color || "#4F46E5";
+                        {typeof value === "boolean" ? (
+                          <div className="flex justify-center">
+                            <ComparisonStatus
+                              available={value}
+                              accent={accent}
+                            />
+                          </div>
+                        ) : (
+                          <span
+                            className="
+                              inline-flex
+                              min-w-[70px]
+                              items-center
+                              justify-center
+                              rounded-lg
+                              px-2.5 py-1.5
+                              text-[11px]
+                              font-bold
+                              sm:text-sm
+                            "
+                            style={{
+                              backgroundColor: `${accent}0D`,
+                              color: accent,
+                            }}
+                          >
+                            {value}
+                          </span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
 
-                          const value =
-                            row.values[
-                              Math.min(
-                                index,
-                                row.values.length - 1
-                              )
-                            ];
+          </table>
+        </div>
+      </div>
 
-                          return (
-                            <td
-                              key={plan._id}
-                              className="px-4 py-4 text-center sm:px-6"
-                            >
-                              {typeof value === "boolean" ? (
-                                <ComparisonStatus
-                                  available={value}
-                                  accent={accent}
-                                />
-                              ) : (
-                                <span
-                                  className="text-sm font-semibold"
-                                  style={{
-                                    color: accent,
-                                  }}
-                                >
-                                  {value}
-                                </span>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </ComparisonRow>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Scroll Hint */}
-              <div className="border-t border-slate-100 bg-slate-50 px-4 py-3 text-center text-[11px] font-medium text-slate-400 sm:hidden">
-                ← Swipe horizontally to compare all plans →
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
+      {/* Mobile helper */}
+      <div className="mt-3 flex items-center justify-center gap-1.5 sm:hidden">
+        <span className="text-[10px] text-slate-400">
+          Swipe left or right to compare plans
+        </span>
+      </div>
+    </div>
+  </section>
+)}
 
       {/* ================= TRUST BAR ================= */}
       <section className="border-y border-slate-200 bg-white px-5 py-6 sm:px-8 sm:py-8">

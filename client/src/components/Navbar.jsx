@@ -16,7 +16,9 @@ import {
   UserPlus,
   UserRound,
   X,
+  Trophy
 } from "lucide-react";
+
 
 import { BsCreditCardFill } from "react-icons/bs";
 import { FaBookmark } from "react-icons/fa";
@@ -84,7 +86,7 @@ const Navbar = () => {
     {
       name: "SuccessStory",
       path: "/successstory",
-      icon: Images,
+      icon: Trophy,
     },
     {
       name: "Contact Us",

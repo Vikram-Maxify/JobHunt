@@ -80,9 +80,7 @@ const MyAppication = () => {
       if (job.salary) {
         if (typeof job.salary === "string") {
           salary = job.salary;
-        } else if (
-          typeof job.salary === "object"
-        ) {
+        } else if (typeof job.salary === "object") {
           if (
             job.salary.min !== undefined &&
             job.salary.max !== undefined
@@ -112,7 +110,7 @@ const MyAppication = () => {
 
       const displayStatus =
         statusMap[
-        String(rawStatus).toLowerCase()
+          String(rawStatus).toLowerCase()
         ] || rawStatus;
 
       return {
@@ -138,12 +136,12 @@ const MyAppication = () => {
 
         appliedDate: application.appliedAt
           ? new Date(
-            application.appliedAt
-          ).toLocaleDateString("en-IN", {
-            day: "2-digit",
-            month: "short",
-            year: "numeric",
-          })
+              application.appliedAt
+            ).toLocaleDateString("en-IN", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
           : "Date not available",
 
         status: displayStatus,
@@ -284,10 +282,12 @@ const MyAppication = () => {
       <main className="min-h-[calc(100vh-68px)] bg-slate-50">
         <div className="mx-auto flex min-h-[60vh] w-full max-w-7xl items-center justify-center px-4">
           <div className="flex flex-col items-center gap-3">
-            <Loader2
-              size={36}
-              className="animate-spin text-blue-600"
-            />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
+              <Loader2
+                size={28}
+                className="animate-spin text-blue-600"
+              />
+            </div>
 
             <p className="text-sm font-medium text-slate-500">
               Loading your applications...
@@ -315,7 +315,7 @@ const MyAppication = () => {
               Failed to load applications
             </h2>
 
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500">
               {typeof error === "string"
                 ? error
                 : "Something went wrong while loading your applications."}
@@ -326,7 +326,7 @@ const MyAppication = () => {
               onClick={() =>
                 dispatch(getMyApplications())
               }
-              className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-blue-700"
+              className="mt-5 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
             >
               Try Again
             </button>
@@ -345,28 +345,34 @@ const MyAppication = () => {
         ===================================================== */}
 
         <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 p-5 shadow-lg sm:p-7 lg:p-8">
+          {/* Background Decoration */}
 
           <div className="absolute -right-16 -top-20 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
 
           <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
 
-          <div className="relative">
-            <div className="flex items-start gap-3">
+          <div className="absolute bottom-0 right-1/4 h-24 w-24 rounded-full bg-white/5 blur-xl" />
 
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white backdrop-blur-sm sm:h-12 sm:w-12">
+          <div className="relative">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white shadow-sm backdrop-blur-sm sm:h-12 sm:w-12">
                 <BriefcaseBusiness size={21} />
               </div>
 
               <div className="min-w-0">
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-widest text-blue-100 sm:text-xs">
+                  Career Dashboard
+                </p>
+
                 <h1 className="text-xl font-black text-white sm:text-2xl lg:text-3xl">
                   My Applications
                 </h1>
 
-                <p className="mt-1 max-w-2xl text-xs leading-5 text-blue-100 sm:text-sm">
-                  Track all your job applications and stay updated with your application progress.
+                <p className="mt-1 max-w-2xl text-xs leading-5 text-blue-100 sm:text-sm sm:leading-6">
+                  Track all your job applications and stay
+                  updated with your application progress.
                 </p>
               </div>
-
             </div>
           </div>
         </section>
@@ -376,7 +382,6 @@ const MyAppication = () => {
         ===================================================== */}
 
         <section className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-
           <StatCard
             icon={FileText}
             label="Total Applications"
@@ -408,7 +413,6 @@ const MyAppication = () => {
             iconBg="bg-red-50"
             iconColor="text-red-600"
           />
-
         </section>
 
         {/* =====================================================
@@ -416,8 +420,18 @@ const MyAppication = () => {
         ===================================================== */}
 
         <section className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+          <div className="mb-3">
+            <h2 className="text-sm font-bold text-slate-800">
+              Find an application
+            </h2>
+
+            <p className="mt-0.5 text-xs text-slate-400">
+              Search your applications or filter them by status.
+            </p>
+          </div>
 
           <div className="flex flex-col gap-3 md:flex-row">
+            {/* Search */}
 
             <div className="relative min-w-0 flex-1">
               <Search
@@ -436,8 +450,9 @@ const MyAppication = () => {
               />
             </div>
 
-            <div className="relative w-full md:w-52">
+            {/* Status Filter */}
 
+            <div className="relative w-full md:w-52">
               <select
                 value={statusFilter}
                 onChange={(e) =>
@@ -474,20 +489,16 @@ const MyAppication = () => {
                 size={16}
                 className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
               />
-
             </div>
-
           </div>
         </section>
 
         {/* =====================================================
-            APPLICATION LIST
+            APPLICATION LIST HEADER
         ===================================================== */}
 
-        <section className="mt-5">
-
-          <div className="mb-4 flex items-center justify-between gap-3">
-
+        <section className="mt-6">
+          <div className="mb-4 flex items-end justify-between gap-3">
             <div>
               <h2 className="text-base font-bold text-slate-800 sm:text-lg">
                 Your Applications
@@ -502,12 +513,26 @@ const MyAppication = () => {
               </p>
             </div>
 
+            {(searchTerm || statusFilter !== "All") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("All");
+                }}
+                className="text-xs font-bold text-blue-600 transition hover:text-blue-700"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
 
+          {/* =====================================================
+              APPLICATION LIST
+          ===================================================== */}
+
           {filteredApplications.length > 0 ? (
-
             <div className="space-y-4">
-
               {filteredApplications.map(
                 (application) => {
                   const status =
@@ -521,57 +546,74 @@ const MyAppication = () => {
                   return (
                     <article
                       key={application.id}
-                      className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md sm:p-5"
+                      className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-lg sm:p-5"
                     >
+                      {/* Left Hover Accent */}
+
+                      <div className="absolute bottom-0 left-0 top-0 w-1 scale-y-0 bg-gradient-to-b from-blue-500 to-indigo-600 transition-transform duration-300 group-hover:scale-y-100" />
 
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-
-                        {/* LEFT */}
+                        {/* =================================================
+                            LEFT CONTENT
+                        ================================================== */}
 
                         <div className="flex min-w-0 gap-3 sm:gap-4">
+                          {/* Company Logo */}
 
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-black text-white shadow-sm sm:h-14 sm:w-14 sm:text-xl">
+                          <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-lg font-black text-white shadow-sm sm:h-14 sm:w-14 sm:text-xl">
                             {application.logo}
                           </div>
 
                           <div className="min-w-0 flex-1">
+                            {/* Title + Status */}
 
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-
-                              <h3 className="truncate text-sm font-bold text-slate-800 sm:text-base">
+                              <h3 className="min-w-0 truncate text-sm font-bold text-slate-800 transition-colors group-hover:text-blue-600 sm:text-base">
                                 {application.jobTitle}
                               </h3>
 
                               <span
-                                className={`inline-flex w-fit items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${status.bg} ${status.text} ${status.border}`}
+                                className={`inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold ${status.bg} ${status.text} ${status.border}`}
                               >
                                 <StatusIcon size={12} />
                                 {application.status}
                               </span>
-
                             </div>
 
-                            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                            {/* Company + Location */}
 
-                              <span className="inline-flex items-center gap-1">
-                                <Building2 size={13} />
-                                {application.company}
+                            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                              <span className="inline-flex items-center gap-1.5">
+                                <Building2
+                                  size={13}
+                                  className="shrink-0 text-slate-400"
+                                />
+
+                                <span className="truncate">
+                                  {application.company}
+                                </span>
                               </span>
 
                               <span className="hidden text-slate-300 sm:inline">
                                 •
                               </span>
 
-                              <span className="inline-flex items-center gap-1">
-                                <MapPin size={13} />
-                                {application.location}
-                              </span>
+                              <span className="inline-flex items-center gap-1.5">
+                                <MapPin
+                                  size={13}
+                                  className="shrink-0 text-slate-400"
+                                />
 
+                                <span className="truncate">
+                                  {application.location}
+                                </span>
+                              </span>
                             </div>
 
-                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                            {/* Job Type + Salary */}
 
-                              <span>
+                            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400">
+                              <span className="rounded-md bg-slate-50 px-2 py-1 font-medium">
                                 {application.type}
                               </span>
 
@@ -582,51 +624,60 @@ const MyAppication = () => {
                               <span>
                                 {application.salary}
                               </span>
-
                             </div>
-
                           </div>
                         </div>
 
-                        {/* RIGHT */}
+                        {/* =================================================
+                            RIGHT CONTENT
+                        ================================================== */}
 
                         <div className="flex flex-col gap-3 border-t border-slate-100 pt-3 sm:flex-row sm:items-center lg:border-t-0 lg:pt-0">
+                          {/* Applied Date */}
 
                           <div className="flex items-center gap-2 text-xs text-slate-400 lg:mr-3">
-
-                            <CalendarDays size={14} />
+                            <CalendarDays
+                              size={14}
+                              className="shrink-0"
+                            />
 
                             <span>
                               Applied{" "}
                               {application.appliedDate}
                             </span>
-
                           </div>
 
-                         <button
-  type="button"
-  onClick={() => navigate(`/jobs/${application.jobId}`)}
-  className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-600 transition hover:bg-blue-600 hover:text-white sm:w-auto"
->
-  View Details
-  <ArrowUpRight size={14} />
-</button>
+                          {/* View Details */}
 
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/jobs/${application.jobId}`
+                              )
+                            }
+                            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-2.5 text-xs font-bold text-blue-600 transition-all duration-200 hover:border-blue-600 hover:bg-blue-600 hover:text-white sm:w-auto"
+                          >
+                            View Details
+
+                            <ArrowUpRight
+                              size={14}
+                              className="transition-transform duration-200 group-hover:translate-x-0.5"
+                            />
+                          </button>
                         </div>
-
                       </div>
-
                     </article>
                   );
                 }
               )}
-
             </div>
-
           ) : (
+            /* =====================================================
+               EMPTY STATE
+            ===================================================== */
 
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center">
-
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-14 text-center shadow-sm">
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
                 <FileText size={25} />
               </div>
@@ -636,7 +687,8 @@ const MyAppication = () => {
               </h3>
 
               <p className="mx-auto mt-1.5 max-w-sm text-xs leading-5 text-slate-400">
-                We couldn't find any applications matching your search or selected filter.
+                We couldn't find any applications matching
+                your search or selected filter.
               </p>
 
               <button
@@ -645,16 +697,13 @@ const MyAppication = () => {
                   setSearchTerm("");
                   setStatusFilter("All");
                 }}
-                className="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white transition hover:bg-blue-700"
+                className="mt-5 inline-flex items-center justify-center rounded-xl bg-blue-600 px-5 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700 hover:shadow-md"
               >
                 Clear Filters
               </button>
-
             </div>
           )}
-
         </section>
-
       </div>
     </main>
   );
@@ -672,18 +721,15 @@ const StatCard = ({
   iconColor,
 }) => {
   return (
-    <div className="min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm sm:p-4">
-
+    <div className="group min-w-0 rounded-2xl border border-slate-200 bg-white p-3.5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md sm:p-4">
       <div className="flex items-center gap-3">
-
         <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor}`}
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${iconBg} ${iconColor} transition-transform duration-300 group-hover:scale-105`}
         >
           <Icon size={18} />
         </div>
 
         <div className="min-w-0">
-
           <p className="truncate text-[10px] font-semibold text-slate-400 sm:text-xs">
             {label}
           </p>
@@ -691,14 +737,10 @@ const StatCard = ({
           <p className="mt-0.5 text-lg font-black text-slate-800 sm:text-xl">
             {value}
           </p>
-
         </div>
-
       </div>
-
     </div>
   );
 };
 
 export default MyAppication;
-

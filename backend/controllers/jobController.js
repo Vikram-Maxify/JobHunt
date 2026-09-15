@@ -91,6 +91,7 @@ exports.createJob = async (req, res) => {
       applicationDeadline,
       isFeatured,
       isUrgent,
+      waitingPeriod,
       tags,
     } = req.body;
 
@@ -257,6 +258,7 @@ exports.createJob = async (req, res) => {
 
       isFeatured: parseBoolean(isFeatured, false),
       isUrgent: parseBoolean(isUrgent, false),
+      waitingPeriod: waitingPeriod !== undefined ? String(waitingPeriod).trim() : "",
 
       tags: parsedTags,
     };
@@ -509,6 +511,7 @@ exports.updateJob = async (req, res) => {
       applicationDeadline,
       isFeatured,
       isUrgent,
+      waitingPeriod,
       tags,
     } = req.body;
 
@@ -618,6 +621,10 @@ exports.updateJob = async (req, res) => {
 
     if (isUrgent !== undefined) {
       job.isUrgent = parseBoolean(isUrgent, false);
+    }
+
+    if (waitingPeriod !== undefined) {
+      job.waitingPeriod = String(waitingPeriod).trim();
     }
 
     // --------------------------------------------------------
@@ -1765,7 +1772,7 @@ exports.getMyApplications = async (req, res) => {
     const applications = await JobApplication.find(filter)
       .populate(
         "job",
-        "title company location jobType salary companyLogo status isFeatured isUrgent",
+        "title company location jobType salary companyLogo status isFeatured isUrgent waitingPeriod",
       )
       .sort({ createdAt: -1 });
 
@@ -2111,7 +2118,7 @@ exports.getSavedJobs = async (req, res) => {
     const savedJobs = await SavedJob.find({ user: req.user._id })
       .populate(
         "job",
-        "title company location jobType salary companyLogo status isFeatured isUrgent",
+        "title company location jobType salary companyLogo status isFeatured isUrgent waitingPeriod",
       )
       .sort({ createdAt: -1 });
 

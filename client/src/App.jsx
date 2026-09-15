@@ -53,6 +53,9 @@ import TestimonialManagement from "./admin/pages/TestimonialManagement";
 import MySubscription from "./Pages/MySubscription";
 import { getProfile } from "./redux/slicer/authSlice";
 import ScrollToTop from "./components/ScrollToTop";
+import TermCondition from "./Pages/TermCondition";
+import PrivacyPolicy from "./Pages/PrivacyPolicy";
+import SuccessStories from "./Pages/SuccessStory";
 
 function App() {
   const dispatch = useDispatch();
@@ -81,6 +84,8 @@ function App() {
 
               <Route path="/gallery" element={<Gallery />} />
 
+              <Route path="/successstory" element={<SuccessStories />} />
+
               <Route path="/contact" element={<ContactUs />} />
 
               <Route path="/about" element={<AboutUs />} />
@@ -101,6 +106,10 @@ function App() {
               <Route path="/skills" element={<SkillDevelopment />} />
 
               <Route path="/purchases" element={<Purchases />} />
+
+              <Route path="/termcondition" element={<TermCondition />} />
+
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
               {/* =================================================
                   USER PRIVATE ROUTES

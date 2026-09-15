@@ -1,7 +1,9 @@
 // src/admin/pages/CreateJob.jsx
 import {
+  AlertTriangle,
   ArrowLeft,
   Briefcase,
+  Calendar,
   PlusCircle,
   Save,
   Trash2,
@@ -17,10 +19,14 @@ const CreateJob = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const categories = useSelector((state) => state.categories?.categories || []);
+  const categories = useSelector(
+    (state) => state.categories?.categories || [],
+  );
+
   const categoriesLoading = useSelector(
     (state) => state.categories?.loading || false,
   );
+
   const categoriesError = useSelector(
     (state) => state.categories?.error || null,
   );
@@ -28,7 +34,10 @@ const CreateJob = () => {
   const createLoading = useSelector(
     (state) => state.jobs?.createLoading || false,
   );
-  const createError = useSelector((state) => state.jobs?.createError || null);
+
+  const createError = useSelector(
+    (state) => state.jobs?.createError || null,
+  );
 
   const [formData, setFormData] = useState({
     title: "",
@@ -43,6 +52,10 @@ const CreateJob = () => {
     requirements: [""],
     skills: [],
     status: "active",
+
+    // New hiring fields
+    isUrgent: false,
+    applicationDeadline: "",
   });
 
   const [newSkill, setNewSkill] = useState("");
@@ -74,29 +87,52 @@ const CreateJob = () => {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.title.trim()) newErrors.title = "Job title is required";
-    if (!formData.company.trim())
+
+    if (!formData.title.trim()) {
+      newErrors.title = "Job title is required";
+    }
+
+    if (!formData.company.trim()) {
       newErrors.company = "Company name is required";
-    if (!formData.categoryId) newErrors.categoryId = "Category is required";
-    if (!formData.location.trim()) newErrors.location = "Location is required";
-    if (!formData.salary.trim()) newErrors.salary = "Salary is required";
-    if (!formData.description.trim())
+    }
+
+    if (!formData.categoryId) {
+      newErrors.categoryId = "Category is required";
+    }
+
+    if (!formData.location.trim()) {
+      newErrors.location = "Location is required";
+    }
+
+    if (!formData.salary.trim()) {
+      newErrors.salary = "Salary is required";
+    }
+
+    if (!formData.description.trim()) {
       newErrors.description = "Job description is required";
+    }
 
     const validResponsibilities = formData.responsibilities.filter((r) =>
       r.trim(),
     );
-    if (validResponsibilities.length === 0)
-      newErrors.responsibilities = "At least one responsibility is required";
+
+    if (validResponsibilities.length === 0) {
+      newErrors.responsibilities =
+        "At least one responsibility is required";
+    }
 
     const validRequirements = formData.requirements.filter((r) => r.trim());
-    if (validRequirements.length === 0)
-      newErrors.requirements = "At least one requirement is required";
 
-    if (formData.skills.length === 0)
+    if (validRequirements.length === 0) {
+      newErrors.requirements = "At least one requirement is required";
+    }
+
+    if (formData.skills.length === 0) {
       newErrors.skills = "At least one skill is required";
+    }
 
     setErrors(newErrors);
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -118,6 +154,7 @@ const CreateJob = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validate()) return;
 
     setIsSaving(true);
@@ -134,7 +171,8 @@ const CreateJob = () => {
         return;
       }
 
-      const categoryObjectId = selectedCategory._id || selectedCategory.id;
+      const categoryObjectId =
+        selectedCategory._id || selectedCategory.id;
 
       console.log("Selected category object:", selectedCategory);
       console.log("Category ObjectId being sent:", categoryObjectId);
@@ -142,6 +180,7 @@ const CreateJob = () => {
       const responsibilities = formData.responsibilities.filter((r) =>
         r.trim(),
       );
+
       const requirements = formData.requirements.filter((r) => r.trim());
 
       const jobData = {
@@ -158,27 +197,29 @@ const CreateJob = () => {
         requirements,
         skills: formData.skills,
         status: formData.status,
+
+        // New hiring fields
+        isUrgent: formData.isUrgent,
+        applicationDeadline: formData.applicationDeadline || null,
       };
 
       console.log("Sending job data:", jobData);
 
-      // Dispatch the createJob thunk
       const result = await dispatch(createJob(jobData)).unwrap();
 
-      // Check if job was created successfully
       if (result?.success) {
         showNotification(
           result?.message || "Job created successfully",
           "success",
         );
 
-        // Redirect after showing notification
         setTimeout(() => {
           navigate("/admin/jobs");
         }, 1500);
       }
     } catch (err) {
       console.error("Create job error:", err);
+
       showNotification(
         typeof err === "string" ? err : "Failed to create job",
         "error",
@@ -190,6 +231,7 @@ const CreateJob = () => {
 
   const showNotification = (message, type) => {
     setNotification({ message, type });
+
     setTimeout(() => {
       setNotification(null);
     }, 3000);
@@ -197,8 +239,13 @@ const CreateJob = () => {
 
   const handleResponsibilityChange = (index, value) => {
     const newResponsibilities = [...formData.responsibilities];
+
     newResponsibilities[index] = value;
-    setFormData({ ...formData, responsibilities: newResponsibilities });
+
+    setFormData({
+      ...formData,
+      responsibilities: newResponsibilities,
+    });
   };
 
   const addResponsibility = () => {
@@ -212,13 +259,22 @@ const CreateJob = () => {
     const newResponsibilities = formData.responsibilities.filter(
       (_, i) => i !== index,
     );
-    setFormData({ ...formData, responsibilities: newResponsibilities });
+
+    setFormData({
+      ...formData,
+      responsibilities: newResponsibilities,
+    });
   };
 
   const handleRequirementChange = (index, value) => {
     const newRequirements = [...formData.requirements];
+
     newRequirements[index] = value;
-    setFormData({ ...formData, requirements: newRequirements });
+
+    setFormData({
+      ...formData,
+      requirements: newRequirements,
+    });
   };
 
   const addRequirement = () => {
@@ -229,16 +285,26 @@ const CreateJob = () => {
   };
 
   const removeRequirement = (index) => {
-    const newRequirements = formData.requirements.filter((_, i) => i !== index);
-    setFormData({ ...formData, requirements: newRequirements });
+    const newRequirements = formData.requirements.filter(
+      (_, i) => i !== index,
+    );
+
+    setFormData({
+      ...formData,
+      requirements: newRequirements,
+    });
   };
 
   const addSkill = () => {
-    if (newSkill.trim() && !formData.skills.includes(newSkill.trim())) {
+    if (
+      newSkill.trim() &&
+      !formData.skills.includes(newSkill.trim())
+    ) {
       setFormData({
         ...formData,
         skills: [...formData.skills, newSkill.trim()],
       });
+
       setNewSkill("");
     }
   };
@@ -246,7 +312,9 @@ const CreateJob = () => {
   const removeSkill = (skillToRemove) => {
     setFormData({
       ...formData,
-      skills: formData.skills.filter((skill) => skill !== skillToRemove),
+      skills: formData.skills.filter(
+        (skill) => skill !== skillToRemove,
+      ),
     });
   };
 
@@ -262,9 +330,11 @@ const CreateJob = () => {
             <ArrowLeft className="w-4 h-4" />
             Back to Jobs
           </button>
+
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
             Create New Job
           </h1>
+
           <p className="text-sm text-slate-500 mt-1">
             Add a new job opportunity to DreamGoGlobal.
           </p>
@@ -273,7 +343,10 @@ const CreateJob = () => {
 
       {/* Form Card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm">
-        <form onSubmit={handleSubmit} className="p-4 sm:p-6 lg:p-8 space-y-8">
+        <form
+          onSubmit={handleSubmit}
+          className="p-4 sm:p-6 lg:p-8 space-y-8"
+        >
           {/* Basic Information */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -282,55 +355,81 @@ const CreateJob = () => {
             </h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Job Title */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Job Title *
                 </label>
+
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
+                    setFormData({
+                      ...formData,
+                      title: e.target.value,
+                    })
                   }
                   className={`w-full px-4 py-2.5 rounded-xl border ${
-                    errors.title ? "border-red-300" : "border-slate-200"
+                    errors.title
+                      ? "border-red-300"
+                      : "border-slate-200"
                   } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
                   placeholder="e.g., Frontend Developer"
                 />
+
                 {errors.title && (
-                  <p className="text-xs text-red-600 mt-1">{errors.title}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.title}
+                  </p>
                 )}
               </div>
 
+              {/* Company Name */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Company Name *
                 </label>
+
                 <input
                   type="text"
                   value={formData.company}
                   onChange={(e) =>
-                    setFormData({ ...formData, company: e.target.value })
+                    setFormData({
+                      ...formData,
+                      company: e.target.value,
+                    })
                   }
                   className={`w-full px-4 py-2.5 rounded-xl border ${
-                    errors.company ? "border-red-300" : "border-slate-200"
+                    errors.company
+                      ? "border-red-300"
+                      : "border-slate-200"
                   } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
                   placeholder="e.g., Infosys"
                 />
+
                 {errors.company && (
-                  <p className="text-xs text-red-600 mt-1">{errors.company}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.company}
+                  </p>
                 )}
               </div>
 
+              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Category *
                 </label>
+
                 <select
                   value={formData.categoryId}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
+                  onChange={(e) =>
+                    handleCategoryChange(e.target.value)
+                  }
                   className={`w-full px-4 py-2.5 rounded-xl border ${
-                    errors.categoryId ? "border-red-300" : "border-slate-200"
+                    errors.categoryId
+                      ? "border-red-300"
+                      : "border-slate-200"
                   } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
                   disabled={categoriesLoading}
                 >
@@ -339,8 +438,10 @@ const CreateJob = () => {
                       ? "Loading categories..."
                       : "Select Category"}
                   </option>
+
                   {categories.map((cat) => {
                     const catId = cat._id || cat.id;
+
                     return (
                       <option key={catId} value={catId}>
                         {cat.name}
@@ -348,6 +449,7 @@ const CreateJob = () => {
                     );
                   })}
                 </select>
+
                 {errors.categoryId && (
                   <p className="text-xs text-red-600 mt-1">
                     {errors.categoryId}
@@ -355,34 +457,49 @@ const CreateJob = () => {
                 )}
               </div>
 
+              {/* Location */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Location *
                 </label>
+
                 <input
                   type="text"
                   value={formData.location}
                   onChange={(e) =>
-                    setFormData({ ...formData, location: e.target.value })
+                    setFormData({
+                      ...formData,
+                      location: e.target.value,
+                    })
                   }
                   className={`w-full px-4 py-2.5 rounded-xl border ${
-                    errors.location ? "border-red-300" : "border-slate-200"
+                    errors.location
+                      ? "border-red-300"
+                      : "border-slate-200"
                   } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
                   placeholder="e.g., Bangalore, India"
                 />
+
                 {errors.location && (
-                  <p className="text-xs text-red-600 mt-1">{errors.location}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.location}
+                  </p>
                 )}
               </div>
 
+              {/* Job Type */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Job Type *
                 </label>
+
                 <select
                   value={formData.jobType}
                   onChange={(e) =>
-                    setFormData({ ...formData, jobType: e.target.value })
+                    setFormData({
+                      ...formData,
+                      jobType: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                 >
@@ -391,14 +508,19 @@ const CreateJob = () => {
                 </select>
               </div>
 
+              {/* Experience */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Experience *
                 </label>
+
                 <select
                   value={formData.experience}
                   onChange={(e) =>
-                    setFormData({ ...formData, experience: e.target.value })
+                    setFormData({
+                      ...formData,
+                      experience: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                 >
@@ -412,34 +534,49 @@ const CreateJob = () => {
                 </select>
               </div>
 
+              {/* Salary */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Salary *
                 </label>
+
                 <input
                   type="text"
                   value={formData.salary}
                   onChange={(e) =>
-                    setFormData({ ...formData, salary: e.target.value })
+                    setFormData({
+                      ...formData,
+                      salary: e.target.value,
+                    })
                   }
                   className={`w-full px-4 py-2.5 rounded-xl border ${
-                    errors.salary ? "border-red-300" : "border-slate-200"
+                    errors.salary
+                      ? "border-red-300"
+                      : "border-slate-200"
                   } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
                   placeholder="e.g., ₹5-9 LPA"
                 />
+
                 {errors.salary && (
-                  <p className="text-xs text-red-600 mt-1">{errors.salary}</p>
+                  <p className="text-xs text-red-600 mt-1">
+                    {errors.salary}
+                  </p>
                 )}
               </div>
 
+              {/* Status */}
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Status
                 </label>
+
                 <select
                   value={formData.status}
                   onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
+                    setFormData({
+                      ...formData,
+                      status: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                 >
@@ -447,6 +584,87 @@ const CreateJob = () => {
                   <option value="draft">Draft</option>
                   <option value="closed">Closed</option>
                 </select>
+              </div>
+            </div>
+          </div>
+
+          {/* Hiring Priority */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              Hiring Priority
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Urgent Hiring */}
+              <div
+                className={`rounded-xl border p-4 transition-all ${
+                  formData.isUrgent
+                    ? "border-red-200 bg-red-50/50"
+                    : "border-slate-200 bg-white"
+                }`}
+              >
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.isUrgent}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        isUrgent: e.target.checked,
+                      })
+                    }
+                    className="mt-1 h-4 w-4 rounded border-slate-300 text-red-600 focus:ring-red-500"
+                  />
+
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-800">
+                        Urgent Hiring
+                      </span>
+
+                      {formData.isUrgent && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                          URGENT
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-xs text-slate-500 mt-1">
+                      Highlight this vacancy as an urgent hiring
+                      opportunity.
+                    </p>
+                  </div>
+                </label>
+              </div>
+
+              {/* Application Deadline */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <span className="inline-flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-blue-600" />
+                    Application Deadline
+                  </span>
+                </label>
+
+                <input
+                  type="date"
+                  value={formData.applicationDeadline}
+                  min={new Date().toISOString().split("T")[0]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      applicationDeadline: e.target.value,
+                    })
+                  }
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                />
+
+                <p className="text-xs text-slate-500 mt-1.5">
+                  Applicants will not be able to apply after this
+                  date.
+                </p>
               </div>
             </div>
           </div>
@@ -461,17 +679,24 @@ const CreateJob = () => {
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 Description *
               </label>
+
               <textarea
                 value={formData.description}
                 onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
+                  setFormData({
+                    ...formData,
+                    description: e.target.value,
+                  })
                 }
                 className={`w-full px-4 py-2.5 rounded-xl border ${
-                  errors.description ? "border-red-300" : "border-slate-200"
+                  errors.description
+                    ? "border-red-300"
+                    : "border-slate-200"
                 } focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm`}
                 rows="4"
                 placeholder="Brief description of the job (auto-fills from category)"
               />
+
               {errors.description && (
                 <p className="text-xs text-red-600 mt-1">
                   {errors.description}
@@ -486,6 +711,7 @@ const CreateJob = () => {
               <h2 className="text-lg font-semibold text-slate-800">
                 Responsibilities *
               </h2>
+
               <button
                 type="button"
                 onClick={addResponsibility}
@@ -495,30 +721,42 @@ const CreateJob = () => {
                 Add Responsibility
               </button>
             </div>
-            {formData.responsibilities.map((responsibility, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  type="text"
-                  value={responsibility}
-                  onChange={(e) =>
-                    handleResponsibilityChange(index, e.target.value)
-                  }
-                  className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
-                  placeholder="Enter responsibility"
-                />
-                {formData.responsibilities.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeResponsibility(index)}
-                    className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            ))}
+
+            {formData.responsibilities.map(
+              (responsibility, index) => (
+                <div key={index} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={responsibility}
+                    onChange={(e) =>
+                      handleResponsibilityChange(
+                        index,
+                        e.target.value,
+                      )
+                    }
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
+                    placeholder="Enter responsibility"
+                  />
+
+                  {formData.responsibilities.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        removeResponsibility(index)
+                      }
+                      className="p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ),
+            )}
+
             {errors.responsibilities && (
-              <p className="text-xs text-red-600">{errors.responsibilities}</p>
+              <p className="text-xs text-red-600">
+                {errors.responsibilities}
+              </p>
             )}
           </div>
 
@@ -528,6 +766,7 @@ const CreateJob = () => {
               <h2 className="text-lg font-semibold text-slate-800">
                 Requirements *
               </h2>
+
               <button
                 type="button"
                 onClick={addRequirement}
@@ -537,17 +776,22 @@ const CreateJob = () => {
                 Add Requirement
               </button>
             </div>
+
             {formData.requirements.map((requirement, index) => (
               <div key={index} className="flex gap-2">
                 <input
                   type="text"
                   value={requirement}
                   onChange={(e) =>
-                    handleRequirementChange(index, e.target.value)
+                    handleRequirementChange(
+                      index,
+                      e.target.value,
+                    )
                   }
                   className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                   placeholder="Enter requirement"
                 />
+
                 {formData.requirements.length > 1 && (
                   <button
                     type="button"
@@ -559,8 +803,11 @@ const CreateJob = () => {
                 )}
               </div>
             ))}
+
             {errors.requirements && (
-              <p className="text-xs text-red-600">{errors.requirements}</p>
+              <p className="text-xs text-red-600">
+                {errors.requirements}
+              </p>
             )}
           </div>
 
@@ -569,6 +816,7 @@ const CreateJob = () => {
             <h2 className="text-lg font-semibold text-slate-800">
               Skills Required *
             </h2>
+
             <div className="flex gap-2">
               <input
                 type="text"
@@ -583,6 +831,7 @@ const CreateJob = () => {
                 className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm"
                 placeholder="Type a skill and press Enter"
               />
+
               <button
                 type="button"
                 onClick={addSkill}
@@ -591,6 +840,7 @@ const CreateJob = () => {
                 Add
               </button>
             </div>
+
             {formData.skills.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {formData.skills.map((skill, index) => (
@@ -599,6 +849,7 @@ const CreateJob = () => {
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-50 text-blue-700"
                   >
                     {skill}
+
                     <button
                       type="button"
                       onClick={() => removeSkill(skill)}
@@ -610,8 +861,11 @@ const CreateJob = () => {
                 ))}
               </div>
             )}
+
             {errors.skills && (
-              <p className="text-xs text-red-600">{errors.skills}</p>
+              <p className="text-xs text-red-600">
+                {errors.skills}
+              </p>
             )}
           </div>
 
@@ -624,13 +878,21 @@ const CreateJob = () => {
             >
               Cancel
             </button>
+
             <button
               type="submit"
-              disabled={isSaving || createLoading || categoriesLoading}
+              disabled={
+                isSaving ||
+                createLoading ||
+                categoriesLoading
+              }
               className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg transition-shadow disabled:opacity-50 w-full sm:w-auto"
             >
               <Save className="w-4 h-4" />
-              {isSaving || createLoading ? "Creating..." : "Create Job"}
+
+              {isSaving || createLoading
+                ? "Creating..."
+                : "Create Job"}
             </button>
           </div>
         </form>

@@ -82,6 +82,11 @@ const Navbar = () => {
       icon: Images,
     },
     {
+      name: "SuccessStory",
+      path: "/successstory",
+      icon: Images,
+    },
+    {
       name: "Contact Us",
       path: "/contact",
       icon: Phone,

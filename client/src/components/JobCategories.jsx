@@ -1,7 +1,6 @@
-
-import React, { useEffect, useState } from "react";
+import { ArrowRight, Sparkles } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { ArrowRight, Sparkles, Clock } from "lucide-react";
 
 import { getCategories } from "../redux/slicer/categorySlice";
 
@@ -9,7 +8,7 @@ const JobCategories = () => {
   const dispatch = useDispatch();
 
   const { categories, loading, error } = useSelector(
-    (state) => state.categories
+    (state) => state.categories,
   );
 
   const [isVisible, setIsVisible] = useState(false);
@@ -35,16 +34,7 @@ const JobCategories = () => {
     "from-teal-500 via-teal-400 to-teal-600",
   ];
 
-  const delays = [
-    100,
-    150,
-    200,
-    250,
-    300,
-    350,
-    400,
-    450,
-  ];
+  const delays = [100, 150, 200, 250, 300, 350, 400, 450];
 
   return (
     <>
@@ -91,7 +81,6 @@ const JobCategories = () => {
       </style>
 
       <section className="section-bg relative py-4 overflow-hidden">
-
         {/* Decorative Background */}
         <div className="absolute inset-0 -z-10">
           <div className="absolute top-0 left-1/4 w-72 h-72 bg-blue-100/40 rounded-full blur-3xl" />
@@ -100,23 +89,16 @@ const JobCategories = () => {
         </div>
 
         <div className="max-w-[80rem] mx-auto px-4 sm:px-6 lg:px-8">
-
           {/* =========================
               SECTION HEADER
           ========================== */}
           <div className="text-center mb-8 sm:mb-10">
-
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 mb-4">
-
-              <Sparkles
-                size={14}
-                className="text-blue-600"
-              />
+              <Sparkles size={14} className="text-blue-600" />
 
               <span className="text-xs font-medium text-blue-600 tracking-wider uppercase">
                 Explore Categories
               </span>
-
             </div>
 
             <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4">
@@ -127,10 +109,9 @@ const JobCategories = () => {
             </h2>
 
             <p className="text-sm sm:text-base lg:text-lg text-gray-600 max-w-2xl mx-auto">
-              Discover opportunities across different industries.
-              Your next career move starts here.
+              Discover opportunities across different industries. Your next
+              career move starts here.
             </p>
-
           </div>
 
           {/* =========================
@@ -147,172 +128,126 @@ const JobCategories = () => {
           ========================== */}
           {!loading && error && (
             <div className="flex justify-center py-12">
-
               <div className="bg-red-50 border border-red-200 text-red-600 px-6 py-4 rounded-xl text-sm font-medium">
                 {error}
               </div>
-
             </div>
           )}
 
           {/* =========================
               NO CATEGORIES
           ========================== */}
-          {!loading &&
-            !error &&
-            categories?.length === 0 && (
-              <div className="text-center py-12">
-
-                <p className="text-gray-500">
-                  No categories available.
-                </p>
-
-              </div>
-            )}
+          {!loading && !error && categories?.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">No categories available.</p>
+            </div>
+          )}
 
           {/* =========================
               CATEGORIES
           ========================== */}
-          {!loading &&
-            !error &&
-            categories?.length > 0 && (
+          {!loading && !error && categories?.length > 0 && (
+            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+              {categories.map((category, index) => {
+                const gradient = gradientColors[index % gradientColors.length];
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+                const positions = Number(
+                  category.jobCount || 0,
+                ).toLocaleString();
 
-                {categories.map((category, index) => {
-
-                  const gradient =
-                    gradientColors[index % gradientColors.length];
-
-                  const positions = Number(
-                    category.jobCount || 0
-                  ).toLocaleString();
-
-                  return (
-
-                    <div
-                      key={category._id || category.id}
-                      className={`category-card ${
-                        isVisible ? "animate-in" : ""
-                      } relative group rounded-2xl p-3 sm:p-4 cursor-pointer`}
-                      style={{
-                        animationDelay: `${delays[index] || 100}ms`,
-                      }}
-                    >
-
-                      {/* =========================
+                return (
+                  <div
+                    key={category._id || category.id}
+                    className={`category-card ${
+                      isVisible ? "animate-in" : ""
+                    } relative group rounded-2xl p-3 sm:p-4 cursor-pointer`}
+                    style={{
+                      animationDelay: `${delays[index] || 100}ms`,
+                    }}
+                  >
+                    {/* =========================
                           POSITIONS BADGE
                       ========================== */}
-                      <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 rounded-full shadow-lg z-20">
-
-                        {positions}{" "}
-                        {Number(category.jobCount || 0) === 1
-                          ? "Position"
-                          : "Positions"}
-
-                      </div>
-
-                      {/* =========================
-                          CARD CONTENT
-                      ========================== */}
-                      <div className="flex items-center gap-3 sm:gap-4">
-
-                        {/* =====================
-                            LEFT IMAGE
-                        ====================== */}
-                        <div className="relative flex-shrink-0">
-
-                          <div
-                            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br ${gradient} p-[3px] shadow-md group-hover:shadow-xl transition-all duration-300`}
-                          >
-
-                            <div className="w-full h-full rounded-2xl bg-white overflow-hidden">
-
-                              {category.image ? (
-
-                                <img
-                                  src={category.image}
-                                  alt={
-                                    category.name ||
-                                    "Category"
-                                  }
-                                  className="block w-full h-full object-cover rounded-2xl"
-                                  loading="lazy"
-                                  onLoad={() => {
-                                    // console.log(
-                                    //   "IMAGE LOADED:",
-                                    //   category.image
-                                    // );
-                                  }}
-                                  onError={(e) => {
-                                    // console.log(
-                                    //   "IMAGE FAILED:",
-                                    //   category.image
-                                    // );
-
-                                    e.currentTarget.style.display =
-                                      "none";
-                                  }}
-                                />
-
-                              ) : (
-
-                                <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
-                                  No Image
-                                </div>
-
-                              )}
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                        {/* =====================
-                            RIGHT CONTENT
-                        ====================== */}
-                        <div className="flex-1 min-w-0">
-
-                          {/* CATEGORY NAME */}
-                          <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
-
-                            {category.name}
-
-                          </h3>
-
-                          {/* DESCRIPTION */}
-                          <p className="text-[11px] sm:text-xs lg:text-sm text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">
-
-                            {category.shortDescription ||
-                              "Explore job opportunities in this category."}
-
-                          </p>
-
-                        </div>
-
-                        {/* =====================
-                            ARROW
-                        ====================== */}
-                        <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
-
-                          <ArrowRight
-                            size={17}
-                            className="text-blue-500 group-hover:translate-x-1 transition-transform"
-                          />
-
-                        </div>
-
-                      </div>
-
+                    <div className="absolute -top-2 -right-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[9px] sm:text-[10px] font-bold px-2 sm:px-2.5 py-1 rounded-full shadow-lg z-20">
+                      {positions}{" "}
+                      {Number(category.jobCount || 0) === 1
+                        ? "Position"
+                        : "Positions"}
                     </div>
 
-                  );
-                })}
+                    {/* =========================
+                          CARD CONTENT
+                      ========================== */}
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      {/* =====================
+                            LEFT IMAGE
+                        ====================== */}
+                      <div className="relative flex-shrink-0">
+                        <div
+                          className={`w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-gradient-to-br ${gradient} p-[3px] shadow-md group-hover:shadow-xl transition-all duration-300`}
+                        >
+                          <div className="w-full h-full rounded-2xl bg-white overflow-hidden">
+                            {category.image ? (
+                              <img
+                                src={category.image}
+                                alt={category.name || "Category"}
+                                className="block w-full h-full object-cover rounded-2xl"
+                                loading="lazy"
+                                onLoad={() => {
+                                  // console.log(
+                                  //   "IMAGE LOADED:",
+                                  //   category.image
+                                  // );
+                                }}
+                                onError={(e) => {
+                                  // console.log(
+                                  //   "IMAGE FAILED:",
+                                  //   category.image
+                                  // );
 
-              </div>
+                                  e.currentTarget.style.display = "none";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400 text-xs">
+                                No Image
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
 
-            )}
+                      {/* =====================
+                            RIGHT CONTENT
+                        ====================== */}
+                      <div className="flex-1 min-w-0">
+                        {/* CATEGORY NAME */}
+                        <h3 className="text-sm sm:text-base lg:text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+                          {category.name}
+                        </h3>
+
+                        {/* DESCRIPTION */}
+                        <p className="text-[11px] sm:text-xs lg:text-sm text-gray-500 mt-1.5 line-clamp-2 leading-relaxed">
+                          {category.shortDescription ||
+                            "Explore job opportunities in this category."}
+                        </p>
+                      </div>
+
+                      {/* =====================
+                            ARROW
+                        ====================== */}
+                      <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <ArrowRight
+                          size={17}
+                          className="text-blue-500 group-hover:translate-x-1 transition-transform"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           {/* =========================
               BROWSE ALL
@@ -340,7 +275,6 @@ const JobCategories = () => {
                 </p>
               </div>
             )} */}
-
         </div>
       </section>
     </>
@@ -348,4 +282,3 @@ const JobCategories = () => {
 };
 
 export default JobCategories;
-

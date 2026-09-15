@@ -50,12 +50,12 @@ import AdminLogin from "./admin/pages/AdminLogin";
 import AdminProfile from "./admin/pages/AdminProfile";
 import AdminDashboard from "./admin/pages/Dashboard";
 import TestimonialManagement from "./admin/pages/TestimonialManagement";
-import MySubscription from "./Pages/MySubscription";
-import { getProfile } from "./redux/slicer/authSlice";
 import ScrollToTop from "./components/ScrollToTop";
-import TermCondition from "./Pages/TermCondition";
+import MySubscription from "./Pages/MySubscription";
 import PrivacyPolicy from "./Pages/PrivacyPolicy";
 import SuccessStories from "./Pages/SuccessStory";
+import TermCondition from "./Pages/TermCondition";
+import { getProfile } from "./redux/slicer/authSlice";
 
 function App() {
   const dispatch = useDispatch();
@@ -65,11 +65,10 @@ function App() {
   }, [dispatch]);
 
   return (
-    
     <JobCategoryProvider>
       <ApplicationProvider>
         <SubscriptionProvider>
-        <ScrollToTop /> 
+          <ScrollToTop />
           <Routes>
             {/* =====================================================
                 USER SIDE
@@ -105,18 +104,17 @@ function App() {
 
               <Route path="/skills" element={<SkillDevelopment />} />
 
-              <Route path="/purchases" element={<Purchases />} />
-
               <Route path="/termcondition" element={<TermCondition />} />
 
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
               {/* =================================================
                   USER PRIVATE ROUTES
-              ================================================= */}
+                  ================================================= */}
 
               <Route element={<PrivateRoute allowedRoles={["user"]} />}>
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/purchases" element={<Purchases />} />
 
                 <Route path="/applications" element={<MyApplication />} />
 

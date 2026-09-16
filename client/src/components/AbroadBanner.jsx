@@ -1,55 +1,20 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
   BriefcaseBusiness,
+  Building2,
   Check,
   Globe2,
   MapPin,
   Plane,
   ShieldCheck,
   Sparkles,
+  Trophy,
   Users,
   Zap,
 } from "lucide-react";
-
-const banners = [
-  {
-    id: 1,
-    title: "Build Your Global Career in America",
-    highlight: "with Visa & Travel Support",
-    description:
-      "Explore international career opportunities designed to help you start your journey with trusted companies and selected roles requiring no prior experience.",
-    icon: Globe2,
-    location: "New York, USA",
-    image:
-      "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=2000&q=85",
-  },
-  {
-    id: 2,
-    title: "Unlock Global Career Opportunities",
-    highlight: "with Visa & Travel Support",
-    description:
-      "Take the next step toward an international career with opportunities open to candidates with no prior experience.",
-    icon: BriefcaseBusiness,
-    location: "New York City, USA",
-    image:
-      "https://images.unsplash.com/photo-1522083165195-3424ed129620?auto=format&fit=crop&w=2000&q=85",
-  },
-  {
-    id: 3,
-    title: "Launch Your Global Career",
-    highlight: "with Trusted Career Support",
-    description:
-      "Discover exciting international career opportunities and take your professional journey to the next level with selected global roles.",
-    icon: Plane,
-    location: "San Francisco, USA",
-    image:
-      "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=2000&q=85",
-  },
-];
 
 const AbroadBanner = () => {
   const navigate = useNavigate();
@@ -57,516 +22,474 @@ const AbroadBanner = () => {
   const [activeSlide, setActiveSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
-  // =====================================================
-  // AUTO SLIDER
-  // =====================================================
+  const banners = [
+    {
+      title: "Build Your Global Career in America",
+      highlight: "with Visa & Travel Support",
+      description:
+        "Discover international career opportunities with trusted companies offering visa and travel support. No prior international experience required.",
+      location: "New York, USA",
+      image:
+        "https://images.unsplash.com/photo-1485871981521-5b1fd3805eee?auto=format&fit=crop&w=1800&q=85",
+    },
+    {
+      title: "Unlock Global Career Opportunities",
+      highlight: "with Visa & Travel Support",
+      description:
+        "Find verified international jobs and take your career beyond borders with trusted employers and complete career support.",
+      location: "New York City, USA",
+      image:
+        "https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&w=1800&q=85",
+    },
+    {
+      title: "Launch Your Global Career",
+      highlight: "with Trusted Career Support",
+      description:
+        "Explore global opportunities, connect with international employers, and get the support you need to start your career abroad.",
+      location: "San Francisco, USA",
+      image:
+        "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?auto=format&fit=crop&w=1800&q=85",
+    },
+  ];
 
   useEffect(() => {
     if (isPaused) return;
 
-    const interval = setInterval(() => {
-      setActiveSlide((prev) =>
-        prev === banners.length - 1 ? 0 : prev + 1
-      );
+    const timer = setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % banners.length);
     }, 5000);
 
-    return () => clearInterval(interval);
-  }, [isPaused]);
+    return () => clearInterval(timer);
+  }, [isPaused, banners.length]);
 
-  // =====================================================
-  // SLIDER CONTROLS
-  // =====================================================
-
-  const nextSlide = () => {
-    setActiveSlide((prev) =>
-      prev === banners.length - 1 ? 0 : prev + 1
+  const goToPrevious = () => {
+    setActiveSlide(
+      (prev) => (prev - 1 + banners.length) % banners.length
     );
   };
 
-  const previousSlide = () => {
-    setActiveSlide((prev) =>
-      prev === 0 ? banners.length - 1 : prev - 1
-    );
+  const goToNext = () => {
+    setActiveSlide((prev) => (prev + 1) % banners.length);
   };
-
-  const goToSlide = (index) => {
-    setActiveSlide(index);
-  };
-
-  const currentBanner = banners[activeSlide];
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-slate-950"
+      className="relative w-full overflow-visible bg-slate-950"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
-      <div className="relative min-h-[540px] sm:min-h-[525px] lg:h-[560px] lg:min-h-0">
-
-        {/* =====================================================
-            SLIDES
-        ===================================================== */}
-
+      {/* HERO WRAPPER */}
+      <div className="relative min-h-[525px] sm:min-h-[550px] lg:h-[560px] lg:min-h-0">
+        {/* BACKGROUND SLIDES */}
         {banners.map((banner, index) => (
           <div
-            key={banner.id}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-              index === activeSlide
-                ? "z-10 opacity-100"
-                : "z-0 opacity-0"
-            }`}
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-700 ${activeSlide === index
+              ? "z-10 opacity-100"
+              : "z-0 opacity-0"
+              }`}
           >
-            {/* =================================================
-                BACKGROUND IMAGE
-            ================================================= */}
-
             <img
               src={banner.image}
               alt={banner.title}
-              className={`absolute inset-0 h-full w-full object-cover object-center transition-transform duration-[7000ms] ease-out ${
-                index === activeSlide
-                  ? "scale-105"
-                  : "scale-100"
-              }`}
+              className="absolute inset-0 h-full w-full object-cover"
             />
 
-            {/* =================================================
-                IMAGE OVERLAY
-                No blur - image remains clearly visible
-            ================================================= */}
+            {/* DARK OVERLAY */}
+            <div className="absolute inset-0 bg-slate-950/30" />
 
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/80 via-slate-950/45 to-slate-950/10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/30 via-slate-950/65 to-slate-950/25" />
 
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-slate-950/10" />
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/30 via-transparent to-transparent" />
           </div>
         ))}
 
-        {/* =====================================================
-            MAIN CONTENT
-        ===================================================== */}
-
-        <div className="relative z-20 mx-auto flex min-h-[540px] max-w-7xl items-center px-4 py-8 sm:min-h-[550px] sm:px-6 sm:py-10 lg:h-[560px] lg:min-h-0 lg:px-8">
-
-          <div className="grid w-full grid-cols-1 items-center gap-7 lg:grid-cols-[1.35fr_0.65fr] lg:gap-10">
-
-            {/* =================================================
-                LEFT CONTENT
-            ================================================= */}
-
+        {/* HERO CONTENT */}
+        <div
+          className="
+            relative z-20 mx-auto flex
+            min-h-[450px]
+            max-w-7xl
+            items-start
+            px-4
+            pb-8
+            pt-7
+            sm:min-h-[550px]
+            sm:items-center
+            sm:px-6
+            sm:py-10
+            sm:pb-24
+            lg:h-[560px]
+            lg:min-h-0
+            lg:px-8
+          "
+        >
+          <div className="grid w-full grid-cols-1 items-center gap-8 lg:grid-cols-[1.35fr_0.65fr]">
+            {/* LEFT CONTENT */}
             <div className="max-w-3xl">
-
-              {/* =================================================
-                  TOP BADGES
-              ================================================= */}
-
-              <div className="flex w-full flex-wrap items-center gap-2">
-
-                {/* Location */}
-
-                <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-white/20 bg-slate-950/35 px-3 py-1.5 text-[10px] font-semibold text-white shadow-lg backdrop-blur-md sm:text-xs">
-                  <MapPin
-                    size={13}
-                    className="shrink-0 text-blue-300"
-                  />
-
-                  <span>{currentBanner.location}</span>
+              {/* LOCATION + SPONSORED */}
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
+                  <MapPin size={13} />
+                  {bannerSafe(banners[activeSlide]?.location)}
                 </div>
 
-                {/* Company Sponsored */}
-
-                <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-emerald-300/30 bg-emerald-400/15 px-3 py-1.5 text-[10px] font-semibold text-emerald-100 shadow-lg backdrop-blur-md sm:text-xs">
-                  <Check
-                    size={12}
-                    className="shrink-0"
-                  />
-
-                  <span>Company Sponsored</span>
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 backdrop-blur-md">
+                  <Plane size={13} />
+                  Visa Sponsored
                 </div>
               </div>
 
-              {/* =================================================
-                  LABEL
-              ================================================= */}
+              {/* SMALL LABEL */}
+              <div className="mb-3 flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-900/30">
+                  <Globe2 size={15} />
+                </span>
 
-              <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-blue-300/20 bg-blue-500/15 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-200 backdrop-blur-md sm:mt-5 sm:text-xs">
-                <Sparkles
-                  size={13}
-                  className="shrink-0"
-                />
-
-                <span>Global Career Opportunity</span>
+                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
+                  Global Career Opportunities
+                </span>
               </div>
 
-              {/* =================================================
-                  HEADING
-              ================================================= */}
-
-              <h1 className="mt-4 max-w-3xl text-3xl font-black leading-[1.04] tracking-[-0.03em] text-white sm:mt-4 sm:text-5xl lg:text-[3.7rem]">
-
-                {currentBanner.title}
-
-                <span className="mt-1 block bg-gradient-to-r from-blue-200 via-cyan-100 to-white bg-clip-text text-transparent">
-                  {currentBanner.highlight}
+              {/* HEADING */}
+              <h1 className="max-w-3xl text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl xl:text-6xl">
+                {banners[activeSlide].title}
+                <span className="mt-1 block text-blue-400">
+                  {banners[activeSlide].highlight}
                 </span>
               </h1>
 
-              {/* =================================================
-                  DESCRIPTION
-              ================================================= */}
-
-              <p className="mt-4 max-w-2xl text-xs leading-5 text-slate-100 sm:mt-5 sm:text-sm sm:leading-6 lg:text-[15px]">
-                {currentBanner.description}
+              {/* DESCRIPTION */}
+              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
+                {banners[activeSlide].description}
               </p>
 
-              {/* =================================================
-                  CTA BUTTONS
-              ================================================= */}
-
-              <div className="mt-5 flex flex-col gap-2.5 sm:mt-6 sm:flex-row sm:gap-3">
-
-                {/* Register Free */}
-
+              {/* BUTTONS */}
+              <div className="mt-6 flex flex-nowrap gap-2 sm:flex-wrap sm:gap-3">
+                {/* REGISTER FREE */}
                 <button
-                  type="button"
                   onClick={() => navigate("/register")}
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-blue-950/40 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:w-auto sm:px-6 sm:text-sm"
+                  className="
+      inline-flex min-w-0 flex-1
+      items-center justify-center gap-1.5
+      rounded-xl
+      bg-blue-600
+      px-2.5 py-2.5
+      text-white
+      shadow-lg shadow-blue-950/30
+      transition
+      hover:bg-blue-500
+      sm:flex-none sm:gap-2 sm:px-5
+    "
                 >
                   <Users
-                    size={16}
-                    className="transition-transform duration-300 group-hover:scale-110"
+                    size={17}
+                    strokeWidth={2.2}
+                    className="shrink-0"
                   />
 
-                  Register Free
+                  <span className="flex min-w-0 flex-col items-start justify-center leading-tight">
+                    <span className="whitespace-nowrap text-[11px] font-bold sm:text-sm">
+                      Register Free
+                    </span>
+
+                    <span className="whitespace-nowrap text-[8px] font-medium text-blue-100 sm:text-[11px]">
+                      Start Your Global Journey Today
+                    </span>
+                  </span>
 
                   <ArrowRight
                     size={15}
-                    className="transition-transform duration-300 group-hover:translate-x-1"
+                    className="shrink-0"
                   />
                 </button>
 
-                {/* Premium */}
-
+                {/* EXPLORE PREMIUM */}
                 <button
-                  type="button"
                   onClick={() => navigate("/subscription")}
-                  className="group inline-flex w-full items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/15 px-5 py-3 text-xs font-bold text-white shadow-lg backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/25 sm:w-auto sm:px-6 sm:text-sm"
+                  className="
+      inline-flex min-w-0 flex-1
+      items-center justify-center gap-1.5
+      rounded-xl
+      border border-white/20
+      bg-white/10
+      px-2.5 py-2.5
+      text-white
+      backdrop-blur-md
+      transition
+      hover:bg-white/15
+      sm:flex-none sm:gap-2 sm:px-5
+    "
                 >
                   <Sparkles
-                    size={16}
-                    className="shrink-0 text-blue-200 transition-transform duration-300 group-hover:rotate-12"
+                    size={17}
+                    className="shrink-0"
                   />
 
-                  Explore Premium
+                  <span className="flex min-w-0 flex-col items-start justify-center leading-tight">
+                    <span className="whitespace-nowrap text-[11px] font-bold sm:text-sm">
+                      Explore Premium
+                    </span>
 
-                  <ArrowRight
-                    size={15}
-                    className="transition-transform duration-300 group-hover:translate-x-1"
-                  />
+                    <span className="whitespace-nowrap text-[8px] font-medium text-slate-200 sm:text-[11px]">
+                      Unlock More Opportunities
+                    </span>
+                  </span>
                 </button>
               </div>
 
-              {/* =================================================
-                  TRUST POINTS
-              ================================================= */}
-
-              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[9px] text-white/90 sm:text-[11px]">
-
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
-                  <Check
-                    size={12}
-                    className="shrink-0 text-emerald-300"
-                  />
-
-                  Free Registration
+              {/* TRUST POINTS */}
+              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <Check size={14} className="text-emerald-400" />
+                  Verified Jobs
                 </div>
 
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
-                  <ShieldCheck
-                    size={12}
-                    className="shrink-0 text-blue-200"
-                  />
-
-                  Trusted Opportunities
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <ShieldCheck size={14} className="text-emerald-400" />
+                  Secure Platform
                 </div>
 
-                <div className="flex items-center gap-1.5 whitespace-nowrap">
-                  <Globe2
-                    size={12}
-                    className="shrink-0 text-cyan-200"
-                  />
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <Zap size={14} className="text-amber-400" />
+                  Fast Hiring
+                </div>
+              </div>
+            </div>
 
-                  Global Jobs
+            {/* RIGHT PREMIUM CARD */}
+            <div className="hidden lg:flex lg:justify-end">
+              <div className="w-full max-w-sm rounded-3xl border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-xl">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-blue-200">
+                      CareerSphere Premium
+                    </p>
+
+                    <h3 className="mt-1 text-xl font-bold text-white">
+                      Go Global Faster
+                    </h3>
+                  </div>
+
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600/80 text-white">
+                    <BriefcaseBusiness size={21} />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {[
+                    "Visa sponsored opportunities",
+                    "International employers",
+                    "Premium career support",
+                    "Global job alerts",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className="flex items-center gap-2 text-sm text-slate-100"
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-400/15">
+                        <Check
+                          size={12}
+                          className="text-emerald-400"
+                        />
+                      </span>
+
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => navigate("/subscription")}
+                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-900 transition hover:bg-slate-100"
+                >
+                  View Premium Plans
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* =========================================
+            STATS CARD
+            HALF INSIDE HERO + HALF OUTSIDE
+        ========================================== */}
+        <div
+          className="
+            absolute
+            bottom-0
+            left-3
+            right-3
+            z-[20]
+            translate-y-1/2
+            sm:left-6
+            sm:right-6
+            lg:left-8
+            lg:right-8
+          "
+        >
+          <div
+            className="
+              mx-auto
+              max-w-7xl
+              rounded-xl
+              border border-slate-200
+              bg-white
+              px-2
+              py-2
+              shadow-[0_10px_40px_rgba(15,23,42,0.10)]
+              sm:rounded-2xl
+              sm:px-4
+              sm:py-3
+              lg:px-6
+              lg:py-4
+            "
+          >
+            <div className="grid grid-cols-4 divide-x divide-slate-200">
+              {/* STAT 1 */}
+              <div className="flex flex-col items-center justify-center gap-1 px-1 text-center sm:flex-row sm:gap-2 sm:px-3 sm:text-left">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 sm:h-9 sm:w-9">
+                  <Plane size={14} className="sm:h-[17px] sm:w-[17px]" />
+                </div>
+
+                <div className="min-w-0">
+                  <p className="text-[12px] font-extrabold leading-none text-slate-900 sm:text-lg lg:text-xl">
+                    50K+
+                  </p>
+
+                  <p className="mt-1 truncate text-[6px] font-medium leading-none text-slate-500 sm:text-[10px] lg:text-xs">
+                    Global Jobs
+                  </p>
                 </div>
               </div>
 
-              {/* =================================================
-                  STATS
-              ================================================= */}
+              {/* STAT 2 */}
+              <div className="flex flex-col items-center justify-center gap-1 px-1 text-center sm:flex-row sm:gap-2 sm:px-3 sm:text-left">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 sm:h-9 sm:w-9">
+                  <Building2
+                    size={14}
+                    className="sm:h-[17px] sm:w-[17px]"
+                  />
+                </div>
 
-              <div className="mt-4 max-w-2xl border-t border-white/20 pt-4 sm:mt-5 sm:pt-5">
-  <div className="grid grid-cols-3">
-
-    {/* Stat 1 */}
-    <div className="min-w-0 pr-3 sm:pr-6">
-      <p className="text-base font-black tracking-tight text-white sm:text-xl">
-        12K+
-      </p>
-
-      <p className="mt-0.5 truncate text-[8px] text-white/65 sm:text-[10px]">
-        Global Jobs
-      </p>
-    </div>
-
-    {/* Stat 2 */}
-    <div className="min-w-0 border-l border-white/20 pl-3 sm:pl-6">
-      <p className="text-base font-black tracking-tight text-white sm:text-xl">
-        500+
-      </p>
-
-      <p className="mt-0.5 truncate text-[8px] text-white/65 sm:text-[10px]">
-        Hiring Companies
-      </p>
-    </div>
-
-    {/* Stat 3 */}
-    <div className="min-w-0 border-l border-white/20 pl-3 sm:pl-6">
-      <p className="text-base font-black tracking-tight text-white sm:text-xl">
-        50+
-      </p>
-
-      <p className="mt-0.5 truncate text-[8px] text-white/65 sm:text-[10px]">
-        Countries
-      </p>
-    </div>
-
-  </div>
-</div>
-            </div>
-
-            {/* =================================================
-                RIGHT PREMIUM CARD
-            ================================================= */}
-
-            <div className="hidden lg:block">
-
-              <div className="relative ml-auto w-full max-w-[310px]">
-
-                {/* Glow */}
-
-                <div className="absolute -inset-3 rounded-[28px] bg-blue-500/15 blur-xl" />
-
-                {/* Card */}
-
-                <div className="relative overflow-hidden rounded-[24px] border border-white/20 bg-slate-950/60 p-5 shadow-2xl backdrop-blur-lg">
-
-                  {/* Top */}
-
-                  <div className="flex items-center justify-between">
-
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-300/20 bg-blue-400/10 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-blue-200">
-                      <Sparkles size={11} />
-
-                      Premium
-                    </div>
-
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/10">
-                      <Zap
-                        size={15}
-                        className="text-blue-200"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Heading */}
-
-                  <h2 className="mt-4 text-xl font-black leading-tight text-white">
-                    Unlock More
-                    <span className="block text-blue-300">
-                      Global Opportunities
-                    </span>
-                  </h2>
-
-                  <p className="mt-2 text-[11px] leading-5 text-slate-300">
-                    Access premium career features and discover more
-                    international opportunities.
+                <div className="min-w-0">
+                  <p className="text-[12px] font-extrabold leading-none text-slate-900 sm:text-lg lg:text-xl">
+                    500+
                   </p>
 
-                  {/* Benefits */}
+                  <p className="mt-1 truncate text-[6px] font-medium leading-none text-slate-500 sm:text-[10px] lg:text-xs">
+                    Trusted Companies
+                  </p>
+                </div>
+              </div>
 
-                  <div className="mt-4 space-y-2.5">
+              {/* STAT 3 */}
+              <div className="flex flex-col items-center justify-center gap-1 px-1 text-center sm:flex-row sm:gap-2 sm:px-3 sm:text-left">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 sm:h-9 sm:w-9">
+                  <Users size={14} className="sm:h-[17px] sm:w-[17px]" />
+                </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-400/10">
-                        <Check
-                          size={12}
-                          className="text-emerald-300"
-                        />
-                      </div>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-extrabold leading-none text-slate-900 sm:text-lg lg:text-xl">
+                    100+
+                  </p>
 
-                      <span className="text-[10px] font-medium text-slate-200">
-                        Premium job opportunities
-                      </span>
-                    </div>
+                  <p className="mt-1 truncate text-[6px] font-medium leading-none text-slate-500 sm:text-[10px] lg:text-xs">
+                    Countries
+                  </p>
+                </div>
+              </div>
 
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-400/10">
-                        <Check
-                          size={12}
-                          className="text-blue-300"
-                        />
-                      </div>
+              {/* STAT 4 */}
+              <div className="flex flex-col items-center justify-center gap-1 px-1 text-center sm:flex-row sm:gap-2 sm:px-3 sm:text-left">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 sm:h-9 sm:w-9">
+                  <Trophy
+                    size={14}
+                    className="sm:h-[17px] sm:w-[17px]"
+                  />
+                </div>
 
-                      <span className="text-[10px] font-medium text-slate-200">
-                        Enhanced career visibility
-                      </span>
-                    </div>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-extrabold leading-none text-slate-900 sm:text-lg lg:text-xl">
+                    95%
+                  </p>
 
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-cyan-400/10">
-                        <Check
-                          size={12}
-                          className="text-cyan-300"
-                        />
-                      </div>
-
-                      <span className="text-[10px] font-medium text-slate-200">
-                        Faster access to opportunities
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-indigo-400/10">
-                        <Check
-                          size={12}
-                          className="text-indigo-300"
-                        />
-                      </div>
-
-                      <span className="text-[10px] font-medium text-slate-200">
-                        Global career support
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* CTA */}
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/subscription")}
-                    className="group mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[10px] font-extrabold text-slate-900 transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-50"
-                  >
-                    Explore Premium Plans
-
-                    <ArrowRight
-                      size={13}
-                      className="transition-transform duration-300 group-hover:translate-x-1"
-                    />
-                  </button>
-
-                  {/* Note */}
-
-                  <div className="mt-3 flex items-center justify-center gap-1.5 text-[8px] text-slate-400">
-                    <ShieldCheck size={10} />
-
-                    Secure & flexible subscription
-                  </div>
+                  <p className="mt-1 truncate text-[6px] font-medium leading-none text-slate-500 sm:text-[10px] lg:text-xs">
+                    Success Stories
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* =====================================================
-            DESKTOP PREVIOUS
-        ===================================================== */}
-
+        {/* DESKTOP PREVIOUS BUTTON */}
         <button
-          type="button"
-          onClick={previousSlide}
+          onClick={goToPrevious}
+          className="
+            absolute left-4 top-1/2 z-[110]
+            hidden -translate-y-1/2
+            items-center justify-center
+            rounded-full border border-white/20
+            bg-black/20 p-2.5
+            text-white backdrop-blur-md
+            transition hover:bg-black/40
+            lg:flex
+          "
           aria-label="Previous slide"
-          className="absolute left-4 top-1/2 z-40 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-slate-900 lg:flex"
         >
-          <ArrowLeft size={17} />
+          <ArrowLeft size={19} />
         </button>
 
-        {/* =====================================================
-            DESKTOP NEXT
-        ===================================================== */}
-
+        {/* DESKTOP NEXT BUTTON */}
         <button
-          type="button"
-          onClick={nextSlide}
+          onClick={goToNext}
+          className="
+            absolute right-4 top-1/2 z-[110]
+            hidden -translate-y-1/2
+            items-center justify-center
+            rounded-full border border-white/20
+            bg-black/20 p-2.5
+            text-white backdrop-blur-md
+            transition hover:bg-black/40
+            lg:flex
+          "
           aria-label="Next slide"
-          className="absolute right-4 top-1/2 z-40 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/20 text-white backdrop-blur-md transition-all duration-300 hover:bg-white hover:text-slate-900 lg:flex"
         >
-          <ArrowRight size={17} />
+          <ArrowRight size={19} />
         </button>
 
-        {/* =====================================================
-            SLIDER DOTS
-        ===================================================== */}
-
-        <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5">
+        {/* SLIDER DOTS */}
+        <div
+          className="
+            absolute
+            bottom-2
+            left-1/2
+            z-[120]
+            flex
+            -translate-x-1/2
+            items-center
+            gap-1.5
+          "
+        >
           {banners.map((_, index) => (
             <button
               key={index}
-              type="button"
-              onClick={() => goToSlide(index)}
+              onClick={() => setActiveSlide(index)}
+              className={`h-1.5 rounded-full transition-all ${activeSlide === index
+                ? "w-6 bg-white"
+                : "w-1.5 bg-white/50"
+                }`}
               aria-label={`Go to slide ${index + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                index === activeSlide
-                  ? "w-7 bg-white"
-                  : "w-1.5 bg-white/45 hover:bg-white/80"
-              }`}
             />
           ))}
-        </div>
-
-        {/* =====================================================
-            MOBILE PREMIUM BAR
-        ===================================================== */}
-
-        <div className="absolute bottom-10 left-4 right-4 z-30 lg:hidden">
-
-          <button
-            type="button"
-            onClick={() => navigate("/subscription")}
-            className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-slate-950/65 px-3.5 py-2.5 shadow-xl backdrop-blur-md"
-          >
-            <div className="flex min-w-0 items-center gap-2.5">
-
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/15">
-                <Sparkles
-                  size={15}
-                  className="text-blue-200"
-                />
-              </div>
-
-              <div className="min-w-0 text-left">
-                <p className="truncate text-[10px] font-bold text-white">
-                  Unlock Premium Career Access
-                </p>
-
-                <p className="mt-0.5 truncate text-[8px] text-slate-400">
-                  Explore premium opportunities
-                </p>
-              </div>
-            </div>
-
-            <ArrowRight
-              size={15}
-              className="ml-2 shrink-0 text-white"
-            />
-          </button>
         </div>
       </div>
     </section>
   );
 };
 
-export default AbroadBanner;
+const bannerSafe = (location) => location || "Global Opportunities";
 
+export default AbroadBanner;

@@ -6,7 +6,7 @@ import Login from "./Pages/Login";
 import Register from "./Pages/Register";
 import Subscription from "./Pages/Subscription";
 
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import SkillDevelopment from "./components/SkillDevelopment";
 import CarrierResources from "./Pages/CarrierResources";
@@ -60,10 +60,14 @@ import ApplyNowPopup from "./components/ApplyNowPopup";
 
 function App() {
   const dispatch = useDispatch();
+  const location = useLocation();
+
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     dispatch(getProfile());
   }, [dispatch]);
+
 
   return (
     <JobCategoryProvider>
@@ -198,7 +202,7 @@ function App() {
               </Route>
             </Route>
           </Routes>
-          <ApplyNowPopup />
+          {!isAdminRoute && <ApplyNowPopup />}
         </SubscriptionProvider>
       </ApplicationProvider>
     </JobCategoryProvider>

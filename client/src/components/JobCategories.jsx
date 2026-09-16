@@ -136,13 +136,13 @@ const handleCategoryClick = (category) => {
           <div className="min-w-0 flex-1 pr-10">
             {/* CATEGORY NAME */}
 
-            <h3 className="line-clamp-1 text-sm font-bold text-gray-900 transition-colors duration-300 group-hover:text-blue-600 sm:text-base lg:text-lg">
+            <h3 className=" text-xs font-bold text-gray-900 transition-colors duration-300 group-hover:text-blue-600 sm:text-base lg:text-lg">
               {category.name}
             </h3>
 
             {/* DESCRIPTION */}
 
-            <p className="mt-1.5 line-clamp-2 text-[11px] leading-4.5 text-gray-500 sm:text-xs lg:text-sm">
+            <p className="mt-1.5 line-clamp-1 text-[11px] leading-4.5 text-gray-500 sm:text-xs lg:text-sm">
               {category.shortDescription ||
                 "Explore job opportunities in this category."}
             </p>

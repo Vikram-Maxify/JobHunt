@@ -1530,74 +1530,60 @@ exports.applyToJob = async (req, res) => {
     // 4. CHECK JOB COUNTRY
     // =================================================
 
-    const jobCountry = String(job.location || "").trim();
+// =================================================
+// 4. CHECK JOB COUNTRY
+// =================================================
 
-    if (!jobCountry) {
-      return res.status(400).json({
-        success: false,
-        message: "This job does not have a valid country location.",
-      });
-    }
+const jobCountry = String(job.location || "").trim();
 
-    const plan = activeSubscription.subscription;
+if (!jobCountry) {
+  return res.status(400).json({
+    success: false,
+    message: "This job does not have a valid country location.",
+  });
+}
 
-    const configuredCountries = (plan.countries || [])
-      .map((country) => String(country).trim().toLowerCase())
-      .filter(Boolean);
+const plan = activeSubscription.subscription;
 
-    const normalizedJobCountry = jobCountry.toLowerCase();
+const normalizedJobCountry = jobCountry.toLowerCase();
 
-    // =================================================
-    // 5. CHECK COUNTRY ALLOWED IN PLAN
-    // =================================================
+// =================================================
+// 5. CHECK COUNTRY LIMIT
+// =================================================
 
-    if (
-      configuredCountries.length > 0 &&
-      !configuredCountries.includes(normalizedJobCountry)
-    ) {
-      return res.status(403).json({
-        success: false,
-        code: "COUNTRY_NOT_ALLOWED",
-        message: "This country is not included in your active plan.",
-      });
-    }
+const previousApplications = await JobApplication.find({
+  applicant: userId,
+  appliedAt: {
+    $gte: activeSubscription.startDate,
+  },
+}).populate("job", "location");
 
-    // =================================================
-    // 6. CHECK COUNTRY LIMIT
-    // =================================================
+const usedCountries = new Set(
+  previousApplications
+    .map((application) =>
+      String(application.job?.location || "")
+        .trim()
+        .toLowerCase(),
+    )
+    .filter(Boolean),
+);
 
-    const previousApplications = await JobApplication.find({
-      applicant: userId,
-      appliedAt: {
-        $gte: activeSubscription.startDate,
-      },
-    }).populate("job", "location");
+const countryLimit = Math.max(
+  1,
+  Number(plan.numberOfCountries) || 1
+);
 
-    const usedCountries = new Set(
-      previousApplications
-        .map((application) =>
-          String(application.job?.location || "")
-            .trim()
-            .toLowerCase(),
-        )
-        .filter(Boolean),
-    );
-
-    const countryLimit = Number(
-      plan.numberOfCountries || configuredCountries.length || 1,
-    );
-
-    if (
-      !usedCountries.has(normalizedJobCountry) &&
-      usedCountries.size >= countryLimit
-    ) {
-      return res.status(403).json({
-        success: false,
-        code: "COUNTRY_LIMIT_REACHED",
-        message:
-          "Your plan's country limit has been reached. Please purchase another plan to apply for jobs in this country.",
-      });
-    }
+if (
+  !usedCountries.has(normalizedJobCountry) &&
+  usedCountries.size >= countryLimit
+) {
+  return res.status(403).json({
+    success: false,
+    code: "COUNTRY_LIMIT_REACHED",
+    message:
+      "Your plan's country limit has been reached. Please purchase another plan to apply for jobs in this country.",
+  });
+}
 
     // =================================================
     // 7. CHECK APPLICATION DEADLINE

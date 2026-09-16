@@ -1,17 +1,20 @@
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 import { getCategories } from "../redux/slicer/categorySlice";
 
 const JobCategories = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const { categories, loading, error } = useSelector(
     (state) => state.categories,
   );
 
   const [isVisible, setIsVisible] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     dispatch(getCategories());
@@ -35,6 +38,132 @@ const JobCategories = () => {
   ];
 
   const delays = [100, 150, 200, 250, 300, 350, 400, 450];
+
+  // ================================
+  // CATEGORY LIMITS
+  // ================================
+
+  const desktopLimit = 8;
+  const mobileLimit = 4;
+
+  const desktopCategories = showAll
+    ? categories
+    : categories?.slice(0, desktopLimit);
+
+  const mobileCategories = showAll
+    ? categories
+    : categories?.slice(0, mobileLimit);
+
+  // ================================
+  // CATEGORY CLICK
+  // ================================
+
+const handleCategoryClick = (category) => {
+  if (!category) return;
+
+  const slug =
+    category.slug ||
+    category.categoryId?.slug ||
+    category.name
+      ?.toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-");
+
+  if (!slug) return;
+
+  navigate(`/jobs?category=${encodeURIComponent(slug)}`);
+};
+
+  // ================================
+  // CATEGORY CARD
+  // ================================
+
+  const CategoryCard = ({ category, index }) => {
+    const gradient = gradientColors[index % gradientColors.length];
+
+    const jobCount = Number(category.jobCount || 0);
+
+    const positions = jobCount.toLocaleString();
+
+    return (
+      <div
+        key={category._id || category.id}
+        onClick={() => handleCategoryClick(category)}
+        className={`category-card ${
+          isVisible ? "animate-in" : ""
+        } group relative cursor-pointer rounded-2xl p-3.5 sm:p-4`}
+        style={{
+          animationDelay: `${delays[index % delays.length] || 100}ms`,
+        }}
+      >
+        {/* ================= POSITION BADGE ================= */}
+
+        <div className="absolute right-3 -top-4 z-20 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[9px] font-bold text-blue-600 shadow-sm sm:right-3.5 sm:top-3.5 sm:text-[10px]">
+          {positions} {jobCount === 1 ? "Position" : "Positions"}
+        </div>
+
+        {/* ================= CARD CONTENT ================= */}
+
+        <div className="flex items-center gap-3 sm:gap-4">
+          {/* ================= IMAGE ================= */}
+
+          <div className="relative shrink-0">
+            <div
+              className={`h-12 w-12 rounded-2xl bg-gradient-to-br ${gradient} p-[3px] shadow-sm transition-all duration-300 group-hover:shadow-lg sm:h-[88px] sm:w-[88px]`}
+            >
+              <div className="h-full w-full overflow-hidden rounded-[14px] bg-white">
+                {category.image ? (
+                  <img
+                    src={category.image}
+                    alt={category.name || "Category"}
+                    loading="lazy"
+                    className="block h-full w-full rounded-[14px] object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">
+                    No Image
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ================= RIGHT CONTENT ================= */}
+
+          <div className="min-w-0 flex-1 pr-10">
+            {/* CATEGORY NAME */}
+
+            <h3 className="line-clamp-1 text-sm font-bold text-gray-900 transition-colors duration-300 group-hover:text-blue-600 sm:text-base lg:text-lg">
+              {category.name}
+            </h3>
+
+            {/* DESCRIPTION */}
+
+            <p className="mt-1.5 line-clamp-2 text-[11px] leading-4.5 text-gray-500 sm:text-xs lg:text-sm">
+              {category.shortDescription ||
+                "Explore job opportunities in this category."}
+            </p>
+          </div>
+
+          {/* ================= ARROW ================= */}
+
+          <div className="absolute bottom-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white">
+            <ArrowRight
+              size={15}
+              className="transition-transform duration-300 group-hover:translate-x-0.5"
+            />
+          </div>
+        </div>
+
+        {/* ================= BOTTOM ACCENT ================= */}
+
+        <div className="absolute bottom-0 left-6 right-6 h-[2px] scale-x-0 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-transform duration-300 group-hover:scale-x-100" />
+      </div>
+    );
+  };
 
   return (
     <>
@@ -139,100 +268,103 @@ const JobCategories = () => {
 
           {!loading && !error && categories?.length === 0 && (
             <div className="py-10 text-center">
-              <p className="text-sm text-gray-500">No categories available.</p>
+              <p className="text-sm text-gray-500">
+                No categories available.
+              </p>
             </div>
           )}
 
           {/* ================= CATEGORIES ================= */}
 
           {!loading && !error && categories?.length > 0 && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
-              {categories.map((category, index) => {
-                const gradient = gradientColors[index % gradientColors.length];
+            <>
+              {/* =====================================================
+                  DESKTOP / TABLET
+                  8 CATEGORIES DEFAULT
+              ====================================================== */}
 
-                const jobCount = Number(category.jobCount || 0);
-
-                const positions = jobCount.toLocaleString();
-
-                return (
-                  <div
+              <div className="hidden grid-cols-2 gap-4 sm:grid sm:gap-5 lg:grid-cols-3 lg:gap-5 xl:grid-cols-4">
+                {desktopCategories.map((category, index) => (
+                  <CategoryCard
                     key={category._id || category.id}
-                    className={`category-card ${
-                      isVisible ? "animate-in" : ""
-                    } group relative cursor-pointer rounded-2xl p-3.5 sm:p-4`}
-                    style={{
-                      animationDelay: `${delays[index] || 100}ms`,
-                    }}
+                    category={category}
+                    index={index}
+                  />
+                ))}
+              </div>
+
+              {/* =====================================================
+                  MOBILE
+                  4 CATEGORIES DEFAULT
+                  2 COLUMN GRID
+              ====================================================== */}
+
+              <div className="grid grid-cols-2 gap-3 sm:hidden">
+                {mobileCategories.map((category, index) => (
+                  <CategoryCard
+                    key={category._id || category.id}
+                    category={category}
+                    index={index}
+                  />
+                ))}
+              </div>
+
+              {/* =====================================================
+                  LOAD MORE / LOAD LESS
+              ====================================================== */}
+
+              {/* Desktop button */}
+
+              {categories.length > desktopLimit && (
+                <div className="mt-6 hidden justify-center sm:flex">
+                  <button
+                    type="button"
+                    onClick={() => setShowAll((prev) => !prev)}
+                    className="group inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-6 py-3 text-sm font-semibold text-blue-600 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md"
                   >
-                    {/* ================= POSITION BADGE ================= */}
+                    {showAll ? "Load Less" : "Load More"}
 
-                    <div className="absolute right-3 top-3 z-20 rounded-full border border-blue-100 bg-blue-50 px-2.5 py-1 text-[9px] font-bold text-blue-600 shadow-sm sm:right-3.5 sm:top-3.5 sm:text-[10px]">
-                      {positions} {jobCount === 1 ? "Position" : "Positions"}
-                    </div>
+                    {showAll ? (
+                      <ChevronUp
+                        size={17}
+                        className="transition-transform duration-300 group-hover:-translate-y-0.5"
+                      />
+                    ) : (
+                      <ChevronDown
+                        size={17}
+                        className="transition-transform duration-300 group-hover:translate-y-0.5"
+                      />
+                    )}
+                  </button>
+                </div>
+              )}
 
-                    {/* ================= CARD CONTENT ================= */}
+              {/* Mobile button */}
 
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      {/* ================= IMAGE ================= */}
+              {categories.length > mobileLimit && (
+                <div className="mt-5 flex justify-center sm:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowAll((prev) => !prev)}
+                    className="group inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-white px-5 py-2.5 text-xs font-semibold text-blue-600 shadow-sm transition-all duration-300 hover:border-blue-300 hover:bg-blue-50 hover:shadow-md"
+                  >
+                    {showAll ? "Load Less" : "Load More"}
 
-                      <div className="relative shrink-0">
-                        <div
-                          className={`h-20 w-20 rounded-2xl bg-gradient-to-br ${gradient} p-[3px] shadow-sm transition-all duration-300 group-hover:shadow-lg sm:h-[88px] sm:w-[88px]`}
-                        >
-                          <div className="h-full w-full overflow-hidden rounded-[14px] bg-white">
-                            {category.image ? (
-                              <img
-                                src={category.image}
-                                alt={category.name || "Category"}
-                                loading="lazy"
-                                className="block h-full w-full rounded-[14px] object-cover transition-transform duration-500 group-hover:scale-105"
-                                onError={(e) => {
-                                  e.currentTarget.style.display = "none";
-                                }}
-                              />
-                            ) : (
-                              <div className="flex h-full w-full items-center justify-center bg-gray-100 text-xs text-gray-400">
-                                No Image
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* ================= RIGHT CONTENT ================= */}
-
-                      <div className="min-w-0 flex-1 pr-10">
-                        {/* CATEGORY NAME */}
-
-                        <h3 className="line-clamp-1 text-sm font-bold text-gray-900 transition-colors duration-300 group-hover:text-blue-600 sm:text-base lg:text-lg">
-                          {category.name}
-                        </h3>
-
-                        {/* DESCRIPTION */}
-
-                        <p className="mt-1.5 line-clamp-2 text-[11px] leading-4.5 text-gray-500 sm:text-xs lg:text-sm">
-                          {category.shortDescription ||
-                            "Explore job opportunities in this category."}
-                        </p>
-                      </div>
-
-                      {/* ================= ARROW ================= */}
-
-                      <div className="absolute bottom-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition-all duration-300 group-hover:bg-blue-600 group-hover:text-white">
-                        <ArrowRight
-                          size={15}
-                          className="transition-transform duration-300 group-hover:translate-x-0.5"
-                        />
-                      </div>
-                    </div>
-
-                    {/* ================= BOTTOM ACCENT ================= */}
-
-                    <div className="absolute bottom-0 left-6 right-6 h-[2px] scale-x-0 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-transform duration-300 group-hover:scale-x-100" />
-                  </div>
-                );
-              })}
-            </div>
+                    {showAll ? (
+                      <ChevronUp
+                        size={16}
+                        className="transition-transform duration-300 group-hover:-translate-y-0.5"
+                      />
+                    ) : (
+                      <ChevronDown
+                        size={16}
+                        className="transition-transform duration-300 group-hover:translate-y-0.5"
+                      />
+                    )}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </section>

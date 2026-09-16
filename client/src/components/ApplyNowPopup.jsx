@@ -40,7 +40,7 @@ const ApplyNowPopup = () => {
 
   const handleApplyNow = () => {
     setIsOpen(false);
-    navigate("/register");
+    navigate("/jobs");
   };
 
   const handleClose = () => {

@@ -7,45 +7,112 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+
+const GUEST_POPUP_STORAGE_KEY = "careerSphere_apply_popup_guest_viewed";
 
 const ApplyNowPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  // Auto open popup after 4 seconds
+  // ==========================================
+  // GET CURRENT USER
+  // ==========================================
+  const { user } = useSelector((state) => state.auth);
+
+  // ==========================================
+  // AUTO OPEN
+  // ==========================================
   useEffect(() => {
+    // ------------------------------------------
+    // GET USER ID
+    // ------------------------------------------
+    const userId = user?._id || user?.id;
+
+    // ------------------------------------------
+    // ADMIN SHOULD NEVER SEE POPUP
+    // ------------------------------------------
+    if (user?.role === "admin") {
+      return;
+    }
+
+    // ------------------------------------------
+    // USER-SPECIFIC STORAGE KEY
+    // ------------------------------------------
+    const storageKey = userId
+      ? `careerSphere_apply_popup_viewed_${userId}`
+      : GUEST_POPUP_STORAGE_KEY;
+
+    const hasViewedPopup = localStorage.getItem(storageKey);
+
+    // Already viewed
+    if (hasViewedPopup === "true") {
+      return;
+    }
+
+    // ------------------------------------------
+    // SHOW POPUP AFTER 3 SECONDS
+    // ------------------------------------------
     const timer = setTimeout(() => {
       setIsOpen(true);
+
+      // Mark as viewed
+      localStorage.setItem(storageKey, "true");
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [user]);
 
-  // Lock background scroll when popup is open
+  // ==========================================
+  // LOCK BACKGROUND SCROLL
+  // ==========================================
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    if (!isOpen) return;
 
-    // Cleanup
+    const originalOverflow = document.body.style.overflow;
+
+    document.body.style.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "";
+      document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  // ==========================================
+  // GET STORAGE KEY
+  // ==========================================
+  const getPopupStorageKey = () => {
+    const userId = user?._id || user?.id;
 
-  const handleApplyNow = () => {
+    if (userId) {
+      return `careerSphere_apply_popup_viewed_${userId}`;
+    }
+
+    return GUEST_POPUP_STORAGE_KEY;
+  };
+
+  // ==========================================
+  // CLOSE POPUP
+  // ==========================================
+  const handleClose = () => {
+    localStorage.setItem(getPopupStorageKey(), "true");
+
     setIsOpen(false);
+  };
+
+  // ==========================================
+  // APPLY NOW
+  // ==========================================
+  const handleApplyNow = () => {
+    localStorage.setItem(getPopupStorageKey(), "true");
+
+    setIsOpen(false);
+
     navigate("/jobs");
   };
 
-  const handleClose = () => {
-    setIsOpen(false);
-  };
+  if (!isOpen) return null;
 
   return (
     <div
@@ -182,16 +249,19 @@ const ApplyNowPopup = () => {
           <div className="mb-5 grid grid-cols-3 divide-x divide-slate-200 rounded-2xl border border-slate-100 bg-slate-50 py-3">
             <div className="text-center">
               <p className="text-lg font-bold text-slate-900">12K+</p>
+
               <p className="mt-0.5 text-[11px] text-slate-500">Jobs</p>
             </div>
 
             <div className="text-center">
               <p className="text-lg font-bold text-slate-900">500+</p>
+
               <p className="mt-0.5 text-[11px] text-slate-500">Companies</p>
             </div>
 
             <div className="text-center">
               <p className="text-lg font-bold text-slate-900">50+</p>
+
               <p className="mt-0.5 text-[11px] text-slate-500">Countries</p>
             </div>
           </div>

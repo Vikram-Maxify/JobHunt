@@ -12,6 +12,8 @@ import FAQ from '../components/FAQ'
 import GlobalJourneyBanner from '../components/GlobalJourneyBarnney'
 import CareerJourneyBanner from '../components/CareerJourneyBanner'
 import FlagSection from '../components/FlagSection'
+import PopularDestinations from '../components/PopularDestination'
+import HowWeHelp from '../components/HowWeHelp'
 
 
 
@@ -23,7 +25,9 @@ const Home = () => {
        
      
         <AbroadBanner />
-        <FlagSection />
+        <PopularDestinations />
+        <HowWeHelp />
+        {/* <FlagSection /> */}
         <JobCategories />
         <GlobalJourneyBanner />
         <CarrierWork />

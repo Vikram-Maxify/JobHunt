@@ -16,15 +16,18 @@ import {
   Users,
   X,
 } from "lucide-react";
+
 import {
   useEffect,
   useMemo,
   useState,
 } from "react";
+
 import {
   useDispatch,
   useSelector,
 } from "react-redux";
+
 import {
   useLocation,
   useNavigate,
@@ -841,7 +844,6 @@ const Jobs = () => {
     setSearch("");
     setLocation("");
 
-    // Remove category filter from URL
     navigate("/jobs", {
       replace: true,
     });
@@ -1475,6 +1477,22 @@ const Jobs = () => {
       sortBy,
       categoryFromUrl,
     ]);
+
+  // ============================================================
+  // ACTIVE FILTER CHECK
+  // ============================================================
+
+  const hasActiveFilters =
+    search.trim() !== "" ||
+    location.trim() !== "" ||
+    categoryFromUrl !== "" ||
+    Object.values(
+      selectedFilters,
+    ).some(
+      (values) =>
+        Array.isArray(values) &&
+        values.length > 0,
+    );
 
   // ============================================================
   // JOB DETAIL
@@ -2140,6 +2158,13 @@ const Jobs = () => {
 
         <div className="flex items-center justify-between gap-4 mb-3">
           <div>
+            {/* ==================================================
+                SHOWING COUNT
+                FIX:
+                FILTER ACTIVE -> only filtered count
+                NO FILTER -> filtered count of total
+            ================================================== */}
+
             <p className="text-sm text-slate-500">
               Showing{" "}
               <span className="font-semibold text-slate-700">
@@ -2147,17 +2172,21 @@ const Jobs = () => {
                   filteredJobs.length
                 }
               </span>{" "}
-              jobs
-              {total >
-                0 && (
-                <>
-                  {" "}
-                  of{" "}
-                  <span className="font-semibold text-slate-700">
-                    {total}
-                  </span>
-                </>
-              )}
+              {filteredJobs.length ===
+              1
+                ? "job"
+                : "jobs"}
+
+              {!hasActiveFilters &&
+                total > 0 && (
+                  <>
+                    {" "}
+                    of{" "}
+                    <span className="font-semibold text-slate-700">
+                      {total}
+                    </span>
+                  </>
+                )}
             </p>
 
             {/* CATEGORY ACTIVE LABEL */}
@@ -2491,109 +2520,115 @@ const Jobs = () => {
               </div>
             )}
 
-            {/* PAGINATION */}
+            {/* ==================================================
+                PAGINATION
 
-            {totalPages >
-              1 && (
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
-                <button
-                  type="button"
-                  disabled={
-                    page <=
-                      1 ||
-                    loading
-                  }
-                  onClick={() =>
-                    handlePageChange(
-                      page -
-                        1,
-                    )
-                  }
-                  className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
-                >
-                  Previous
-                </button>
+                FIX:
+                Hide pagination when any filter/search/category
+                is active.
+            ================================================== */}
 
-                {Array.from(
-                  {
-                    length:
-                      Math.min(
-                        totalPages,
-                        5,
-                      ),
-                  },
-                  (
-                    _,
-                    index,
-                  ) => {
-                    let pageNumber =
-                      index +
-                      1;
-
-                    if (
-                      totalPages >
-                        5 &&
-                      page >
-                        3
-                    ) {
-                      pageNumber =
-                        Math.min(
-                          page -
-                            2 +
-                            index,
-                          totalPages -
-                            4,
-                        );
+            {!hasActiveFilters &&
+              totalPages > 1 && (
+                <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+                  <button
+                    type="button"
+                    disabled={
+                      page <=
+                        1 ||
+                      loading
                     }
+                    onClick={() =>
+                      handlePageChange(
+                        page -
+                          1,
+                      )
+                    }
+                    className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+                  >
+                    Previous
+                  </button>
 
-                    return (
-                      <button
-                        key={
-                          pageNumber
-                        }
-                        type="button"
-                        disabled={
-                          loading
-                        }
-                        onClick={() =>
-                          handlePageChange(
-                            pageNumber,
-                          )
-                        }
-                        className={`w-10 h-10 rounded-lg text-sm font-semibold ${
-                          page ===
-                          pageNumber
-                            ? "bg-blue-600 text-white"
-                            : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
-                        }`}
-                      >
-                        {
-                          pageNumber
-                        }
-                      </button>
-                    );
-                  },
-                )}
+                  {Array.from(
+                    {
+                      length:
+                        Math.min(
+                          totalPages,
+                          5,
+                        ),
+                    },
+                    (
+                      _,
+                      index,
+                    ) => {
+                      let pageNumber =
+                        index +
+                        1;
 
-                <button
-                  type="button"
-                  disabled={
-                    page >=
-                      totalPages ||
-                    loading
-                  }
-                  onClick={() =>
-                    handlePageChange(
-                      page +
-                        1,
-                    )
-                  }
-                  className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
-                >
-                  Next
-                </button>
-              </div>
-            )}
+                      if (
+                        totalPages >
+                          5 &&
+                        page >
+                          3
+                      ) {
+                        pageNumber =
+                          Math.min(
+                            page -
+                              2 +
+                              index,
+                            totalPages -
+                              4,
+                          );
+                      }
+
+                      return (
+                        <button
+                          key={
+                            pageNumber
+                          }
+                          type="button"
+                          disabled={
+                            loading
+                          }
+                          onClick={() =>
+                            handlePageChange(
+                              pageNumber,
+                            )
+                          }
+                          className={`w-10 h-10 rounded-lg text-sm font-semibold ${
+                            page ===
+                            pageNumber
+                              ? "bg-blue-600 text-white"
+                              : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+                          }`}
+                        >
+                          {
+                            pageNumber
+                          }
+                        </button>
+                      );
+                    },
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={
+                      page >=
+                        totalPages ||
+                      loading
+                    }
+                    onClick={() =>
+                      handlePageChange(
+                        page +
+                          1,
+                      )
+                    }
+                    className="px-4 py-2 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-600 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50"
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
           </main>
         </div>
       </section>

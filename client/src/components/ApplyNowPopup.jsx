@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -7,6 +6,7 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const ApplyNowPopup = () => {
@@ -40,7 +40,7 @@ const ApplyNowPopup = () => {
 
   const handleApplyNow = () => {
     setIsOpen(false);
-    navigate("/register");
+    navigate("/jobs");
   };
 
   const handleClose = () => {
@@ -262,7 +262,6 @@ const ApplyNowPopup = () => {
             "
           >
             Explore Jobs & Apply
-
             <ArrowRight
               size={17}
               className="transition-transform duration-200 group-hover:translate-x-1"

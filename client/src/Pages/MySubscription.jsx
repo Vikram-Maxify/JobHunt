@@ -202,9 +202,9 @@ const MySubscription = () => {
                 <button
                   type="button"
                   onClick={() => navigate("/subscription")}
-                  className="mt-6 rounded-xl bg-[#30AFFF] px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#159FEF] hover:shadow-lg active:scale-[0.98]"
+                  className="mt-6 rounded-xl bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#159FEF] hover:shadow-lg active:scale-[0.98]"
                 >
-                  Plans Dekho
+                  View Plan
                 </button>
               </div>
             )}

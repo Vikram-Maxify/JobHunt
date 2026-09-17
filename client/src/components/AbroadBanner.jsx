@@ -79,7 +79,7 @@ const AbroadBanner = () => {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* HERO WRAPPER */}
-      <div className="relative min-h-[525px] sm:min-h-[550px] lg:h-[560px] lg:min-h-0">
+      <div className="relative min-h-[370px] sm:min-h-[550px] lg:h-[560px] lg:min-h-0">
         {/* BACKGROUND SLIDES */}
         {banners.map((banner, index) => (
           <div
@@ -108,12 +108,12 @@ const AbroadBanner = () => {
         <div
           className="
             relative z-20 mx-auto flex
-            min-h-[450px]
+            min-h-[310px]
             max-w-7xl
             items-start
             px-4
-            pb-8
-            pt-7
+            pb-6
+            pt-5
             sm:min-h-[550px]
             sm:items-center
             sm:px-6
@@ -141,7 +141,7 @@ const AbroadBanner = () => {
               </div>
 
               {/* SMALL LABEL */}
-              <div className="mb-3 flex items-center gap-2">
+              <div className="mb-1 flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-900/30">
                   <Globe2 size={15} />
                 </span>
@@ -152,7 +152,7 @@ const AbroadBanner = () => {
               </div>
 
               {/* HEADING */}
-              <h1 className="max-w-3xl text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-4xl lg:text-5xl xl:text-6xl">
+              <h1 className="max-w-3xl text-2xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-5xl xl:text-6xl">
                 {banners[activeSlide].title}
                 <span className="mt-1 block text-blue-400">
                   {banners[activeSlide].highlight}
@@ -160,12 +160,12 @@ const AbroadBanner = () => {
               </h1>
 
               {/* DESCRIPTION */}
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
                 {banners[activeSlide].description}
               </p>
 
               {/* BUTTONS */}
-              <div className="mt-6 flex flex-nowrap gap-2 sm:flex-wrap sm:gap-3">
+              <div className="mt-2 flex flex-nowrap gap-2 sm:flex-wrap sm:gap-3">
                 {/* REGISTER FREE */}
                 <button
                   onClick={() => navigate("/register")}
@@ -239,20 +239,20 @@ const AbroadBanner = () => {
               </div>
 
               {/* TRUST POINTS */}
-              <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
                 <div className="flex items-center gap-1.5 text-xs text-slate-200">
                   <Check size={14} className="text-emerald-400" />
-                  Verified Jobs
+                  Visa Guidance
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs text-slate-200">
                   <ShieldCheck size={14} className="text-emerald-400" />
-                  Secure Platform
+                  Trusted Companies
                 </div>
 
                 <div className="flex items-center gap-1.5 text-xs text-slate-200">
                   <Zap size={14} className="text-amber-400" />
-                  Fast Hiring
+                  No Prior Experience
                 </div>
               </div>
             </div>

@@ -16,9 +16,9 @@ import {
   UserPlus,
   UserRound,
   X,
-  Trophy
+  Trophy,
 } from "lucide-react";
-
+import { FiUser } from "react-icons/fi";
 
 import { BsCreditCardFill } from "react-icons/bs";
 import { FaBookmark } from "react-icons/fa";
@@ -103,13 +103,6 @@ const Navbar = () => {
   // =========================================================
   // GET PROFILE FROM BACKEND
   // =========================================================
-  // No /auth/me here.
-  //
-  // Your backend has:
-  // GET /api/auth/profile
-  //
-  // So we use the Redux thunk getProfile().
-  // =========================================================
 
   useEffect(() => {
     if (isAuthenticated && token) {
@@ -145,7 +138,10 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target)
+      ) {
         setUserMenu(false);
       }
     };
@@ -198,25 +194,15 @@ const Navbar = () => {
     try {
       setLogoutLoading(true);
 
-      // Redux thunk handles:
-      // POST /api/auth/logout
-      //
-      // It also clears token and user
-      // from the Redux/auth storage logic.
       await dispatch(logoutUser()).unwrap();
 
-      // Close menus
       setUserMenu(false);
       setMobileUserMenu(false);
       setMobileMenu(false);
 
-      // Redirect
       navigate("/login");
     } catch (error) {
       console.error("Logout error:", error);
-
-      // logoutUser thunk already clears auth
-      // even when backend logout fails.
 
       setUserMenu(false);
       setMobileUserMenu(false);
@@ -274,6 +260,7 @@ const Navbar = () => {
           onClose={() => setShowLogoutConfirm(false)}
         />
       )}
+
       {/* =====================================================
           MAIN NAVBAR
       ====================================================== */}
@@ -281,6 +268,7 @@ const Navbar = () => {
       <nav className="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/90 shadow-sm backdrop-blur-xl">
         <div className="mx-auto w-full max-w-[1440px] px-3 sm:px-5 md:px-6 lg:px-8 xl:px-10">
           <div className="flex min-h-[64px] items-center justify-between gap-3 sm:min-h-[68px]">
+
             {/* =================================================
                 LOGO
             ================================================= */}
@@ -290,7 +278,7 @@ const Navbar = () => {
               className="group flex min-w-0 shrink-0 items-center gap-2"
               aria-label="CareerSphere Home"
             >
-              <div className="w-40  md:w-48">
+              <div className="w-40 md:w-48">
                 <img
                   src="https://i.ibb.co/27YvVmBq/logo-D.png"
                   alt=""
@@ -319,7 +307,11 @@ const Navbar = () => {
                           : "text-slate-600 hover:bg-blue-50/70 hover:text-blue-600"
                       }`}
                     >
-                      <Icon size={16} strokeWidth={2} className="shrink-0" />
+                      <Icon
+                        size={16}
+                        strokeWidth={2}
+                        className="shrink-0"
+                      />
 
                       <span>{item.name}</span>
 
@@ -340,10 +332,6 @@ const Navbar = () => {
               ref={userMenuRef}
               className="relative hidden shrink-0 items-center gap-1.5 lg:flex xl:gap-2"
             >
-              {/* =================================================
-                  AUTH LOADING
-              ================================================= */}
-
               {authLoading || logoutLoading ? (
                 <div className="flex items-center gap-2 px-3 py-2">
                   <div className="h-9 w-9 animate-pulse rounded-lg bg-slate-200" />
@@ -351,10 +339,6 @@ const Navbar = () => {
                   <div className="hidden h-3 w-20 animate-pulse rounded bg-slate-200 xl:block" />
                 </div>
               ) : !isAuthenticated ? (
-                /* =================================================
-                   NOT LOGGED IN
-                ================================================= */
-
                 <>
                   {/* LOGIN */}
 
@@ -395,20 +379,18 @@ const Navbar = () => {
                     aria-label="Open user menu"
                     aria-expanded={userMenu}
                   >
-                    {/* USER AVATAR */}
-
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 text-sm font-bold text-white shadow-sm">
                       {getUserInitial()}
                     </div>
-
-                    {/* USER NAME */}
 
                     <div className="hidden max-w-[120px] text-left xl:block">
                       <p className="truncate text-xs font-bold text-slate-800">
                         {getUserName()}
                       </p>
 
-                      <p className="text-[10px] text-slate-400">My Account</p>
+                      <p className="text-[10px] text-slate-400">
+                        My Account
+                      </p>
                     </div>
 
                     <ChevronDown
@@ -425,6 +407,7 @@ const Navbar = () => {
 
                   {userMenu && (
                     <div className="absolute right-0 top-[calc(100%+10px)] w-64 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-300/40">
+
                       {/* USER INFO */}
 
                       <div className="mb-1 rounded-xl bg-slate-50 p-3">
@@ -497,7 +480,9 @@ const Navbar = () => {
                         </span>
 
                         <div>
-                          <p className="font-semibold">Saved Application</p>
+                          <p className="font-semibold">
+                            Saved Application
+                          </p>
 
                           <p className="text-[10px] text-slate-400">
                             View your saved application
@@ -517,7 +502,9 @@ const Navbar = () => {
                         </span>
 
                         <div>
-                          <p className="font-semibold">My Subscription</p>
+                          <p className="font-semibold">
+                            My Subscription
+                          </p>
 
                           <p className="text-[10px] text-slate-400">
                             View your subscription details
@@ -541,7 +528,9 @@ const Navbar = () => {
 
                         <div>
                           <p className="font-semibold">
-                            {logoutLoading ? "Logging out..." : "Logout"}
+                            {logoutLoading
+                              ? "Logging out..."
+                              : "Logout"}
                           </p>
 
                           <p className="text-[10px] text-red-400">
@@ -556,22 +545,43 @@ const Navbar = () => {
             </div>
 
             {/* =================================================
-                MOBILE MENU BUTTON
+                MOBILE SIGN IN + MENU BUTTON
+                ONLY PHONE VIEW
             ================================================= */}
 
-            <button
-              type="button"
-              onClick={toggleMobileMenu}
-              aria-label={mobileMenu ? "Close menu" : "Open menu"}
-              aria-expanded={mobileMenu}
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95 lg:hidden"
-            >
-              {mobileMenu ? (
-                <X size={25} strokeWidth={2} />
-              ) : (
-                <Menu size={25} strokeWidth={2} />
-              )}
-            </button>
+            <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
+              {/* THREE LINE MENU */}
+
+              <button
+                type="button"
+                onClick={toggleMobileMenu}
+                aria-label={
+                  mobileMenu ? "Close menu" : "Open menu"
+                }
+                aria-expanded={mobileMenu}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-slate-600 transition-all duration-200 hover:bg-blue-50 hover:text-blue-600 active:scale-95"
+              >
+                {mobileMenu ? (
+                  <X size={23} strokeWidth={2} />
+                ) : (
+                  <Menu size={23} strokeWidth={2} />
+                )}
+              </button>
+
+              {/* SIGN IN */}
+
+              {!isAuthenticated &&
+                !authLoading &&
+                !logoutLoading && (
+                  <Link
+  to="/login"
+  className="flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-3 text-[11px] font-semibold text-white shadow-sm transition-all hover:bg-blue-500 active:scale-95"
+>
+  <FiUser  size={16} strokeWidth={2.2} />
+  <span>Sign In</span>
+</Link>
+                )}
+            </div>
           </div>
         </div>
       </nav>
@@ -582,7 +592,9 @@ const Navbar = () => {
 
       <div
         className={`fixed inset-0 z-[55] bg-black/50 transition-opacity duration-300 lg:hidden ${
-          mobileMenu ? "opacity-100" : "pointer-events-none opacity-0"
+          mobileMenu
+            ? "opacity-100"
+            : "pointer-events-none opacity-0"
         }`}
         onClick={() => setMobileMenu(false)}
       />
@@ -593,13 +605,17 @@ const Navbar = () => {
 
       <div
         className={`fixed right-0 top-0 z-[60] flex h-full w-[300px] max-w-[85vw] flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${
-          mobileMenu ? "translate-x-0" : "translate-x-full"
+          mobileMenu
+            ? "translate-x-0"
+            : "translate-x-full"
         }`}
       >
         {/* HEADER */}
 
         <div className="flex items-center justify-between border-b border-slate-200 p-4">
-          <span className="text-lg font-bold text-slate-800">Menu</span>
+          <span className="text-lg font-bold text-slate-800">
+            Menu
+          </span>
 
           <button
             type="button"
@@ -614,6 +630,7 @@ const Navbar = () => {
         {/* CONTENT */}
 
         <div className="flex-1 overflow-y-auto p-4">
+
           {/* NAV ITEMS */}
 
           <div className="space-y-1">
@@ -666,6 +683,7 @@ const Navbar = () => {
             ================================================= */
 
             <div className="space-y-2">
+
               {/* LOGIN */}
 
               <Link
@@ -702,11 +720,14 @@ const Navbar = () => {
             ================================================= */
 
             <div className="space-y-2">
+
               {/* USER HEADER */}
 
               <button
                 type="button"
-                onClick={() => setMobileUserMenu((prev) => !prev)}
+                onClick={() =>
+                  setMobileUserMenu((prev) => !prev)
+                }
                 className="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-3"
               >
                 <div className="flex min-w-0 items-center gap-3">
@@ -728,7 +749,9 @@ const Navbar = () => {
                 <ChevronDown
                   size={18}
                   className={`shrink-0 text-slate-400 transition-transform ${
-                    mobileUserMenu ? "rotate-180" : ""
+                    mobileUserMenu
+                      ? "rotate-180"
+                      : ""
                   }`}
                 />
               </button>
@@ -737,6 +760,7 @@ const Navbar = () => {
 
               {mobileUserMenu && (
                 <div className="space-y-1 rounded-xl bg-slate-50 p-2">
+
                   {/* PROFILE */}
 
                   <Link
@@ -747,7 +771,10 @@ const Navbar = () => {
                     }}
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-white hover:text-blue-600"
                   >
-                    <UserRound size={18} className="text-blue-600" />
+                    <UserRound
+                      size={18}
+                      className="text-blue-600"
+                    />
 
                     <span>Profile</span>
                   </Link>
@@ -762,7 +789,10 @@ const Navbar = () => {
                     }}
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-white hover:text-blue-600"
                   >
-                    <FileText size={18} className="text-indigo-600" />
+                    <FileText
+                      size={18}
+                      className="text-indigo-600"
+                    />
 
                     <span>My Applications</span>
                   </Link>
@@ -777,7 +807,10 @@ const Navbar = () => {
                     }}
                     className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-slate-600 hover:bg-white hover:text-blue-600"
                   >
-                    <FaBookmark size={18} className="text-indigo-600" />
+                    <FaBookmark
+                      size={18}
+                      className="text-indigo-600"
+                    />
 
                     <span>Saved Application</span>
                   </Link>
@@ -786,13 +819,19 @@ const Navbar = () => {
 
                   <button
                     type="button"
-                    onClick={() => setShowLogoutConfirm(true)}
+                    onClick={() =>
+                      setShowLogoutConfirm(true)
+                    }
                     disabled={logoutLoading}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-red-500 hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <LogOut size={18} />
 
-                    <span>{logoutLoading ? "Logging out..." : "Logout"}</span>
+                    <span>
+                      {logoutLoading
+                        ? "Logging out..."
+                        : "Logout"}
+                    </span>
                   </button>
                 </div>
               )}

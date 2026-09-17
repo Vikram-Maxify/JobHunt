@@ -196,7 +196,7 @@ const MySubscription = () => {
                 </h2>
 
                 <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
-                  Abhi aapke account par koi active subscription nahi hai.
+                  There is no any active subscription in your account.
                 </p>
 
                 <button

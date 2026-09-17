@@ -1,5 +1,3 @@
-
-import { useEffect, useState } from "react";
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -8,11 +6,11 @@ import {
   ShieldCheck,
   X,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
-const GUEST_POPUP_STORAGE_KEY =
-  "careerSphere_apply_popup_guest_viewed";
+const GUEST_POPUP_STORAGE_KEY = "careerSphere_apply_popup_guest_viewed";
 
 const ApplyNowPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,8 +44,7 @@ const ApplyNowPopup = () => {
       ? `careerSphere_apply_popup_viewed_${userId}`
       : GUEST_POPUP_STORAGE_KEY;
 
-    const hasViewedPopup =
-      localStorage.getItem(storageKey);
+    const hasViewedPopup = localStorage.getItem(storageKey);
 
     // Already viewed
     if (hasViewedPopup === "true") {
@@ -73,14 +70,12 @@ const ApplyNowPopup = () => {
   useEffect(() => {
     if (!isOpen) return;
 
-    const originalOverflow =
-      document.body.style.overflow;
+    const originalOverflow = document.body.style.overflow;
 
     document.body.style.overflow = "hidden";
 
     return () => {
-      document.body.style.overflow =
-        originalOverflow;
+      document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
 
@@ -101,10 +96,7 @@ const ApplyNowPopup = () => {
   // CLOSE POPUP
   // ==========================================
   const handleClose = () => {
-    localStorage.setItem(
-      getPopupStorageKey(),
-      "true"
-    );
+    localStorage.setItem(getPopupStorageKey(), "true");
 
     setIsOpen(false);
   };
@@ -113,10 +105,7 @@ const ApplyNowPopup = () => {
   // APPLY NOW
   // ==========================================
   const handleApplyNow = () => {
-    localStorage.setItem(
-      getPopupStorageKey(),
-      "true"
-    );
+    localStorage.setItem(getPopupStorageKey(), "true");
 
     setIsOpen(false);
 
@@ -237,10 +226,7 @@ const ApplyNowPopup = () => {
               backdrop-blur-sm
             "
           >
-            <BriefcaseBusiness
-              size={24}
-              strokeWidth={2}
-            />
+            <BriefcaseBusiness size={24} strokeWidth={2} />
           </div>
 
           <p className="mb-1 text-xs font-semibold uppercase tracking-[0.16em] text-blue-100">
@@ -252,8 +238,8 @@ const ApplyNowPopup = () => {
           </h2>
 
           <p className="mt-2 max-w-[340px] text-sm leading-5 text-blue-100">
-            Discover exciting jobs and take the next
-            step toward your dream career.
+            Discover exciting jobs and take the next step toward your dream
+            career.
           </p>
         </div>
 
@@ -262,33 +248,21 @@ const ApplyNowPopup = () => {
           {/* Stats */}
           <div className="mb-5 grid grid-cols-3 divide-x divide-slate-200 rounded-2xl border border-slate-100 bg-slate-50 py-3">
             <div className="text-center">
-              <p className="text-lg font-bold text-slate-900">
-                12K+
-              </p>
+              <p className="text-lg font-bold text-slate-900">12K+</p>
 
-              <p className="mt-0.5 text-[11px] text-slate-500">
-                Jobs
-              </p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Jobs</p>
             </div>
 
             <div className="text-center">
-              <p className="text-lg font-bold text-slate-900">
-                500+
-              </p>
+              <p className="text-lg font-bold text-slate-900">500+</p>
 
-              <p className="mt-0.5 text-[11px] text-slate-500">
-                Companies
-              </p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Companies</p>
             </div>
 
             <div className="text-center">
-              <p className="text-lg font-bold text-slate-900">
-                50+
-              </p>
+              <p className="text-lg font-bold text-slate-900">50+</p>
 
-              <p className="mt-0.5 text-[11px] text-slate-500">
-                Countries
-              </p>
+              <p className="mt-0.5 text-[11px] text-slate-500">Countries</p>
             </div>
           </div>
 
@@ -358,7 +332,6 @@ const ApplyNowPopup = () => {
             "
           >
             Explore Jobs & Apply
-
             <ArrowRight
               size={17}
               className="transition-transform duration-200 group-hover:translate-x-1"
@@ -397,4 +370,3 @@ const ApplyNowPopup = () => {
 };
 
 export default ApplyNowPopup;
-

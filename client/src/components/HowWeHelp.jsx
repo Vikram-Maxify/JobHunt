@@ -55,7 +55,7 @@ const HowWeHelp = () => {
         {features.map((feature) => (
           <div
             key={feature.id}
-            className={`${feature.cardBg} p-4 rounded-2xl flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1`}
+            className={`${feature.cardBg} p-2 rounded-2xl flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1`}
           >
             {/* Icon Circle */}
             <div

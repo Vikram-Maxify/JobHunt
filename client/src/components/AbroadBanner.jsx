@@ -79,7 +79,7 @@ const AbroadBanner = () => {
       onMouseLeave={() => setIsPaused(false)}
     >
       {/* HERO WRAPPER */}
-      <div className="relative min-h-[370px] sm:min-h-[550px] lg:h-[560px] lg:min-h-0">
+      <div className="relative min-h-[390px] sm:min-h-[550px] lg:h-[560px] lg:min-h-0">
         {/* BACKGROUND SLIDES */}
         {banners.map((banner, index) => (
           <div
@@ -108,7 +108,7 @@ const AbroadBanner = () => {
         <div
           className="
             relative z-20 mx-auto flex
-            min-h-[310px]
+            min-h-[330px]
             max-w-7xl
             items-start
             px-4
@@ -128,20 +128,20 @@ const AbroadBanner = () => {
             {/* LEFT CONTENT */}
             <div className="max-w-3xl">
               {/* LOCATION + SPONSORED */}
-              <div className="mb-4 flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-black/40 px-3 py-1.5 text-[11px] font-medium text-white backdrop-blur-md">
                   <MapPin size={13} />
                   {bannerSafe(banners[activeSlide]?.location)}
                 </div>
 
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-emerald-400/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-100 backdrop-blur-md">
-                  <Plane size={13} />
-                  Visa Sponsored
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/20 bg-green-400/40 px-3 py-1.5 text-[11px] font-semibold text-white backdrop-blur-md">
+                  <Check size={13} />
+                  Company Sponsored
                 </div>
               </div>
 
               {/* SMALL LABEL */}
-              <div className="mb-1 flex items-center gap-2">
+              {/* <div className="mb-1 flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-900/30">
                   <Globe2 size={15} />
                 </span>
@@ -149,10 +149,10 @@ const AbroadBanner = () => {
                 <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
                   Global Career Opportunities
                 </span>
-              </div>
+              </div> */}
 
               {/* HEADING */}
-              <h1 className="max-w-3xl text-2xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-5xl xl:text-6xl">
+              <h1 className="max-w-2xl text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-5xl xl:text-6xl">
                 {banners[activeSlide].title}
                 <span className="mt-1 block text-blue-400">
                   {banners[activeSlide].highlight}
@@ -160,9 +160,40 @@ const AbroadBanner = () => {
               </h1>
 
               {/* DESCRIPTION */}
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-200 sm:text-base sm:leading-7">
                 {banners[activeSlide].description}
               </p>
+
+               {/* TRUST POINTS */}
+              <div className="mt-3 grid grid-cols-2 gap-x-2 gap-y-2 sm:flex sm:flex-wrap sm:items-center sm:gap-x-5 sm:gap-y-2">
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-500">
+                    <Check size={10} strokeWidth={3} className="text-white" />
+                  </span>
+                  Visa Guidance
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-500">
+                    <Check size={10} strokeWidth={3} className="text-white" />
+                  </span>
+                  Trusted Companies
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-500">
+                    <Check size={10} strokeWidth={3} className="text-white" />
+                  </span>
+                  No Prior Experience
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs text-slate-200">
+                  <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-green-500">
+                    <Check size={10} strokeWidth={3} className="text-white" />
+                  </span>
+                  Global Opportunities
+                </div>
+              </div>
 
               {/* BUTTONS */}
               <div className="mt-2 flex flex-nowrap gap-2 sm:flex-wrap sm:gap-3">
@@ -189,11 +220,11 @@ const AbroadBanner = () => {
                   />
 
                   <span className="flex min-w-0 flex-col items-start justify-center leading-tight">
-                    <span className="whitespace-nowrap text-[11px] font-bold sm:text-sm">
+                    <span className="whitespace-nowrap text-[14px] font-bold sm:text-sm">
                       Register Free
                     </span>
 
-                    <span className="whitespace-nowrap text-[8px] font-medium text-blue-100 sm:text-[11px]">
+                    <span className="whitespace-nowrap text-[9px] font-medium text-blue-100 sm:text-[11px]">
                       Start Your Global Journey Today
                     </span>
                   </span>
@@ -227,34 +258,18 @@ const AbroadBanner = () => {
                   />
 
                   <span className="flex min-w-0 flex-col items-start justify-center leading-tight">
-                    <span className="whitespace-nowrap text-[11px] font-bold sm:text-sm">
+                    <span className="whitespace-nowrap text-[14px] font-bold sm:text-sm">
                       Explore Premium
                     </span>
 
-                    <span className="whitespace-nowrap text-[8px] font-medium text-slate-200 sm:text-[11px]">
+                    <span className="whitespace-nowrap text-[9px] font-medium text-slate-200 sm:text-[11px]">
                       Unlock More Opportunities
                     </span>
                   </span>
                 </button>
               </div>
 
-              {/* TRUST POINTS */}
-              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
-                <div className="flex items-center gap-1.5 text-xs text-slate-200">
-                  <Check size={14} className="text-emerald-400" />
-                  Visa Guidance
-                </div>
-
-                <div className="flex items-center gap-1.5 text-xs text-slate-200">
-                  <ShieldCheck size={14} className="text-emerald-400" />
-                  Trusted Companies
-                </div>
-
-                <div className="flex items-center gap-1.5 text-xs text-slate-200">
-                  <Zap size={14} className="text-amber-400" />
-                  No Prior Experience
-                </div>
-              </div>
+             
             </div>
 
             {/* RIGHT PREMIUM CARD */}

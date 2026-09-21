@@ -140,17 +140,6 @@ const AbroadBanner = () => {
                 </div>
               </div>
 
-              {/* SMALL LABEL */}
-              {/* <div className="mb-1 flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-600 text-white shadow-lg shadow-blue-900/30">
-                  <Globe2 size={15} />
-                </span>
-
-                <span className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">
-                  Global Career Opportunities
-                </span>
-              </div> */}
-
               {/* HEADING */}
               <h1 className="max-w-2xl text-3xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-3xl lg:text-5xl xl:text-6xl">
                 {banners[activeSlide].title}

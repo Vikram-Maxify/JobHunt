@@ -57,6 +57,7 @@ import SuccessStories from "./Pages/SuccessStory";
 import TermCondition from "./Pages/TermCondition";
 import { getProfile } from "./redux/slicer/authSlice";
 import ApplyNowPopup from "./components/ApplyNowPopup";
+import WhatsAppButton from "./components/WhatsApp";
 
 function App() {
   const dispatch = useDispatch();
@@ -202,7 +203,12 @@ function App() {
               </Route>
             </Route>
           </Routes>
-          {!isAdminRoute && <ApplyNowPopup />}
+          {!isAdminRoute && (
+            <>
+              <ApplyNowPopup />
+              <WhatsAppButton />
+            </>
+          )}
         </SubscriptionProvider>
       </ApplicationProvider>
     </JobCategoryProvider>
